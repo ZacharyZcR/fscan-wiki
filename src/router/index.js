@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHashHistory } from 'vue-router'
 
 // 页面组件
 import Home from '../views/Home.vue'
@@ -33,7 +33,7 @@ const routes = [
 ]
 
 const router = createRouter({
-    history: createWebHistory(),
+    history: createWebHashHistory(),  // 使用哈希模式，URL会变成 #/about 形式
     routes
 })
 
