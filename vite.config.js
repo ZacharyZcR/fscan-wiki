@@ -7,5 +7,5 @@ export default defineConfig({
     vue(),
     WindiCSS(),
   ],
-  base: '/fscan-wiki/', // 替换为你实际的 GitHub 仓库名
+  base: '/', // 改为根路径，因为使用了自定义域名
 })
