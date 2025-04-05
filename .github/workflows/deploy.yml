@@ -2,11 +2,13 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [ main ] # 或master，取决于你的默认分支
+    branches: [ main ] # 或 master，取决于你的默认分支
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # 这一行很重要，给予写入权限
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -14,13 +16,12 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 18 # 升级到 Node.js 18
+          node-version: 18
 
       - name: Install dependencies
         run: npm ci
 
       - name: Build
-        # 添加 NODE_OPTIONS 环境变量
         run: NODE_OPTIONS=--openssl-legacy-provider npm run build
 
       - name: Deploy
@@ -29,3 +30,4 @@ jobs:
           folder: dist
           branch: gh-pages
           clean: true
+          token: ${{ secrets.GITHUB_TOKEN }}  # 使用 GitHub 自动提供的令牌
