@@ -6,5 +6,6 @@ export default defineConfig({
   plugins: [
     vue(),
     WindiCSS(),
-  ]
+  ],
+  base: '/fscan-wiki/', // 替换为你实际的 GitHub 仓库名
 })
