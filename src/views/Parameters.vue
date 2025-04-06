@@ -1,12 +1,12 @@
 <template>
-  <div class="max-w-6xl mx-auto px-6">
-    <!-- 页面标题区 - 增大标题和描述 -->
-    <div class="mb-12 text-center">
-      <div class="inline-flex items-center justify-center p-3 rounded-full mb-5 bg-opacity-10"
+  <div class="max-w-7xl mx-auto px-6">
+    <!-- 页面标题区 - 更大气的标题设计 -->
+    <div class="mb-16 text-center py-12">
+      <div class="inline-flex items-center justify-center p-4 rounded-full mb-6 bg-opacity-10"
            :class="isDark ? 'bg-blue-500' : 'bg-blue-100'">
-        <Icon icon="mdi:console-line" class="text-4xl" :class="isDark ? 'text-blue-400' : 'text-blue-600'" />
+        <Icon icon="mdi:console-line" class="text-5xl" :class="isDark ? 'text-blue-400' : 'text-blue-600'" />
       </div>
-      <h1 class="text-4xl font-bold transition-colors duration-300"
+      <h1 class="text-5xl font-bold transition-colors duration-300 mb-4"
           :class="isDark ? 'text-white' : 'text-gray-800'">
         Fscan 参数构建器
       </h1>
@@ -16,25 +16,25 @@
       </p>
     </div>
 
-    <!-- 命令预览框 - 增大字体和内边距 -->
-    <div class="mb-12 sticky top-24 z-10">
-      <div class="rounded-xl overflow-hidden shadow-lg transition-all duration-300 border"
+    <!-- 命令预览框 - 更宽更突出 -->
+    <div class="mb-16 sticky top-6 z-10">
+      <div class="rounded-xl overflow-hidden shadow-xl transition-all duration-300 border"
            :class="isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'">
-        <div class="px-6 py-5 border-b flex justify-between items-center"
+        <div class="px-8 py-6 border-b flex justify-between items-center"
              :class="isDark ? 'border-gray-700 bg-gray-800/80' : 'border-gray-200 bg-gray-50'">
           <div class="flex items-center">
             <Icon icon="mdi:console" class="mr-3 text-2xl" :class="isDark ? 'text-blue-400' : 'text-blue-600'" />
-            <span class="font-medium text-lg" :class="isDark ? 'text-gray-200' : 'text-gray-700'">命令预览</span>
+            <span class="font-medium text-xl" :class="isDark ? 'text-gray-200' : 'text-gray-700'">命令预览</span>
           </div>
           <div class="flex items-center space-x-4">
             <button @click="resetCommand"
-                    class="text-sm px-4 py-2.5 rounded-lg transition-all duration-200 flex items-center hover:scale-105"
+                    class="text-sm px-5 py-3 rounded-lg transition-all duration-200 flex items-center hover:scale-105"
                     :class="isDark ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'">
               <Icon icon="mdi:refresh" class="mr-2 text-base" />
               重置
             </button>
             <button @click="copyCommand"
-                    class="text-sm px-4 py-2.5 rounded-lg transition-all duration-200 flex items-center hover:scale-105"
+                    class="text-sm px-5 py-3 rounded-lg transition-all duration-200 flex items-center hover:scale-105"
                     :class="isDark ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'">
               <Icon icon="mdi:content-copy" class="mr-2 text-base" />
               复制命令
@@ -42,8 +42,8 @@
           </div>
         </div>
         <div class="relative">
-          <!-- 命令预览区域 - 增大字体 -->
-          <div class="p-6 overflow-x-auto font-mono text-base whitespace-pre-wrap break-all min-h-[70px]"
+          <!-- 命令预览区域 - 更宽敞 -->
+          <div class="p-8 overflow-x-auto font-mono text-base whitespace-pre-wrap break-all min-h-[80px]"
                :class="isDark ? 'text-gray-300 bg-gray-800' : 'text-gray-800 bg-white'">
             <span v-if="params.h.length === 0" class="text-gray-500 italic">添加目标地址后，命令将显示在这里</span>
             <template v-else>
@@ -69,53 +69,53 @@
       </div>
     </div>
 
-    <!-- 参数选择区 - 增大间距和字体 -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-      <!-- 基础参数 -->
-      <div class="rounded-xl border overflow-hidden shadow-md transition-colors duration-300"
-           :class="isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'">
-        <div class="px-6 py-5 border-b flex items-center"
-             :class="isDark ? 'border-gray-700 bg-gray-750' : 'border-gray-200 bg-gray-50'">
-          <Icon icon="mdi:tune-vertical" class="mr-3 text-2xl" :class="isDark ? 'text-blue-400' : 'text-blue-600'" />
-          <h2 class="font-medium text-lg" :class="isDark ? 'text-gray-200' : 'text-gray-700'">基础参数</h2>
-        </div>
-        <div class="p-6 space-y-6">
-          <!-- 目标参数 - 增大输入框和字体 -->
-          <div>
-            <label class="block mb-3 text-base font-medium"
-                   :class="isDark ? 'text-gray-300' : 'text-gray-700'">
-              目标地址
-            </label>
-            <div class="flex">
-              <input type="text" v-model="targetInput" @keyup.enter="addTarget"
-                     placeholder="IP/域名/IP段 (例如: 192.168.1.1/24)"
-                     class="flex-1 px-4 py-3 text-base rounded-l-lg border outline-none transition-colors duration-200"
-                     :class="isDark ? 'bg-gray-700 border-gray-600 text-gray-200 focus:border-blue-500' : 'bg-white border-gray-300 text-gray-700 focus:border-blue-500'" />
-              <button @click="addTarget"
-                      class="px-5 py-3 rounded-r-lg text-white text-base transition-all duration-200 flex items-center hover:shadow-md"
-                      :class="isDark ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-600 hover:bg-blue-700'">
-                <Icon icon="mdi:plus" class="mr-2 text-lg" />
-                添加
-              </button>
-            </div>
-
-            <!-- 目标标签 - 增大标签 -->
-            <div v-if="params.h.length > 0" class="mt-4 flex flex-wrap gap-2">
-              <div v-for="(target, index) in params.h" :key="index"
-                   class="text-sm px-3 py-2 rounded-full flex items-center group transition-all duration-200"
-                   :class="isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'">
-                <span class="mr-2">{{ target }}</span>
-                <button @click="removeTarget(index)" class="text-sm p-0.5 rounded-full group-hover:bg-red-500/20">
-                  <Icon icon="mdi:close-circle" class="text-base transition-colors duration-200"
-                        :class="isDark ? 'text-gray-400 group-hover:text-red-400' : 'text-gray-500 group-hover:text-red-500'" />
-                </button>
-              </div>
-            </div>
+    <!-- 基础参数卡片 - 占据整行 -->
+    <div class="mb-16 rounded-xl border overflow-hidden shadow-lg transition-colors duration-300"
+         :class="isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'">
+      <div class="px-8 py-6 border-b flex items-center"
+           :class="isDark ? 'border-gray-700 bg-gray-750' : 'border-gray-200 bg-gray-50'">
+        <Icon icon="mdi:tune-vertical" class="mr-3 text-2xl" :class="isDark ? 'text-blue-400' : 'text-blue-600'" />
+        <h2 class="font-medium text-xl" :class="isDark ? 'text-gray-200' : 'text-gray-700'">基础参数</h2>
+      </div>
+      <div class="p-8">
+        <!-- 目标参数区域 -->
+        <div class="mb-10">
+          <label class="block mb-3 text-lg font-medium"
+                 :class="isDark ? 'text-gray-300' : 'text-gray-700'">
+            目标地址
+          </label>
+          <div class="flex">
+            <input type="text" v-model="targetInput" @keyup.enter="addTarget"
+                   placeholder="IP/域名/IP段 (例如: 192.168.1.1/24)"
+                   class="flex-1 px-4 py-3 text-base rounded-l-lg border outline-none transition-colors duration-200"
+                   :class="isDark ? 'bg-gray-700 border-gray-600 text-gray-200 focus:border-blue-500' : 'bg-white border-gray-300 text-gray-700 focus:border-blue-500'" />
+            <button @click="addTarget"
+                    class="px-6 py-3 rounded-r-lg text-white text-base transition-all duration-200 flex items-center hover:shadow-md"
+                    :class="isDark ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-600 hover:bg-blue-700'">
+              <Icon icon="mdi:plus" class="mr-2 text-lg" />
+              添加
+            </button>
           </div>
 
-          <!-- 端口参数 - 增大输入框 -->
+          <!-- 目标标签 -->
+          <div v-if="params.h.length > 0" class="mt-5 flex flex-wrap gap-2">
+            <div v-for="(target, index) in params.h" :key="index"
+                 class="text-sm px-3 py-2 rounded-full flex items-center group transition-all duration-200"
+                 :class="isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'">
+              <span class="mr-2">{{ target }}</span>
+              <button @click="removeTarget(index)" class="text-sm p-0.5 rounded-full group-hover:bg-red-500/20">
+                <Icon icon="mdi:close-circle" class="text-base transition-colors duration-200"
+                      :class="isDark ? 'text-gray-400 group-hover:text-red-400' : 'text-gray-500 group-hover:text-red-500'" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 端口和线程设置区域 - 横向布局 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+          <!-- 端口参数 -->
           <div>
-            <label class="block mb-3 text-base font-medium"
+            <label class="block mb-3 text-lg font-medium"
                    :class="isDark ? 'text-gray-300' : 'text-gray-700'">
               扫描端口
             </label>
@@ -135,97 +135,50 @@
             </div>
           </div>
 
-          <!-- 线程设置 - 增大控件 -->
+          <!-- 线程和超时设置 -->
           <div>
-            <label class="block mb-3 text-base font-medium flex justify-between"
-                   :class="isDark ? 'text-gray-300' : 'text-gray-700'">
-              <span>线程数</span>
-              <span class="text-sm" :class="isDark ? 'text-gray-500' : 'text-gray-500'">1-2000</span>
-            </label>
-            <div class="flex items-center">
-              <button @click="decrementNum"
-                      class="px-4 py-3 rounded-l-lg border border-r-0 transition-colors duration-200"
-                      :class="isDark ? 'bg-gray-700 border-gray-600 text-gray-400 hover:text-gray-200' : 'bg-gray-100 border-gray-300 text-gray-700'">
-                <Icon icon="mdi:minus" class="text-lg" />
-              </button>
-              <input type="number" v-model.number="params.num" min="1" max="2000"
-                     class="w-full px-4 py-3 text-base border text-center outline-none transition-colors duration-200"
-                     :class="isDark ? 'bg-gray-700 border-gray-600 text-gray-200 focus:border-blue-500' : 'bg-white border-gray-300 text-gray-700 focus:border-blue-500'" />
-              <button @click="incrementNum"
-                      class="px-4 py-3 rounded-r-lg border border-l-0 transition-colors duration-200"
-                      :class="isDark ? 'bg-gray-700 border-gray-600 text-gray-400 hover:text-gray-200' : 'bg-gray-100 border-gray-300 text-gray-700'">
-                <Icon icon="mdi:plus" class="text-lg" />
-              </button>
-            </div>
-          </div>
-
-          <!-- 超时设置 - 增大滑块 -->
-          <div>
-            <label class="block mb-3 text-base font-medium flex justify-between"
-                   :class="isDark ? 'text-gray-300' : 'text-gray-700'">
-              <span>超时时间</span>
-              <span :class="isDark ? 'text-gray-400' : 'text-gray-600'">{{ params.timeout }} 秒</span>
-            </label>
-            <input type="range" v-model.number="params.timeout" min="1" max="60" step="1"
-                   class="w-full h-3 rounded-lg appearance-none cursor-pointer transition-all duration-200"
-                   :class="isDark ? 'bg-gray-700' : 'bg-gray-200'" />
-          </div>
-        </div>
-      </div>
-
-      <!-- 扫描模式 - 增大选项卡片 -->
-      <div class="rounded-xl border overflow-hidden shadow-md transition-colors duration-300"
-           :class="isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'">
-        <div class="px-6 py-5 border-b flex items-center"
-             :class="isDark ? 'border-gray-700 bg-gray-750' : 'border-gray-200 bg-gray-50'">
-          <Icon icon="mdi:radar" class="mr-3 text-2xl" :class="isDark ? 'text-blue-400' : 'text-blue-600'" />
-          <h2 class="font-medium text-lg" :class="isDark ? 'text-gray-200' : 'text-gray-700'">扫描模式</h2>
-        </div>
-        <div class="p-6">
-          <!-- 扫描模式开关 - 增大开关卡片 -->
-          <div class="space-y-5">
-            <div v-for="(option, key) in scanModeOptions" :key="key"
-                 class="flex items-center justify-between p-4 rounded-lg transition-all duration-200"
-                 :class="[option.enabled ?
-                         (isDark ? 'bg-blue-900/30 border border-blue-500/20' : 'bg-blue-50 border border-blue-100') :
-                         (isDark ? 'bg-gray-750 border border-gray-700' : 'bg-gray-50 border border-gray-200')]">
-              <div>
-                <div class="font-medium text-base flex items-center"
-                     :class="isDark ? 'text-gray-200' : 'text-gray-700'">
-                  <Icon :icon="option.icon" class="mr-2 text-xl"
-                        :class="option.enabled ? (isDark ? 'text-blue-400' : 'text-blue-600') : (isDark ? 'text-gray-500' : 'text-gray-400')" />
-                  {{ option.name }}
-                </div>
-                <div class="text-sm mt-1.5 ml-7"
-                     :class="isDark ? 'text-gray-400' : 'text-gray-500'">
-                  {{ option.description }}
-                </div>
+            <div class="mb-6">
+              <label class="block mb-3 text-lg font-medium flex justify-between"
+                     :class="isDark ? 'text-gray-300' : 'text-gray-700'">
+                <span>线程数</span>
+                <span class="text-sm" :class="isDark ? 'text-gray-500' : 'text-gray-500'">1-2000</span>
+              </label>
+              <div class="flex items-center">
+                <button @click="decrementNum"
+                        class="px-4 py-3 rounded-l-lg border border-r-0 transition-colors duration-200"
+                        :class="isDark ? 'bg-gray-700 border-gray-600 text-gray-400 hover:text-gray-200' : 'bg-gray-100 border-gray-300 text-gray-700'">
+                  <Icon icon="mdi:minus" class="text-lg" />
+                </button>
+                <input type="number" v-model.number="params.num" min="1" max="2000"
+                       class="w-full px-4 py-3 text-base border text-center outline-none transition-colors duration-200"
+                       :class="isDark ? 'bg-gray-700 border-gray-600 text-gray-200 focus:border-blue-500' : 'bg-white border-gray-300 text-gray-700 focus:border-blue-500'" />
+                <button @click="incrementNum"
+                        class="px-4 py-3 rounded-r-lg border border-l-0 transition-colors duration-200"
+                        :class="isDark ? 'bg-gray-700 border-gray-600 text-gray-400 hover:text-gray-200' : 'bg-gray-100 border-gray-300 text-gray-700'">
+                  <Icon icon="mdi:plus" class="text-lg" />
+                </button>
               </div>
-              <!-- 开关样式 - 增大开关 -->
-              <button @click="toggleOption(key, option)" class="flex-shrink-0">
-                <div class="w-14 h-7 rounded-full transition-colors duration-200 flex items-center px-0.5"
-                     :class="option.enabled ? 'bg-blue-600' : (isDark ? 'bg-gray-600' : 'bg-gray-300')">
-                  <div class="w-6 h-6 rounded-full bg-white transform transition-transform duration-200 shadow-md"
-                       :class="option.enabled ? 'translate-x-7' : 'translate-x-0'"></div>
-                </div>
-              </button>
+            </div>
+
+            <!-- 超时设置 -->
+            <div>
+              <label class="block mb-3 text-lg font-medium flex justify-between"
+                     :class="isDark ? 'text-gray-300' : 'text-gray-700'">
+                <span>超时时间</span>
+                <span :class="isDark ? 'text-gray-400' : 'text-gray-600'">{{ params.timeout }} 秒</span>
+              </label>
+              <input type="range" v-model.number="params.timeout" min="1" max="60" step="1"
+                     class="w-full h-3 rounded-lg appearance-none cursor-pointer transition-all duration-200"
+                     :class="isDark ? 'bg-gray-700' : 'bg-gray-200'" />
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- 高级选项 - 增大输入区域 -->
-      <div class="rounded-xl border overflow-hidden shadow-md transition-colors duration-300"
-           :class="isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'">
-        <div class="px-6 py-5 border-b flex items-center"
-             :class="isDark ? 'border-gray-700 bg-gray-750' : 'border-gray-200 bg-gray-50'">
-          <Icon icon="mdi:cog" class="mr-3 text-2xl" :class="isDark ? 'text-blue-400' : 'text-blue-600'" />
-          <h2 class="font-medium text-lg" :class="isDark ? 'text-gray-200' : 'text-gray-700'">高级选项</h2>
-        </div>
-        <div class="p-6 space-y-6">
-          <!-- 输出文件 - 增大输入框 -->
+        <!-- 输出文件和UA设置 - 横向布局 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <!-- 输出文件 -->
           <div>
-            <label class="block mb-3 text-base font-medium"
+            <label class="block mb-3 text-lg font-medium"
                    :class="isDark ? 'text-gray-300' : 'text-gray-700'">
               输出文件
             </label>
@@ -240,9 +193,9 @@
             </div>
           </div>
 
-          <!-- 自定义UA - 增大输入框 -->
+          <!-- 自定义UA -->
           <div>
-            <label class="block mb-3 text-base font-medium"
+            <label class="block mb-3 text-lg font-medium"
                    :class="isDark ? 'text-gray-300' : 'text-gray-700'">
               自定义 User-Agent
             </label>
@@ -256,115 +209,167 @@
                      :class="isDark ? 'bg-gray-700 border-gray-600 text-gray-200 focus:border-blue-500' : 'bg-white border-gray-300 text-gray-700 focus:border-blue-500'" />
             </div>
           </div>
+        </div>
+      </div>
+    </div>
 
-          <!-- 高级开关选项 - 增大开关 -->
-          <div class="space-y-5">
-            <div v-for="(option, key) in advancedOptions" :key="key"
-                 class="flex items-center justify-between p-4 rounded-lg transition-all duration-200"
-                 :class="[option.enabled ?
-                         (isDark ? 'bg-blue-900/30 border border-blue-500/20' : 'bg-blue-50 border border-blue-100') :
-                         (isDark ? 'bg-gray-750 border border-gray-700' : 'bg-gray-50 border border-gray-200')]">
-              <div>
-                <div class="font-medium text-base flex items-center"
-                     :class="isDark ? 'text-gray-200' : 'text-gray-700'">
-                  <Icon :icon="option.icon" class="mr-2 text-xl"
-                        :class="option.enabled ? (isDark ? 'text-blue-400' : 'text-blue-600') : (isDark ? 'text-gray-500' : 'text-gray-400')" />
-                  {{ option.name }}
-                </div>
-                <div class="text-sm mt-1.5 ml-7"
-                     :class="isDark ? 'text-gray-400' : 'text-gray-500'">
-                  {{ option.description }}
-                </div>
+    <!-- 扫描模式卡片 - 整行布局 -->
+    <div class="mb-16 rounded-xl border overflow-hidden shadow-lg transition-colors duration-300"
+         :class="isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'">
+      <div class="px-8 py-6 border-b flex items-center"
+           :class="isDark ? 'border-gray-700 bg-gray-750' : 'border-gray-200 bg-gray-50'">
+        <Icon icon="mdi:radar" class="mr-3 text-2xl" :class="isDark ? 'text-blue-400' : 'text-blue-600'" />
+        <h2 class="font-medium text-xl" :class="isDark ? 'text-gray-200' : 'text-gray-700'">扫描模式</h2>
+      </div>
+      <div class="p-8">
+        <!-- 扫描模式选项 - 网格布局 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div v-for="(option, key) in scanModeOptions" :key="key"
+               class="flex items-center justify-between p-5 rounded-xl transition-all duration-200 hover:shadow-md"
+               :class="[option.enabled ?
+                       (isDark ? 'bg-blue-900/30 border border-blue-500/20' : 'bg-blue-50 border border-blue-100') :
+                       (isDark ? 'bg-gray-750 border border-gray-700' : 'bg-gray-50 border border-gray-200')]">
+            <div class="flex-1">
+              <div class="font-medium text-base flex items-center"
+                   :class="isDark ? 'text-gray-200' : 'text-gray-700'">
+                <Icon :icon="option.icon" class="mr-2 text-xl"
+                      :class="option.enabled ? (isDark ? 'text-blue-400' : 'text-blue-600') : (isDark ? 'text-gray-500' : 'text-gray-400')" />
+                {{ option.name }}
               </div>
-              <!-- 开关样式 - 增大开关 -->
-              <button @click="toggleOption(key, option)" class="flex-shrink-0">
-                <div class="w-14 h-7 rounded-full transition-colors duration-200 flex items-center px-0.5"
-                     :class="option.enabled ? 'bg-blue-600' : (isDark ? 'bg-gray-600' : 'bg-gray-300')">
-                  <div class="w-6 h-6 rounded-full bg-white transform transition-transform duration-200 shadow-md"
-                       :class="option.enabled ? 'translate-x-7' : 'translate-x-0'"></div>
-                </div>
-              </button>
+              <div class="text-sm mt-1.5 ml-7"
+                   :class="isDark ? 'text-gray-400' : 'text-gray-500'">
+                {{ option.description }}
+              </div>
             </div>
+            <!-- 开关样式 -->
+            <button @click="toggleOption(key, option)" class="flex-shrink-0 ml-4">
+              <div class="w-14 h-7 rounded-full transition-colors duration-200 flex items-center px-0.5"
+                   :class="option.enabled ? 'bg-blue-600' : (isDark ? 'bg-gray-600' : 'bg-gray-300')">
+                <div class="w-6 h-6 rounded-full bg-white transform transition-transform duration-200 shadow-md"
+                     :class="option.enabled ? 'translate-x-7' : 'translate-x-0'"></div>
+              </div>
+            </button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- 命令详情 - 增大字体和间距 -->
-    <div class="rounded-xl border overflow-hidden shadow-md transition-colors duration-300 mb-14"
+    <!-- 高级选项卡片 - 整行布局 -->
+    <div class="mb-16 rounded-xl border overflow-hidden shadow-lg transition-colors duration-300"
          :class="isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'">
-      <div class="px-6 py-5 border-b flex items-center"
+      <div class="px-8 py-6 border-b flex items-center"
+           :class="isDark ? 'border-gray-700 bg-gray-750' : 'border-gray-200 bg-gray-50'">
+        <Icon icon="mdi:cog" class="mr-3 text-2xl" :class="isDark ? 'text-blue-400' : 'text-blue-600'" />
+        <h2 class="font-medium text-xl" :class="isDark ? 'text-gray-200' : 'text-gray-700'">高级选项</h2>
+      </div>
+      <div class="p-8">
+        <!-- 高级选项 - 网格布局 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-6">
+          <div v-for="(option, key) in advancedOptions" :key="key"
+               class="flex items-center justify-between p-5 rounded-xl transition-all duration-200 hover:shadow-md"
+               :class="[option.enabled ?
+                       (isDark ? 'bg-blue-900/30 border border-blue-500/20' : 'bg-blue-50 border border-blue-100') :
+                       (isDark ? 'bg-gray-750 border border-gray-700' : 'bg-gray-50 border border-gray-200')]">
+            <div class="flex-1">
+              <div class="font-medium text-base flex items-center"
+                   :class="isDark ? 'text-gray-200' : 'text-gray-700'">
+                <Icon :icon="option.icon" class="mr-2 text-xl"
+                      :class="option.enabled ? (isDark ? 'text-blue-400' : 'text-blue-600') : (isDark ? 'text-gray-500' : 'text-gray-400')" />
+                {{ option.name }}
+              </div>
+              <div class="text-sm mt-1.5 ml-7"
+                   :class="isDark ? 'text-gray-400' : 'text-gray-500'">
+                {{ option.description }}
+              </div>
+            </div>
+            <!-- 开关样式 -->
+            <button @click="toggleOption(key, option)" class="flex-shrink-0 ml-4">
+              <div class="w-14 h-7 rounded-full transition-colors duration-200 flex items-center px-0.5"
+                   :class="option.enabled ? 'bg-blue-600' : (isDark ? 'bg-gray-600' : 'bg-gray-300')">
+                <div class="w-6 h-6 rounded-full bg-white transform transition-transform duration-200 shadow-md"
+                     :class="option.enabled ? 'translate-x-7' : 'translate-x-0'"></div>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 命令详情部分 - 更宽敞的布局 -->
+    <div class="rounded-xl border overflow-hidden shadow-lg transition-colors duration-300 mb-16"
+         :class="isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'">
+      <div class="px-8 py-6 border-b flex items-center"
            :class="isDark ? 'border-gray-700 bg-gray-750' : 'border-gray-200 bg-gray-50'">
         <Icon icon="mdi:information-outline" class="mr-3 text-2xl" :class="isDark ? 'text-blue-400' : 'text-blue-600'" />
-        <h2 class="font-medium text-lg" :class="isDark ? 'text-gray-200' : 'text-gray-700'">命令详情</h2>
+        <h2 class="font-medium text-xl" :class="isDark ? 'text-gray-200' : 'text-gray-700'">命令详情</h2>
       </div>
-      <div class="p-7">
+      <div class="p-8">
         <div :class="isDark ? 'text-gray-300' : 'text-gray-700'">
-          <p class="text-xl font-medium mb-6">当前命令将执行以下操作：</p>
+          <p class="text-2xl font-medium mb-8">当前命令将执行以下操作：</p>
 
           <!-- 未添加目标时的提示 -->
           <div v-if="params.h.length === 0"
-               class="p-6 rounded-lg mb-6 flex items-center border text-center"
+               class="p-8 rounded-lg mb-8 flex items-center border text-center"
                :class="isDark ? 'bg-red-900/10 text-red-300 border-red-800/20' : 'bg-red-50 text-red-600 border-red-100'">
-            <Icon icon="mdi:alert-circle-outline" class="text-2xl mr-4 flex-shrink-0" />
-            <p class="text-base">请添加目标地址以开始构建命令。您可以添加单个IP、域名或CIDR格式的IP段（例如：192.168.1.1/24）。</p>
+            <Icon icon="mdi:alert-circle-outline" class="text-3xl mr-5 flex-shrink-0" />
+            <p class="text-lg">请添加目标地址以开始构建命令。您可以添加单个IP、域名或CIDR格式的IP段（例如：192.168.1.1/24）。</p>
           </div>
 
           <!-- 已添加目标时的详情列表 -->
           <div v-else>
-            <ul class="space-y-5 mb-7">
-              <li class="flex items-start p-4 rounded-lg transition-colors duration-200 hover:bg-opacity-50"
+            <ul class="space-y-6 mb-8">
+              <li class="flex items-start p-6 rounded-xl transition-colors duration-200 hover:bg-opacity-50"
                   :class="isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'">
-                <div class="p-2.5 rounded-lg mr-4 flex-shrink-0 mt-0.5"
+                <div class="p-3 rounded-xl mr-5 flex-shrink-0 mt-0.5"
                      :class="isDark ? 'bg-blue-900/20 text-blue-400' : 'bg-blue-50 text-blue-600'">
-                  <Icon icon="mdi:target" class="text-xl" />
+                  <Icon icon="mdi:target" class="text-2xl" />
                 </div>
                 <div>
-                  <div class="font-medium text-lg">扫描目标</div>
-                  <div class="text-base mt-1.5" :class="isDark ? 'text-gray-400' : 'text-gray-600'">
+                  <div class="font-medium text-xl">扫描目标</div>
+                  <div class="text-lg mt-2" :class="isDark ? 'text-gray-400' : 'text-gray-600'">
                     {{ params.h.join(', ') }}
                     <span v-if="params.h.length > 1" class="text-sm ml-2 opacity-70">(多个目标)</span>
                   </div>
                 </div>
               </li>
 
-              <li v-if="params.p" class="flex items-start p-4 rounded-lg transition-colors duration-200 hover:bg-opacity-50"
+              <li v-if="params.p" class="flex items-start p-6 rounded-xl transition-colors duration-200 hover:bg-opacity-50"
                   :class="isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'">
-                <div class="p-2.5 rounded-lg mr-4 flex-shrink-0 mt-0.5"
+                <div class="p-3 rounded-xl mr-5 flex-shrink-0 mt-0.5"
                      :class="isDark ? 'bg-purple-900/20 text-purple-400' : 'bg-purple-50 text-purple-600'">
-                  <Icon icon="mdi:lan-connect" class="text-xl" />
+                  <Icon icon="mdi:lan-connect" class="text-2xl" />
                 </div>
                 <div>
-                  <div class="font-medium text-lg">扫描端口</div>
-                  <div class="text-base mt-1.5" :class="isDark ? 'text-gray-400' : 'text-gray-600'">
+                  <div class="font-medium text-xl">扫描端口</div>
+                  <div class="text-lg mt-2" :class="isDark ? 'text-gray-400' : 'text-gray-600'">
                     {{ params.p }}
                   </div>
                 </div>
               </li>
 
-              <li class="flex items-start p-4 rounded-lg transition-colors duration-200 hover:bg-opacity-50"
+              <li class="flex items-start p-6 rounded-xl transition-colors duration-200 hover:bg-opacity-50"
                   :class="isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'">
-                <div class="p-2.5 rounded-lg mr-4 flex-shrink-0 mt-0.5"
+                <div class="p-3 rounded-xl mr-5 flex-shrink-0 mt-0.5"
                      :class="isDark ? 'bg-green-900/20 text-green-400' : 'bg-green-50 text-green-600'">
-                  <Icon icon="mdi:speedometer" class="text-xl" />
+                  <Icon icon="mdi:speedometer" class="text-2xl" />
                 </div>
                 <div>
-                  <div class="font-medium text-lg">扫描性能</div>
-                  <div class="text-base mt-1.5" :class="isDark ? 'text-gray-400' : 'text-gray-600'">
+                  <div class="font-medium text-xl">扫描性能</div>
+                  <div class="text-lg mt-2" :class="isDark ? 'text-gray-400' : 'text-gray-600'">
                     使用 <span class="font-medium">{{ params.num }}</span> 个线程进行扫描，超时时间设置为 <span class="font-medium">{{ params.timeout }}</span> 秒
                   </div>
                 </div>
               </li>
 
-              <li v-if="params.o" class="flex items-start p-4 rounded-lg transition-colors duration-200 hover:bg-opacity-50"
+              <li v-if="params.o" class="flex items-start p-6 rounded-xl transition-colors duration-200 hover:bg-opacity-50"
                   :class="isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'">
-                <div class="p-2.5 rounded-lg mr-4 flex-shrink-0 mt-0.5"
+                <div class="p-3 rounded-xl mr-5 flex-shrink-0 mt-0.5"
                      :class="isDark ? 'bg-amber-900/20 text-amber-400' : 'bg-amber-50 text-amber-600'">
-                  <Icon icon="mdi:file-document-outline" class="text-xl" />
+                  <Icon icon="mdi:file-document-outline" class="text-2xl" />
                 </div>
                 <div>
-                  <div class="font-medium text-lg">结果输出</div>
-                  <div class="text-base mt-1.5" :class="isDark ? 'text-gray-400' : 'text-gray-600'">
+                  <div class="font-medium text-xl">结果输出</div>
+                  <div class="text-lg mt-2" :class="isDark ? 'text-gray-400' : 'text-gray-600'">
                     扫描结果将保存到 <span class="font-medium">{{ params.o }}</span> 文件中
                   </div>
                 </div>
@@ -372,15 +377,15 @@
 
               <!-- 已启用的特殊选项 -->
               <li v-for="(option, key) in getEnabledOptions()" :key="key"
-                  class="flex items-start p-4 rounded-lg transition-colors duration-200 hover:bg-opacity-50"
+                  class="flex items-start p-6 rounded-xl transition-colors duration-200 hover:bg-opacity-50"
                   :class="isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'">
-                <div class="p-2.5 rounded-lg mr-4 flex-shrink-0 mt-0.5"
+                <div class="p-3 rounded-xl mr-5 flex-shrink-0 mt-0.5"
                      :class="isDark ? 'bg-indigo-900/20 text-indigo-400' : 'bg-indigo-50 text-indigo-600'">
-                  <Icon :icon="option.icon || 'mdi:check-circle'" class="text-xl" />
+                  <Icon :icon="option.icon || 'mdi:check-circle'" class="text-2xl" />
                 </div>
                 <div>
-                  <div class="font-medium text-lg">{{ option.name }}</div>
-                  <div class="text-base mt-1.5" :class="isDark ? 'text-gray-400' : 'text-gray-600'">
+                  <div class="font-medium text-xl">{{ option.name }}</div>
+                  <div class="text-lg mt-2" :class="isDark ? 'text-gray-400' : 'text-gray-600'">
                     {{ option.detail }}
                   </div>
                 </div>
@@ -388,17 +393,17 @@
             </ul>
           </div>
 
-          <!-- 提示信息 -->
-          <div class="p-6 rounded-lg border border-dashed"
+          <!-- 提示信息 - 更宽敞 -->
+          <div class="p-8 rounded-xl border border-dashed"
                :class="isDark ? 'border-gray-700 bg-gray-700/30' : 'border-gray-300 bg-gray-50'">
             <div class="flex items-start">
-              <div class="p-2.5 rounded-full mr-4 flex-shrink-0"
+              <div class="p-3 rounded-full mr-5 flex-shrink-0"
                    :class="isDark ? 'bg-yellow-900/20 text-yellow-400' : 'bg-yellow-100 text-yellow-600'">
                 <Icon icon="mdi:lightbulb-outline" class="text-2xl" />
               </div>
               <div>
-                <p class="font-medium mb-3 text-lg">安全使用提示</p>
-                <p class="text-base leading-relaxed" :class="isDark ? 'text-gray-400' : 'text-gray-600'">
+                <p class="font-medium mb-4 text-xl">安全使用提示</p>
+                <p class="text-lg leading-relaxed" :class="isDark ? 'text-gray-400' : 'text-gray-600'">
                   Fscan 是一款内网综合扫描工具，支持端口扫描、服务识别、漏洞检测等功能。在高安全环境下使用时，请合理设置线程数和超时时间，避免触发安全设备告警。建议在非生产环境先行测试，确保扫描不会对目标系统造成负面影响。详细使用方法请参考 <router-link to="/documents" class="text-blue-500 hover:underline">文档中心</router-link>。
                 </p>
               </div>
@@ -688,8 +693,8 @@ const resetCommand = () => {
 /* 滑块样式 */
 input[type="range"]::-webkit-slider-thumb {
   appearance: none;
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
   background: #3b82f6;
   cursor: pointer;
