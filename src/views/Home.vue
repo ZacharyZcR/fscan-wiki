@@ -15,7 +15,7 @@
             新版本 2.0.0-build4 现已发布
           </div>
 
-          <h1 class="text-3xl md:text-5xl font-bold mb-4 text-white leading-tight text-shadow-glow">
+          <h1 class="text-3xl md:text-5xl font-bold mb-4 text-white leading-tight">
             Fscan 安全扫描<span class="text-blue-200 animate-pulse-subtle">知识库</span>
           </h1>
 
@@ -60,7 +60,7 @@
 
       <!-- 波浪动画效果 -->
       <div class="absolute bottom-0 left-0 right-0">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 120" class="w-full h-auto fill-current animate-wave" :class="isDark ? 'text-gray-900' : 'text-gray-50'">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 120" class="w-full h-auto fill-current" :class="isDark ? 'text-gray-900' : 'text-gray-50'">
           <path d="M0,64L80,69.3C160,75,320,85,480,80C640,75,800,53,960,48C1120,43,1280,53,1360,58.7L1440,64L1440,120L1360,120C1280,120,1120,120,960,120C800,120,640,120,480,120C320,120,160,120,80,120L0,120Z"></path>
         </svg>
       </div>

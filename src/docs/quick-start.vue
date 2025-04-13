@@ -91,17 +91,23 @@
 
       <p class="mb-4">Fscan 的基本命令格式如下：</p>
 
+      <!-- 优化后的代码块，移除灰色背景 -->
       <div class="mb-4">
-        <div class="bg-gray-900 text-gray-200 rounded-lg overflow-hidden">
-          <pre class="p-3 text-sm font-mono overflow-x-auto"><code>./fscan [选项] [参数]</code></pre>
+        <div class="rounded-lg overflow-hidden border transition-colors duration-300"
+             :class="isDark ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50'">
+          <pre class="p-3 text-sm font-mono overflow-x-auto"><code class="transition-colors duration-300"
+                                                                   :class="isDark ? 'text-gray-100' : 'text-gray-800'">./fscan [选项] [参数]</code></pre>
         </div>
       </div>
 
       <p class="mb-4">例如，扫描指定 IP 范围的常见端口：</p>
 
+      <!-- 优化后的代码块，移除灰色背景 -->
       <div class="mb-4">
-        <div class="bg-gray-900 text-gray-200 rounded-lg overflow-hidden">
-          <pre class="p-3 text-sm font-mono overflow-x-auto"><code>./fscan -h 192.168.1.1/24</code></pre>
+        <div class="rounded-lg overflow-hidden border transition-colors duration-300"
+             :class="isDark ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50'">
+          <pre class="p-3 text-sm font-mono overflow-x-auto"><code class="transition-colors duration-300"
+                                                                   :class="isDark ? 'text-gray-100' : 'text-gray-800'">./fscan -h 192.168.1.1/24</code></pre>
         </div>
       </div>
 
@@ -115,9 +121,12 @@
         扫描指定 IP 和端口
       </h3>
 
+      <!-- 优化后的代码块，移除灰色背景 -->
       <div class="mb-4">
-        <div class="bg-gray-900 text-gray-200 rounded-lg overflow-hidden">
-          <pre class="p-3 text-sm font-mono overflow-x-auto"><code>./fscan -h 192.168.1.1 -p 22,80,3306</code></pre>
+        <div class="rounded-lg overflow-hidden border transition-colors duration-300"
+             :class="isDark ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50'">
+          <pre class="p-3 text-sm font-mono overflow-x-auto"><code class="transition-colors duration-300"
+                                                                   :class="isDark ? 'text-gray-100' : 'text-gray-800'">./fscan -h 192.168.1.1 -p 22,80,3306</code></pre>
         </div>
       </div>
 
@@ -126,9 +135,12 @@
         扫描 IP 范围并指定输出文件
       </h3>
 
+      <!-- 优化后的代码块，移除灰色背景 -->
       <div class="mb-4">
-        <div class="bg-gray-900 text-gray-200 rounded-lg overflow-hidden">
-          <pre class="p-3 text-sm font-mono overflow-x-auto"><code>./fscan -h 192.168.1.1/24 -o result.txt</code></pre>
+        <div class="rounded-lg overflow-hidden border transition-colors duration-300"
+             :class="isDark ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50'">
+          <pre class="p-3 text-sm font-mono overflow-x-auto"><code class="transition-colors duration-300"
+                                                                   :class="isDark ? 'text-gray-100' : 'text-gray-800'">./fscan -h 192.168.1.1/24 -o result.txt</code></pre>
         </div>
       </div>
 
@@ -137,9 +149,12 @@
         使用内置字典进行密码爆破
       </h3>
 
+      <!-- 优化后的代码块，移除灰色背景 -->
       <div class="mb-4">
-        <div class="bg-gray-900 text-gray-200 rounded-lg overflow-hidden">
-          <pre class="p-3 text-sm font-mono overflow-x-auto"><code>./fscan -h 192.168.1.1 -m ssh</code></pre>
+        <div class="rounded-lg overflow-hidden border transition-colors duration-300"
+             :class="isDark ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50'">
+          <pre class="p-3 text-sm font-mono overflow-x-auto"><code class="transition-colors duration-300"
+                                                                   :class="isDark ? 'text-gray-100' : 'text-gray-800'">./fscan -h 192.168.1.1 -m ssh</code></pre>
         </div>
       </div>
 
@@ -291,10 +306,30 @@ const parameters = [
   line-height: 1.6;
 }
 
+/* 代码样式优化 */
 .doc-content code {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   font-size: 0.875rem;
+  padding: 0.1rem 0.3rem;
+  border-radius: 0.2rem;
+  background-color: rgba(0, 0, 0, 0.1);
 }
+
+.dark .doc-content code {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* 代码块强化样式 */
+pre code {
+  display: block;
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+/* 代码高亮优化 */
+.code-keyword { color: #569cd6; }
+.code-string { color: #ce9178; }
+.code-comment { color: #6a9955; font-style: italic; }
 
 /* 字体优化 */
 h1, h2, h3, h4, h5, h6, p, li, a, span, div, td, th {
@@ -303,5 +338,52 @@ h1, h2, h3, h4, h5, h6, p, li, a, span, div, td, th {
 
 pre, code {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+/* 代码块左侧边框指示器 */
+pre {
+  position: relative;
+  border-left: 3px solid rgba(66, 153, 225, 0.4);
+}
+
+.dark pre {
+  border-left: 3px solid rgba(66, 153, 225, 0.6);
+  filter: brightness(1.1);
+}
+
+/* 代码块复制按钮 */
+pre::after {
+  content: "复制";
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: inherit;
+}
+
+pre:hover::after {
+  opacity: 1;
+}
+
+/* 改进内容可读性 */
+.doc-content {
+  line-height: 1.7;
+  font-size: 1rem;
+}
+
+/* 表格行间距优化 */
+tbody tr {
+  transition: background-color 0.15s ease-in-out;
+}
+
+/* 链接交互效果 */
+a {
+  transition: all 0.2s ease;
 }
 </style>
