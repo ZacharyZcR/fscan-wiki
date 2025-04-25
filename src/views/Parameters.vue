@@ -124,6 +124,7 @@ const params = reactive({
   h: [], // 目标地址，可多个
   eh: '', // 要排除的主机
   p: '21,22,80,443,3306,6379,8080,8443', // 端口
+  ep: '',
   hf: '', // 主机文件
   pf: '', // 端口文件
 
@@ -134,6 +135,7 @@ const params = reactive({
   mt: 10, // 模块线程数
   gt: 180, // 全局超时时间
   top: 10, // 存活优先扫描数量
+  retry: 3,
 
   // 认证与凭据参数
   user: '', // 默认用户名
@@ -165,11 +167,12 @@ const params = reactive({
   pocpath: '', // POC路径
   pocname: '', // POC名称
   num: 20, // POC线程数
+  nopoc: false,
 
   // 输出与显示控制参数
   o: 'result.txt', // 输出文件
   f: 'txt', // 输出格式
-  log: 'success', // 日志级别
+  log: 'SUCCESS', // 日志级别
 });
 
 // 扫描控制选项
@@ -205,11 +208,27 @@ const scanControlOptions = reactive({
     enabled: false,
     icon: 'mdi:desktop-classic',
     detail: '以本地模式运行，不使用互联网进行辅助检测'
-  }
+  },
+  'nobr': {
+    name: '禁用暴力破解',
+    description: '关闭所有暴力破解功能',
+    param: 'nobr',
+    enabled: false,
+    icon: 'mdi:shield-lock',
+    detail: '完全禁用暴力破解模块，提高扫描速度并减少对目标系统的影响'
+  },
 });
 
 // POC测试选项
 const pocOptions = reactive({
+  'nopoc': {
+    name: '不使用POC扫描',
+    description: '禁用所有POC扫描功能',
+    param: 'nopoc',
+    enabled: false,
+    icon: 'mdi:shield-off',
+    detail: '完全禁用所有POC扫描过程，仅执行其他类型的检测'
+  },
   'full': {
     name: '完整POC测试',
     description: '使用所有可用POC进行测试',

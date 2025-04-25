@@ -216,6 +216,29 @@
                  class="w-full h-3 rounded-lg appearance-none cursor-pointer transition-all duration-200"
                  :class="isDark ? 'bg-gray-700' : 'bg-gray-200'" />
         </div>
+        <!-- 最大重试次数控制 -->
+        <div>
+          <label class="block mb-3 text-lg font-medium flex justify-between"
+                 :class="isDark ? 'text-gray-300' : 'text-gray-700'">
+            最大重试次数 (-retry)
+            <span class="text-sm" :class="isDark ? 'text-gray-500' : 'text-gray-500'">1-10</span>
+          </label>
+          <div class="flex items-center">
+            <button @click="decrementRetryNum"
+                    class="px-4 py-3 rounded-l-lg border border-r-0 transition-colors duration-200"
+                    :class="isDark ? 'bg-gray-700 border-gray-600 text-gray-400 hover:text-gray-200' : 'bg-gray-100 border-gray-300 text-gray-700'">
+              <Icon icon="mdi:minus" class="text-lg" />
+            </button>
+            <input type="number" v-model.number="params.retry" min="1" max="10"
+                   class="w-full px-4 py-3 text-base border text-center outline-none transition-colors duration-200"
+                   :class="isDark ? 'bg-gray-700 border-gray-600 text-gray-200 focus:border-blue-500' : 'bg-white border-gray-300 text-gray-700 focus:border-blue-500'" />
+            <button @click="incrementRetryNum"
+                    class="px-4 py-3 rounded-r-lg border border-l-0 transition-colors duration-200"
+                    :class="isDark ? 'bg-gray-700 border-gray-600 text-gray-400 hover:text-gray-200' : 'bg-gray-100 border-gray-300 text-gray-700'">
+              <Icon icon="mdi:plus" class="text-lg" />
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- 存活优先扫描数量 -->
@@ -549,6 +572,19 @@ const incrementModuleThreadNum = () => {
 const decrementModuleThreadNum = () => {
   if (props.params.mt > 1) {
     props.params.mt--;
+  }
+};
+
+// 重试次数控制
+const incrementRetryNum = () => {
+  if (props.params.retry < 10) {
+    props.params.retry++;
+  }
+};
+
+const decrementRetryNum = () => {
+  if (props.params.retry > 1) {
+    props.params.retry--;
   }
 };
 
