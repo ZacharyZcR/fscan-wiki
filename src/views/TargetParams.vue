@@ -1,51 +1,30 @@
 <template>
-  <div
-    class="mb-16 rounded-xl border overflow-hidden shadow-lg transition-colors duration-300"
-    :class="isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'"
-  >
-    <div
-      class="px-8 py-6 border-b flex items-center"
-      :class="isDark ? 'border-gray-700 bg-gray-750' : 'border-gray-200 bg-gray-50'"
-    >
-      <Icon
-        icon="mdi:target"
-        class="mr-3 text-2xl"
-        :class="isDark ? 'text-blue-400' : 'text-blue-600'"
-      />
-      <h2 class="font-medium text-xl" :class="isDark ? 'text-gray-200' : 'text-gray-700'">
-        目标配置参数
-      </h2>
-    </div>
-    <div class="p-8">
+  <Card class="mb-16">
+    <CardHeader>
+      <div class="flex items-center gap-3">
+        <Icon icon="mdi:target" class="text-2xl text-primary" />
+        <CardTitle>目标配置参数</CardTitle>
+      </div>
+    </CardHeader>
+    <CardContent>
       <!-- 目标参数区域 -->
       <div class="mb-10">
-        <label
-          class="block mb-3 text-lg font-medium"
-          :class="isDark ? 'text-gray-300' : 'text-gray-700'"
-        >
-          目标地址
-        </label>
+        <label class="mb-3 block text-lg font-medium">目标地址</label>
         <div class="flex">
           <input
             v-model="targetInputValue"
             type="text"
             placeholder="IP/域名/IP段 (例如: 192.168.1.1/24)"
-            class="flex-1 px-4 py-3 text-base rounded-l-lg border outline-none transition-colors duration-200"
-            :class="
-              isDark
-                ? 'bg-gray-700 border-gray-600 text-gray-200 focus:border-blue-500'
-                : 'bg-white border-gray-300 text-gray-700 focus:border-blue-500'
-            "
+            class="flex-1 rounded-l-lg border border-input bg-background px-4 py-3 text-base outline-none transition-colors focus:border-ring"
             @keyup.enter="addTargetLocal"
           />
-          <button
-            class="px-6 py-3 rounded-r-lg text-white text-base transition-all duration-200 flex items-center hover:shadow-md"
-            :class="isDark ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-600 hover:bg-blue-700'"
+          <Button
+            class="rounded-l-none"
             @click="addTargetLocal"
           >
             <Icon icon="mdi:plus" class="mr-2 text-lg" />
             添加
-          </button>
+          </Button>
         </div>
 
         <!-- 目标标签 -->
@@ -53,116 +32,64 @@
           <div
             v-for="(target, index) in params.h"
             :key="index"
-            class="text-sm px-3 py-2 rounded-full flex items-center group transition-all duration-200"
-            :class="
-              isDark
-                ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            "
+            class="group flex items-center rounded-full bg-muted px-3 py-2 text-sm transition-all hover:bg-muted/80"
           >
             <span class="mr-2">{{ target }}</span>
             <button
-              class="text-sm p-0.5 rounded-full group-hover:bg-red-500/20"
+              class="rounded-full p-0.5 text-sm transition-colors hover:text-destructive"
               @click="removeTargetLocal(index)"
             >
-              <Icon
-                icon="mdi:close-circle"
-                class="text-base transition-colors duration-200"
-                :class="
-                  isDark
-                    ? 'text-gray-400 group-hover:text-red-400'
-                    : 'text-gray-500 group-hover:text-red-500'
-                "
-              />
+              <Icon icon="mdi:close-circle" class="text-base" />
             </button>
           </div>
         </div>
       </div>
 
       <!-- 目标配置选项 - 网格布局 -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+      <div class="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2">
         <!-- 要排除的主机 -->
         <div>
-          <label
-            class="block mb-3 text-lg font-medium"
-            :class="isDark ? 'text-gray-300' : 'text-gray-700'"
-          >
-            排除主机 (-eh)
-          </label>
+          <label class="mb-3 block text-lg font-medium">排除主机 (-eh)</label>
           <input
             v-model="params.eh"
             type="text"
             placeholder="要排除的主机，逗号分隔"
-            class="w-full px-4 py-3 text-base rounded-lg border outline-none transition-colors duration-200"
-            :class="
-              isDark
-                ? 'bg-gray-700 border-gray-600 text-gray-200 focus:border-blue-500'
-                : 'bg-white border-gray-300 text-gray-700 focus:border-blue-500'
-            "
+            class="w-full rounded-lg border border-input bg-background px-4 py-3 text-base outline-none transition-colors focus:border-ring"
           />
         </div>
 
         <!-- 端口参数 -->
         <div>
-          <label
-            class="block mb-3 text-lg font-medium"
-            :class="isDark ? 'text-gray-300' : 'text-gray-700'"
-          >
-            扫描端口 (-p)
-          </label>
+          <label class="mb-3 block text-lg font-medium">扫描端口 (-p)</label>
           <input
             v-model="params.p"
             type="text"
             placeholder="端口 (例如: 80,443,8080)"
-            class="w-full px-4 py-3 text-base rounded-lg border outline-none transition-colors duration-200"
-            :class="
-              isDark
-                ? 'bg-gray-700 border-gray-600 text-gray-200 focus:border-blue-500'
-                : 'bg-white border-gray-300 text-gray-700 focus:border-blue-500'
-            "
+            class="w-full rounded-lg border border-input bg-background px-4 py-3 text-base outline-none transition-colors focus:border-ring"
           />
 
           <!-- 端口预设选择器 -->
           <div class="mt-4">
-            <label
-              class="block mb-2 text-sm font-medium"
-              :class="isDark ? 'text-gray-400' : 'text-gray-600'"
-            >
-              端口预设
-            </label>
+            <label class="mb-2 block text-sm font-medium text-muted-foreground">端口预设</label>
             <div class="flex flex-wrap gap-2">
               <button
                 v-for="preset in portPresets"
                 :key="preset.name"
-                class="text-sm px-3 py-2 rounded-lg transition-all duration-200 flex items-center hover:scale-105"
-                :class="[
+                type="button"
+                class="flex items-center rounded-lg px-3 py-2 text-sm transition-all hover:scale-105"
+                :class="
                   params.p === preset.value
-                    ? isDark
-                      ? 'bg-blue-700 text-white'
-                      : 'bg-blue-100 text-blue-700'
-                    : isDark
-                      ? 'bg-gray-700 hover:bg-gray-600 text-gray-300'
-                      : 'bg-gray-100 hover:bg-gray-200 text-gray-700',
-                ]"
+                    ? 'bg-primary/10 text-primary'
+                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                "
                 @click="applyPortPresetLocal(preset.value)"
               >
                 <Icon
                   :icon="preset.icon"
                   class="mr-2 text-base"
-                  :class="
-                    params.p === preset.value
-                      ? isDark
-                        ? 'text-white'
-                        : 'text-blue-600'
-                      : isDark
-                        ? 'text-gray-400'
-                        : 'text-gray-500'
-                  "
                 />
                 {{ preset.name }}
-                <span v-if="preset.count" class="ml-1 text-xs opacity-70"
-                  >({{ preset.count }})</span
-                >
+                <span v-if="preset.count" class="ml-1 text-xs opacity-70">({{ preset.count }})</span>
               </button>
             </div>
           </div>
@@ -170,23 +97,19 @@
           <!-- 端口预设详情提示 -->
           <div
             v-if="showPortDetails && selectedPortPreset"
-            class="mt-3 p-3 text-sm rounded-lg border"
-            :class="
-              isDark
-                ? 'bg-gray-750 border-gray-700 text-gray-400'
-                : 'bg-gray-50 border-gray-200 text-gray-600'
-            "
+            class="mt-3 rounded-lg border border-border bg-muted/50 p-3 text-sm"
           >
-            <div class="flex justify-between items-center">
+            <div class="flex items-center justify-between">
               <span class="font-medium">{{ selectedPortPreset.name }}端口</span>
               <button
-                class="p-1 text-xs rounded-full hover:bg-gray-200 hover:bg-opacity-20"
+                type="button"
+                class="rounded-full p-1 text-xs hover:bg-muted"
                 @click="showPortDetails = false"
               >
                 <Icon icon="mdi:close" class="text-base" />
               </button>
             </div>
-            <div class="mt-1 max-h-24 overflow-y-auto">
+            <div class="mt-1 max-h-24 overflow-y-auto text-muted-foreground">
               {{ selectedPortPreset.value }}
             </div>
           </div>
@@ -194,54 +117,36 @@
       </div>
 
       <!-- 主机文件和端口文件 -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div>
-          <label
-            class="block mb-3 text-lg font-medium"
-            :class="isDark ? 'text-gray-300' : 'text-gray-700'"
-          >
-            主机文件 (-hf)
-          </label>
+          <label class="mb-3 block text-lg font-medium">主机文件 (-hf)</label>
           <input
             v-model="params.hf"
             type="text"
             placeholder="从文件中读取主机列表的路径"
-            class="w-full px-4 py-3 text-base rounded-lg border outline-none transition-colors duration-200"
-            :class="
-              isDark
-                ? 'bg-gray-700 border-gray-600 text-gray-200 focus:border-blue-500'
-                : 'bg-white border-gray-300 text-gray-700 focus:border-blue-500'
-            "
+            class="w-full rounded-lg border border-input bg-background px-4 py-3 text-base outline-none transition-colors focus:border-ring"
           />
         </div>
 
         <div>
-          <label
-            class="block mb-3 text-lg font-medium"
-            :class="isDark ? 'text-gray-300' : 'text-gray-700'"
-          >
-            端口文件 (-pf)
-          </label>
+          <label class="mb-3 block text-lg font-medium">端口文件 (-pf)</label>
           <input
             v-model="params.pf"
             type="text"
             placeholder="从文件中读取端口列表的路径"
-            class="w-full px-4 py-3 text-base rounded-lg border outline-none transition-colors duration-200"
-            :class="
-              isDark
-                ? 'bg-gray-700 border-gray-600 text-gray-200 focus:border-blue-500'
-                : 'bg-white border-gray-300 text-gray-700 focus:border-blue-500'
-            "
+            class="w-full rounded-lg border border-input bg-background px-4 py-3 text-base outline-none transition-colors focus:border-ring"
           />
         </div>
       </div>
-    </div>
-  </div>
+    </CardContent>
+  </Card>
 </template>
 
 <script setup>
 import { ref, inject } from 'vue'
 import { Icon } from '@iconify/vue'
+import { Button } from '@/components/ui/button'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 
 // 定义Fscan内置的端口预设
 const mainPorts =
@@ -347,16 +252,12 @@ const applyPortPresetLocal = value => {
 }
 
 .max-h-24::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.05);
+  background: hsl(var(--muted));
   border-radius: 10px;
 }
 
 .max-h-24::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.2);
+  background: hsl(var(--muted-foreground) / 0.3);
   border-radius: 10px;
-}
-
-.dark .max-h-24::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
 }
 </style>
