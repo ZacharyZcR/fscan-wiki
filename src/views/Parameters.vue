@@ -420,6 +420,17 @@ const builtCommand = computed(() => {
     if (key === 'o' && value === 'result.txt') continue
     if (key === 'f' && value === 'txt') continue
     if (key === 'log' && value === 'SUCCESS') continue
+    if (key === 'p' && value === '21,22,80,443,3306,6379,8080,8443') continue
+    if (key === 't' && value === 600) continue
+    if (key === 'time' && value === 3) continue
+    if (key === 'mt' && value === 20) continue
+    if (key === 'gt' && value === 180) continue
+    if (key === 'retry' && value === 3) continue
+    if (key === 'wt' && value === 5) continue
+    if (key === 'max-redirect' && value === 10) continue
+    if (key === 'num' && value === 20) continue
+    if (key === 'fsh-port' && value === 4444) continue
+    if (key === 'keylog-output' && value === 'keylog.txt') continue
 
     // 只添加当前模式允许的参数
     if (!allowedParams.includes(key)) continue
