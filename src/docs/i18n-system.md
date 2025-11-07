@@ -28,7 +28,7 @@ func GetTextF(key string, args ...interface{}) string {
 
       <h2>语言数据：Go代码硬编码</h2>
 
-      <h3>为什么不用JSON文件？</h3>
+      <h3>不用JSON文件的原因</h3>
       <pre><code>// init.go 中直接定义
 func init() {
     globalManager.RegisterMessages("zh", map[string]string{
@@ -94,7 +94,7 @@ common.LogError(i18n.GetTextF("error_network", err))</code></pre>
 
       <h2>设计权衡</h2>
 
-      <h3>为什么默认中文？</h3>
+      <h3>默认中文的原因</h3>
       <pre><code>const (
     DefaultLanguage  = "zh"  // 默认中文
     FallbackLanguage = "en"  // 回退英文
@@ -105,7 +105,7 @@ common.LogError(i18n.GetTextF("error_network", err))</code></pre>
         <li>英文用户可以通过<code>-lang en</code>切换</li>
       </ul>
 
-      <h3>为什么不支持复数和时间格式化？</h3>
+      <h3>不支持复数和时间格式化的原因</h3>
       <ul>
         <li>fscan的文本很简单，不需要复杂的i18n特性</li>
         <li>fmt.Sprintf已经足够</li>

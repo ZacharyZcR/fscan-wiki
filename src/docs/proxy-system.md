@@ -32,7 +32,7 @@ func NewProxyManager(config *ProxyConfig) ProxyManager {
         <tr><td>SOCKS5</td><td>TCP代理</td><td>golang.org/x/net/proxy</td></tr>
       </table>
 
-      <h3>为什么使用golang.org/x/net/proxy？</h3>
+      <h3>使用golang.org/x/net/proxy的原因</h3>
       <ul>
         <li>✅ Go官方维护的SOCKS5实现</li>
         <li>✅ 无需自己实现SOCKS5协议</li>
@@ -100,14 +100,14 @@ config := &ProxyConfig{
 
       <h2>设计权衡</h2>
 
-      <h3>为什么不支持代理链？</h3>
+      <h3>不支持代理链的原因</h3>
       <ul>
         <li>fscan是单次扫描工具，不需要复杂的代理链</li>
         <li>如需代理链，用proxychains等专用工具包装fscan</li>
         <li>减少复杂性，保持简单</li>
       </ul>
 
-      <h3>为什么没有代理池？</h3>
+      <h3>没有代理池的原因</h3>
       <ul>
         <li>单个代理已经满足大多数需求</li>
         <li>代理池需要健康检查、失败重试等复杂逻辑</li>

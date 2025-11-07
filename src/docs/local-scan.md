@@ -60,7 +60,7 @@
     ExecuteScanTasks(targets, s, ch, wg)
 }</code></pre>
 
-      <h3>为什么必须显式指定插件？</h3>
+      <h3>必须显式指定插件的原因</h3>
       <ul>
         <li>避免误触发攻击性功能（不能自动执行keylogger）</li>
         <li>用户明确知道在做什么</li>
@@ -144,7 +144,7 @@ func NewAVDetectPlugin() *AVDetectPlugin {
 
       <h2>Build Tags：可选编译</h2>
 
-      <h3>问题：为什么本地插件默认不编译？</h3>
+      <h3>本地插件默认不编译的原因</h3>
       <ul>
         <li>包含攻击性功能（keylogger, reverseshell）</li>
         <li>容易被杀软标记为恶意软件</li>
@@ -165,14 +165,14 @@ func NewAVDetectPlugin() *AVDetectPlugin {
 
       <h2>设计权衡</h2>
 
-      <h3>为什么不自动执行所有本地插件？</h3>
+      <h3>不自动执行所有本地插件的原因</h3>
       <ul>
         <li>❌ 安全风险：keylogger等插件需要明确授权</li>
         <li>❌ 合规问题：自动执行攻击性功能违反安全测试规范</li>
         <li>❌ 实用主义：大多数场景只需要特定功能</li>
       </ul>
 
-      <h3>为什么用独立插件而不是单个大插件？</h3>
+      <h3>用独立插件而不是单个大插件的原因</h3>
       <ul>
         <li>✅ 灵活性：用户选择需要的功能</li>
         <li>✅ 安全性：减少意外执行攻击性功能的风险</li>

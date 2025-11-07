@@ -109,7 +109,7 @@ func ParseCredentials(userFile, passFile, comboFile string) ([]CredentialPair, e
     return pairs, nil
 }</code></pre>
 
-      <h3>为什么分离精确对和笛卡尔积？</h3>
+      <h3>分离精确对和笛卡尔积的原因</h3>
       <ul>
         <li>精确对（-upf）：用于已知凭据，避免无效尝试</li>
         <li>笛卡尔积（-userf + -pwdf）：用于暴力破解</li>
@@ -178,14 +178,14 @@ func (fr *FileReader) ReadLines(path string) ([]string, error) {
 
       <h2>设计权衡</h2>
 
-      <h3>为什么单独的parsers包？</h3>
+      <h3>单独的parsers包的原因</h3>
       <ul>
         <li>✅ 解析逻辑复杂，独立包便于测试</li>
         <li>✅ 可被其他模块复用（如Web界面）</li>
         <li>✅ 便于添加新格式支持</li>
       </ul>
 
-      <h3>为什么用预编译正则？</h3>
+      <h3>用预编译正则的原因</h3>
       <pre><code>var (
     CompiledIPv4Regex = regexp.MustCompile(`^(\d{1,3}\.){3}\d{1,3}$`)
     CompiledPortRegex = regexp.MustCompile(`^\d+(-\d+)?$`)

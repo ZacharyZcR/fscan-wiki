@@ -238,7 +238,7 @@ fscan -h 192.168.1.0/24 -json output.json</code></pre>
     description: '了解如何使用构建约束定制编译',
     icon: 'mdi:hammer-wrench',
     content: `
-      <h2>设计背景：为什么需要构建约束</h2>
+      <h2>设计背景：构建约束的必要性</h2>
 
       <h3>问题一：二进制体积失控</h3>
       <p>fscan 包含 50+ 插件，完整编译的二进制文件达到 15-30 MB。在渗透测试场景中：</p>
@@ -276,7 +276,7 @@ fscan -h 192.168.1.0/24 -json output.json</code></pre>
         <li><strong>选择编译</strong>：指定 <code>-tags "plugin_selective,plugin_ssh"</code> 时，只有 SSH 插件被包含</li>
       </ul>
 
-      <h3>为什么默认全包含？</h3>
+      <h3>默认全包含的原因</h3>
       <ul>
         <li>新用户直接 <code>go build</code> 即可获得完整功能</li>
         <li>无需学习任何构建选项</li>
@@ -498,7 +498,7 @@ fscan -h 192.168.1.0/24 -json output.json</code></pre>
 
       <h2>设计权衡</h2>
 
-      <h3>为什么用自注册而不是配置文件？</h3>
+      <h3>使用自注册而非配置文件的原因</h3>
       <ul>
         <li>✅ 配置和代码在一起，不会出现不同步</li>
         <li>✅ 编译时检查，配置错误会导致编译失败</li>
@@ -507,7 +507,7 @@ fscan -h 192.168.1.0/24 -json output.json</code></pre>
       </ul>
       <p>fscan 是安全工具，稳定性优先于灵活性。</p>
 
-      <h3>为什么插件不能相互调用？</h3>
+      <h3>禁止插件相互调用的原因</h3>
       <ul>
         <li>避免循环依赖</li>
         <li>便于选择性编译（不需要依赖解析）</li>
@@ -670,7 +670,7 @@ fscan -h 192.168.1.0/24 -json output.json</code></pre>
 
       <h2>设计权衡</h2>
 
-      <h3>为什么不用 logrus/zap 等日志库？</h3>
+      <h3>不使用 logrus/zap 等日志库的原因</h3>
       <ul>
         <li>✅ 减少依赖，降低编译体积</li>
         <li>✅ 自定义格式更灵活，符合渗透测试习惯</li>
@@ -875,7 +875,7 @@ fscan -h 192.168.1.0/24 -json output.json</code></pre>
 
       <h2>设计权衡</h2>
 
-      <h3>为什么不用数据库存储？</h3>
+      <h3>不使用数据库存储的原因</h3>
       <ul>
         <li>✅ 文件更简单，无需依赖 SQLite 等库</li>
         <li>✅ 便于传输和备份（直接复制文件）</li>
@@ -884,7 +884,7 @@ fscan -h 192.168.1.0/24 -json output.json</code></pre>
       </ul>
       <p>fscan 是一次性扫描工具，不需要持久化存储和复杂查询，文件存储足够。</p>
 
-      <h3>为什么默认不输出所有信息？</h3>
+      <h3>默认不输出所有信息的原因</h3>
       <ul>
         <li>大规模扫描时文件会变得巨大（GB 级别）</li>
         <li>大多数信息是无用的（如关闭的端口）</li>

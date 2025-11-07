@@ -177,7 +177,7 @@ func makeICMPEchoRequest(host string) []byte {
     }
 }</code></pre>
 
-      <h3>为什么用map去重？</h3>
+      <h3>用map去重的原因</h3>
       <ul>
         <li>ICMP响应可能重复（网络重传）</li>
         <li>防止同一IP被多次添加到结果列表</li>
@@ -213,7 +213,7 @@ func makeICMPEchoRequest(host string) []byte {
 
       <h2>设计权衡</h2>
 
-      <h3>为什么不直接用ping命令？</h3>
+      <h3>不直接用ping命令的原因</h3>
       <ul>
         <li>✅ 自实现ICMP比调用ping快5-10倍</li>
         <li>✅ 精确控制超时和并发数</li>
@@ -221,14 +221,14 @@ func makeICMPEchoRequest(host string) []byte {
         <li>❌ 缺点：需要处理权限降级逻辑</li>
       </ul>
 
-      <h3>为什么没有TCP Ping？</h3>
+      <h3>没有TCP Ping的原因</h3>
       <ul>
         <li>❌ TCP三次握手比ICMP慢10倍+</li>
         <li>❌ 增加代码复杂度</li>
         <li>✅ 存活探测失败时，后续端口扫描会自然发现存活主机</li>
       </ul>
 
-      <h3>为什么默认启用存活探测？</h3>
+      <h3>默认启用存活探测的原因</h3>
       <ul>
         <li>✅ 过滤80%+不可达主机，节省大量时间</li>
         <li>✅ /16网段（65536 IP）无存活探测几乎不可用</li>

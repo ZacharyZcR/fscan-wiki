@@ -28,7 +28,7 @@
     return ""  // 都失败，不是Web服务
 }</code></pre>
 
-      <h3>为什么TLS握手优先？</h3>
+      <h3>TLS握手优先的原因</h3>
       <ul>
         <li>✅ 握手失败代价小（不需要发送完整HTTP请求）</li>
         <li>✅ 速度快（HTTPS服务立即识别）</li>
@@ -65,7 +65,7 @@ func IsWebServiceByFingerprint(serviceInfo *ServiceInfo) bool {
     return false
 }</code></pre>
 
-      <h3>为什么不用复杂的指纹库？</h3>
+      <h3>不用复杂的指纹库的原因</h3>
       <ul>
         <li>简单关键词匹配已经解决90%的识别需求</li>
         <li>服务识别阶段已经获取了Banner，直接复用</li>
@@ -166,12 +166,12 @@ lib.CheckMultiPoc(req, matchedPocs, common.PocNum)</code></pre>
 
       <h2>设计权衡</h2>
 
-      <h3>为什么单独分离Web扫描？</h3>
+      <h3>单独分离Web扫描的原因</h3>
       <ul>
         <li>✅ POC库体积大（embed.FS嵌入后增加数MB）</li>
         <li>✅ 可选编译：不需要Web扫描时可以减少二进制体积</li>
         <li>✅ 独立维护：POC更新不影响核心扫描逻辑</li>
       </ul>
 
-      <h3>为什么不实现目录爆破？</h3>
+      <h3>不实现目录爆破的原因</h3>
       <p>专注于POC检测，目录爆破有专门工具（dirsearch、gobuster）更合适。</p>

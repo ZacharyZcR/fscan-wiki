@@ -9,7 +9,7 @@
 
       <h2>扫描方法：TCP Connect</h2>
 
-      <h3>为什么只用Connect扫描？</h3>
+      <h3>只用Connect扫描的原因</h3>
       <p>fscan只实现TCP Connect扫描，不使用SYN扫描：</p>
       <table>
         <tr><th>特性</th><th>Connect扫描</th><th>SYN扫描</th></tr>
@@ -56,7 +56,7 @@ for _, host := range hosts {
 
 g.Wait()  // 等待所有goroutine完成</code></pre>
 
-      <h3>为什么用semaphore而非channel？</h3>
+      <h3>用semaphore而非channel的原因</h3>
       <ul>
         <li>✅ 支持加权获取（未来可扩展）</li>
         <li>✅ 与errgroup集成，统一错误处理</li>
@@ -128,7 +128,7 @@ if IsWebServiceByFingerprint(serviceInfo) {
     MarkAsWebService(host, port)  // 后续自动调用WebTitle/WebPOC
 }</code></pre>
 
-      <h3>为什么集成？</h3>
+      <h3>集成的原因</h3>
       <ul>
         <li>✅ 减少50%网络请求（不需要二次连接）</li>
         <li>✅ 降低被检测概率</li>
@@ -137,7 +137,7 @@ if IsWebServiceByFingerprint(serviceInfo) {
 
       <h2>结果存储：sync.Map</h2>
 
-      <h3>为什么用sync.Map？</h3>
+      <h3>用sync.Map的原因</h3>
       <p>存储开放端口列表（<code>core/port_scan.go:56</code>）：</p>
       <pre><code>var aliveMap sync.Map
 
@@ -174,7 +174,7 @@ common.FinishProgressBar()</code></pre>
 
       <h2>设计权衡</h2>
 
-      <h3>为什么不用SYN扫描？</h3>
+      <h3>不用SYN扫描的原因</h3>
       <ul>
         <li>✅ Connect扫描无需权限，开箱即用</li>
         <li>✅ 连接已建立，服务识别无需二次连接</li>
@@ -183,7 +183,7 @@ common.FinishProgressBar()</code></pre>
         <li>❌ 缺点：会在目标日志留下记录</li>
       </ul>
 
-      <h3>为什么用semaphore而非channel？</h3>
+      <h3>用semaphore而非channel的原因</h3>
       <ul>
         <li>✅ 与errgroup天然集成</li>
         <li>✅ 支持context取消</li>
@@ -191,7 +191,7 @@ common.FinishProgressBar()</code></pre>
         <li>❌ 缺点：需要额外依赖golang.org/x/sync</li>
       </ul>
 
-      <h3>为什么智能重试而非降低并发？</h3>
+      <h3>智能重试而非降低并发的原因</h3>
       <ul>
         <li>✅ 大部分端口不会耗尽资源，降低并发浪费性能</li>
         <li>✅ 仅对真正失败的连接重试，精准应对</li>

@@ -64,7 +64,7 @@
 
       <h2>MD5指纹（<code>fingerprint_scanner.go:75</code>）</h2>
 
-      <h3>为什么用MD5？</h3>
+      <h3>用MD5的原因</h3>
       <pre><code>func matchByMd5(body []byte) string {
     contentMd5 := fmt.Sprintf("%x", md5.Sum(body))
 
@@ -101,14 +101,14 @@ var Md5Datas = []Md5Data{
 
       <h2>设计权衡</h2>
 
-      <h3>为什么不用加权匹配？</h3>
+      <h3>不用加权匹配的原因</h3>
       <ul>
         <li>简单的规则匹配已经足够准确</li>
         <li>加权匹配增加复杂性但收益有限</li>
         <li>去重处理避免重复指纹</li>
       </ul>
 
-      <h3>为什么不用MurmurHash？</h3>
+      <h3>不用MurmurHash的原因</h3>
       <ul>
         <li>MD5已经满足指纹识别需求</li>
         <li>Go标准库自带MD5（crypto/md5）</li>

@@ -41,7 +41,7 @@
         return NewServiceScanStrategy() // 服务扫描
     }
 }</code></pre>
-      <p><strong>为什么用策略模式？</strong> 不同场景的扫描流程完全不同，用 if/else 会导致代码混乱</p>
+      <p><strong>使用策略模式的原因：</strong>不同场景的扫描流程完全不同，用 if/else 会导致代码混乱</p>
 
       <h2>ServiceScanStrategy：三阶段流程</h2>
 
@@ -53,7 +53,7 @@
         <li><strong>插件执行</strong>：流式调度所有插件任务</li>
       </ol>
 
-      <h3>为什么分阶段？</h3>
+      <h3>分阶段的原因</h3>
       <table>
         <tr><th>阶段</th><th>输入</th><th>输出</th><th>过滤率</th></tr>
         <tr><td>IP 解析</td><td>192.168.1.0/24</td><td>256 个 IP</td><td>-</td></tr>
@@ -151,7 +151,7 @@ func Register(name string, factory func() Plugin) {
 
       <h2>设计权衡</h2>
 
-      <h3>为什么不是流水线架构？</h3>
+      <h3>不是流水线架构的原因</h3>
       <ul>
         <li>✅ 策略模式更灵活：不同场景差异太大，统一流水线会充满 if/else</li>
         <li>✅ Web 扫描不需要端口扫描，本地扫描不需要网络通信</li>
@@ -159,7 +159,7 @@ func Register(name string, factory func() Plugin) {
         <li>❌ 缺点：策略间无法复用流水线代码</li>
       </ul>
 
-      <h3>为什么用 Channel 而不是 Worker 池？</h3>
+      <h3>用 Channel 而不是 Worker 池的原因</h3>
       <ul>
         <li>✅ Channel 是 Go 的原生并发原语，无需第三方库</li>
         <li>✅ 代码简洁：10 行实现并发控制</li>
@@ -167,7 +167,7 @@ func Register(name string, factory func() Plugin) {
         <li>❌ 缺点：无法动态调整并发数</li>
       </ul>
 
-      <h3>为什么流式调度而不是预构建？</h3>
+      <h3>流式调度而不是预构建的原因</h3>
       <ul>
         <li>✅ 内存占用从 O(n*m) 降到 O(ThreadNum)</li>
         <li>✅ 大规模扫描不会 OOM</li>

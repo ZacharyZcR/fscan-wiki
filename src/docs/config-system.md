@@ -60,7 +60,7 @@
     flag.Parse()
 }</code></pre>
 
-      <h3>为什么用flag而不是cobra？</h3>
+      <h3>用flag而不是cobra的原因</h3>
       <ul>
         <li>✅ Go标准库，零依赖</li>
         <li>✅ 足够简单，满足需求</li>
@@ -88,7 +88,7 @@
 
       <h2>设计权衡</h2>
 
-      <h3>为什么不用Config结构体？</h3>
+      <h3>不用Config结构体的原因</h3>
       <ul>
         <li>✅ 更简单：直接访问全局变量 <code>common.ThreadNum</code></li>
         <li>✅ 无需传递：避免到处传Config指针</li>
@@ -97,7 +97,7 @@
         <li>❌ 缺点：无法运行时切换配置</li>
       </ul>
 
-      <h3>为什么不支持配置文件？</h3>
+      <h3>不支持配置文件的原因</h3>
       <ul>
         <li>fscan是单次扫描工具，不是守护进程</li>
         <li>命令行参数已经足够灵活</li>
