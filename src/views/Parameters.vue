@@ -94,6 +94,7 @@
     <CommandPreview
       :params="params"
       :has-targets="hasTargets"
+      :scan-mode="scanMode"
       @reset="resetCommand"
       @copy="copyCommand"
     />
@@ -196,7 +197,7 @@ const portPresets = [
 
 // 检查是否有目标
 const hasTargets = computed(() => {
-  return params.h.length > 0 || params.u || params.uf || params.hf
+  return params.h.length > 0 || params.u || params.uf || params.hf || params.local
 })
 
 // 命令参数状态 - 按照参数分类组织
@@ -366,23 +367,75 @@ const outputOptions = reactive({
   },
 })
 
+// 获取当前模式允许的参数
+const getModeAllowedParams = () => {
+  const commonParams = ['o', 'f', 'log', 'no', 'silent', 'nocolor', 'nopg']
+
+  if (scanMode.value === 'host') {
+    return [
+      'h', 'hf', 'eh', 'ehf', 'p', 'ep', 'pf',
+      'm', 't', 'time', 'mt', 'gt', 'retry', 'np', 'ao', 'nobr', 'rate', 'maxpkts',
+      'user', 'pwd', 'usera', 'pwda', 'userf', 'pwdf', 'upf', 'hash', 'hashf', 'domain', 'sshkey',
+      'rf', 'rs', 'noredis', 'rwp', 'rwc', 'rwf',
+      ...commonParams
+    ]
+  } else if (scanMode.value === 'web') {
+    return [
+      'u', 'uf', 'cookie', 'wt', 'max-redirect', 'proxy', 'socks5',
+      'pocpath', 'pocname', 'num', 'full', 'dns', 'nopoc',
+      ...commonParams
+    ]
+  } else if (scanMode.value === 'local') {
+    return [
+      'local', 'rsh', 'start-socks5', 'fsh-port', 'keylog-output',
+      'download-url', 'download-path', 'persistence-file', 'win-pe',
+      ...commonParams
+    ]
+  }
+  return []
+}
+
 // 构建完整命令用于复制
 const builtCommand = computed(() => {
   let cmd = './fscan'
+  const allowedParams = getModeAllowedParams()
 
-  // 添加目标
-  if (params.h.length > 0) {
+  // 根据扫描模式添加目标参数
+  if (scanMode.value === 'host' && params.h.length > 0) {
     cmd += ` -h ${params.h.join(',')}`
+  } else if (scanMode.value === 'web' && params.u) {
+    cmd += ` -u ${params.u}`
+  } else if (scanMode.value === 'local' && params.local) {
+    cmd += ` -local ${params.local}`
   }
 
-  // 添加其他参数
+  // 添加其他允许的参数
   for (const [key, value] of Object.entries(params)) {
-    if (key === 'h') continue // 已处理
-    if (value && value !== '') {
+    // 跳过已处理的目标参数
+    if (key === 'h' || key === 'u' || key === 'local') continue
+
+    // 跳过默认值参数
+    if (key === 'm' && value === 'all') continue
+    if (key === 'o' && value === 'result.txt') continue
+    if (key === 'f' && value === 'txt') continue
+    if (key === 'log' && value === 'SUCCESS') continue
+
+    // 只添加当前模式允许的参数
+    if (!allowedParams.includes(key)) continue
+
+    // 添加有值的参数
+    if (value !== '' && value !== null && value !== undefined) {
       if (typeof value === 'boolean') {
         if (value) cmd += ` -${key}`
+      } else if (Array.isArray(value)) {
+        if (value.length > 0) cmd += ` -${key} ${value.join(',')}`
+      } else if (typeof value === 'number') {
+        // 数字类型，跳过0值（通常表示未设置）
+        if (value !== 0 || key === 'rate' || key === 'maxpkts' || key === 'start-socks5') {
+          cmd += ` -${key} ${value}`
+        }
       } else {
-        cmd += ` -${key} ${value}` // 确保参数和值之间有空格
+        cmd += ` -${key} ${value}`
       }
     }
   }

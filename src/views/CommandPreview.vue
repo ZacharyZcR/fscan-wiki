@@ -71,29 +71,92 @@ const props = defineProps({
     type: Boolean,
     required: true,
   },
+  scanMode: {
+    type: String,
+    default: 'host',
+  },
 })
 
 const emit = defineEmits(['reset', 'copy'])
 
 const showCopySuccess = inject('showCopySuccess')
 
+// 定义各扫描模式允许的参数
+const getModeAllowedParams = () => {
+  const commonParams = ['o', 'f', 'log', 'no', 'silent', 'nocolor', 'nopg']
+
+  if (props.scanMode === 'host') {
+    return [
+      'h', 'hf', 'eh', 'ehf', 'p', 'ep', 'pf',
+      'm', 't', 'time', 'mt', 'gt', 'retry', 'np', 'ao', 'nobr', 'rate', 'maxpkts',
+      'user', 'pwd', 'usera', 'pwda', 'userf', 'pwdf', 'upf', 'hash', 'hashf', 'domain', 'sshkey',
+      'rf', 'rs', 'noredis', 'rwp', 'rwc', 'rwf',
+      ...commonParams
+    ]
+  } else if (props.scanMode === 'web') {
+    return [
+      'u', 'uf', 'cookie', 'wt', 'max-redirect', 'proxy', 'socks5',
+      'pocpath', 'pocname', 'num', 'full', 'dns', 'nopoc',
+      ...commonParams
+    ]
+  } else if (props.scanMode === 'local') {
+    return [
+      'local', 'rsh', 'start-socks5', 'fsh-port', 'keylog-output',
+      'download-url', 'download-path', 'persistence-file', 'win-pe',
+      ...commonParams
+    ]
+  }
+  return []
+}
+
 // 格式化命令显示
 const formattedCommand = computed(() => {
   if (!props.hasTargets) return []
 
   const parts = []
+  const allowedParams = getModeAllowedParams()
 
-  if (props.params.h.length > 0) {
+  // 根据扫描模式添加目标参数
+  if (props.scanMode === 'host' && props.params.h.length > 0) {
     parts.push({ type: 'param', text: ' -h' })
     parts.push({ type: 'value', text: ` ${props.params.h.join(',')}` })
+  } else if (props.scanMode === 'web' && props.params.u) {
+    parts.push({ type: 'param', text: ' -u' })
+    parts.push({ type: 'value', text: ` ${props.params.u}` })
+  } else if (props.scanMode === 'local' && props.params.local) {
+    parts.push({ type: 'param', text: ' -local' })
+    parts.push({ type: 'value', text: ` ${props.params.local}` })
   }
 
+  // 添加其他允许的参数
   for (const [key, value] of Object.entries(props.params)) {
-    if (key === 'h') continue
-    if (key === 'm' && value === 'all') continue // fscan默认为all不需要显示
-    if (value && value !== '') {
+    // 跳过已处理的目标参数
+    if (key === 'h' || key === 'u' || key === 'local') continue
+
+    // 跳过默认值参数
+    if (key === 'm' && value === 'all') continue
+    if (key === 'o' && value === 'result.txt') continue
+    if (key === 'f' && value === 'txt') continue
+    if (key === 'log' && value === 'SUCCESS') continue
+
+    // 只添加当前模式允许的参数
+    if (!allowedParams.includes(key)) continue
+
+    // 添加有值的参数
+    if (value !== '' && value !== null && value !== undefined) {
       if (typeof value === 'boolean') {
         if (value) parts.push({ type: 'param', text: ` -${key}` })
+      } else if (Array.isArray(value)) {
+        if (value.length > 0) {
+          parts.push({ type: 'param', text: ` -${key}` })
+          parts.push({ type: 'value', text: ` ${value.join(',')}` })
+        }
+      } else if (typeof value === 'number') {
+        // 数字类型，跳过0值（通常表示未设置）
+        if (value !== 0 || key === 'rate' || key === 'maxpkts' || key === 'start-socks5') {
+          parts.push({ type: 'param', text: ` -${key}` })
+          parts.push({ type: 'value', text: ` ${value}` })
+        }
       } else {
         parts.push({ type: 'param', text: ` -${key}` })
         parts.push({ type: 'value', text: ` ${value}` })
@@ -101,7 +164,6 @@ const formattedCommand = computed(() => {
     }
   }
 
-  localStorage.setItem('formattedCommand', parts.map(p => p.text).join(''))
   return parts
 })
 </script>
