@@ -1,82 +1,44 @@
 <template>
-  <div
-    class="mb-16 rounded-xl border overflow-hidden shadow-lg transition-colors duration-300"
-    :class="isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'"
-  >
-    <div
-      class="px-8 py-6 border-b flex items-center"
-      :class="isDark ? 'border-gray-700 bg-gray-750' : 'border-gray-200 bg-gray-50'"
-    >
-      <Icon
-        icon="mdi:bug"
-        class="mr-3 text-2xl"
-        :class="isDark ? 'text-blue-400' : 'text-blue-600'"
-      />
-      <h2 class="font-medium text-xl" :class="isDark ? 'text-gray-200' : 'text-gray-700'">
-        POC测试参数
-      </h2>
-    </div>
-    <div class="p-8">
+  <Card class="mb-16">
+    <CardHeader>
+      <div class="flex items-center gap-3">
+        <Icon icon="mdi:bug" class="text-2xl text-primary" />
+        <CardTitle>POC测试参数</CardTitle>
+      </div>
+    </CardHeader>
+    <CardContent>
       <!-- POC路径和名称 -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+      <div class="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2">
         <div>
-          <label
-            class="block mb-3 text-lg font-medium"
-            :class="isDark ? 'text-gray-300' : 'text-gray-700'"
-          >
-            POC路径 (-pocpath)
-          </label>
+          <label class="mb-3 block text-lg font-medium">POC路径 (-pocpath)</label>
           <input
             v-model="params.pocpath"
             type="text"
             placeholder="自定义POC文件路径"
-            class="w-full px-4 py-3 text-base rounded-lg border outline-none transition-colors duration-200"
-            :class="
-              isDark
-                ? 'bg-gray-700 border-gray-600 text-gray-200 focus:border-blue-500'
-                : 'bg-white border-gray-300 text-gray-700 focus:border-blue-500'
-            "
+            class="w-full rounded-lg border border-input bg-background px-4 py-3 text-base outline-none transition-colors focus:border-ring"
           />
         </div>
 
         <div>
-          <label
-            class="block mb-3 text-lg font-medium"
-            :class="isDark ? 'text-gray-300' : 'text-gray-700'"
-          >
-            POC名称 (-pocname)
-          </label>
+          <label class="mb-3 block text-lg font-medium">POC名称 (-pocname)</label>
           <input
             v-model="params.pocname"
             type="text"
             placeholder="指定POC名称"
-            class="w-full px-4 py-3 text-base rounded-lg border outline-none transition-colors duration-200"
-            :class="
-              isDark
-                ? 'bg-gray-700 border-gray-600 text-gray-200 focus:border-blue-500'
-                : 'bg-white border-gray-300 text-gray-700 focus:border-blue-500'
-            "
+            class="w-full rounded-lg border border-input bg-background px-4 py-3 text-base outline-none transition-colors focus:border-ring"
           />
         </div>
       </div>
 
       <!-- POC线程数 -->
       <div class="mb-8">
-        <label
-          class="block mb-3 text-lg font-medium flex justify-between"
-          :class="isDark ? 'text-gray-300' : 'text-gray-700'"
-        >
-          POC线程数 (-num)
-          <span class="text-sm" :class="isDark ? 'text-gray-500' : 'text-gray-500'">1-100</span>
+        <label class="mb-3 flex items-center justify-between text-lg font-medium">
+          <span>POC线程数 (-num)</span>
+          <span class="text-sm text-muted-foreground">1-100</span>
         </label>
-        <div class="flex items-center">
+        <div class="flex items-center gap-2">
           <button
-            class="px-4 py-3 rounded-l-lg border border-r-0 transition-colors duration-200"
-            :class="
-              isDark
-                ? 'bg-gray-700 border-gray-600 text-gray-400 hover:text-gray-200'
-                : 'bg-gray-100 border-gray-300 text-gray-700'
-            "
+            class="rounded-lg border border-input bg-muted px-4 py-3 transition-colors hover:bg-accent"
             @click="decrementPocNum"
           >
             <Icon icon="mdi:minus" class="text-lg" />
@@ -86,20 +48,10 @@
             type="number"
             min="1"
             max="100"
-            class="w-full px-4 py-3 text-base border text-center outline-none transition-colors duration-200"
-            :class="
-              isDark
-                ? 'bg-gray-700 border-gray-600 text-gray-200 focus:border-blue-500'
-                : 'bg-white border-gray-300 text-gray-700 focus:border-blue-500'
-            "
+            class="flex-1 rounded-lg border border-input bg-background px-4 py-3 text-center text-base outline-none transition-colors focus:border-ring"
           />
           <button
-            class="px-4 py-3 rounded-r-lg border border-l-0 transition-colors duration-200"
-            :class="
-              isDark
-                ? 'bg-gray-700 border-gray-600 text-gray-400 hover:text-gray-200'
-                : 'bg-gray-100 border-gray-300 text-gray-700'
-            "
+            class="rounded-lg border border-input bg-muted px-4 py-3 transition-colors hover:bg-accent"
             @click="incrementPocNum"
           >
             <Icon icon="mdi:plus" class="text-lg" />
@@ -107,67 +59,49 @@
         </div>
       </div>
 
-      <!-- POC测试选项 -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- 选项开关 -->
+      <div class="space-y-4">
         <div
           v-for="(option, key) in pocOptions"
           :key="key"
-          class="flex items-center justify-between p-5 rounded-xl transition-all duration-200 hover:shadow-md"
-          :class="[
-            option.enabled
-              ? isDark
-                ? 'bg-blue-900/30 border border-blue-500/20'
-                : 'bg-blue-50 border border-blue-100'
-              : isDark
-                ? 'bg-gray-750 border border-gray-700'
-                : 'bg-gray-50 border border-gray-200',
-          ]"
+          class="flex items-center justify-between rounded-lg border border-border bg-muted/50 p-4 transition-colors hover:bg-muted"
         >
-          <div class="flex-1">
-            <div
-              class="font-medium text-base flex items-center"
-              :class="isDark ? 'text-gray-200' : 'text-gray-700'"
-            >
-              <Icon
-                :icon="option.icon"
-                class="mr-2 text-xl"
-                :class="
-                  option.enabled
-                    ? isDark
-                      ? 'text-blue-400'
-                      : 'text-blue-600'
-                    : isDark
-                      ? 'text-gray-500'
-                      : 'text-gray-400'
-                "
-              />
-              {{ option.name }}
-            </div>
-            <div class="text-sm mt-1.5 ml-7" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
-              {{ option.description }}
+          <div class="flex items-start gap-3">
+            <Icon :icon="option.icon" class="mt-1 text-xl text-primary" />
+            <div class="flex-1">
+              <div class="mb-1 flex items-center gap-2">
+                <span class="font-medium">{{ option.name }}</span>
+                <code class="rounded bg-muted px-2 py-0.5 text-xs">-{{ option.param }}</code>
+              </div>
+              <p class="text-sm text-muted-foreground">{{ option.description }}</p>
+              <p v-if="option.detail" class="mt-1 text-xs text-muted-foreground">
+                {{ option.detail }}
+              </p>
             </div>
           </div>
-          <!-- 开关样式 -->
-          <button class="flex-shrink-0 ml-4" @click="toggleOptionLocal(key, option)">
-            <div
-              class="w-14 h-7 rounded-full transition-colors duration-200 flex items-center px-0.5"
-              :class="option.enabled ? 'bg-blue-600' : isDark ? 'bg-gray-600' : 'bg-gray-300'"
-            >
-              <div
-                class="w-6 h-6 rounded-full bg-white transform transition-transform duration-200 shadow-md"
-                :class="option.enabled ? 'translate-x-7' : 'translate-x-0'"
-              ></div>
-            </div>
+          <button
+            type="button"
+            class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            :class="option.enabled ? 'bg-primary' : 'bg-input'"
+            role="switch"
+            :aria-checked="option.enabled"
+            @click="toggleOptionLocal(key, option)"
+          >
+            <span
+              class="pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform"
+              :class="option.enabled ? 'translate-x-5' : 'translate-x-0'"
+            ></span>
           </button>
         </div>
       </div>
-    </div>
-  </div>
+    </CardContent>
+  </Card>
 </template>
 
 <script setup>
 import { inject } from 'vue'
 import { Icon } from '@iconify/vue'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 
 const params = defineModel('params', {
   type: Object,
@@ -203,16 +137,3 @@ const toggleOptionLocal = (key, option) => {
   emit('toggle-option', key, option)
 }
 </script>
-
-<style scoped>
-/* 修复 input number 箭头样式 */
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-input[type='number'] {
-  -moz-appearance: textfield;
-}
-</style>
