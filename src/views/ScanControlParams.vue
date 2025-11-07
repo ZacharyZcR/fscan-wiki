@@ -301,7 +301,7 @@
           </div>
 
           <!-- 本地插件快速选择 -->
-          <div class="mt-4">
+          <div v-if="scanMode === 'local'" class="mt-4">
             <label class="mb-2 block text-sm font-medium text-muted-foreground">可用本地插件（点击选择）</label>
             <div class="grid grid-cols-2 gap-2 md:grid-cols-4 lg:grid-cols-6">
               <button
@@ -320,6 +320,124 @@
                 <Icon :icon="plugin.icon" class="mr-1 inline-block text-base" />
                 {{ plugin.name }}
               </button>
+            </div>
+          </div>
+
+          <!-- 本地插件配置参数 -->
+          <div v-if="scanMode === 'local' && params.local" class="mt-6">
+            <div class="rounded-lg border border-primary/20 bg-primary/5 p-4">
+              <h3 class="mb-4 flex items-center text-lg font-medium">
+                <Icon icon="mdi:cog" class="mr-2 text-xl text-primary" />
+                {{ params.local }} 插件配置
+              </h3>
+
+              <!-- reverseshell 配置 -->
+              <div v-if="params.local === 'reverseshell'" class="space-y-4">
+                <div>
+                  <label class="mb-2 block text-sm font-medium">反弹Shell目标地址 (-rsh) <span class="text-destructive">*</span></label>
+                  <input
+                    v-model="params.rsh"
+                    type="text"
+                    placeholder="例如: 192.168.1.100:4444"
+                    class="w-full rounded-lg border border-input bg-background px-4 py-2 text-base outline-none transition-colors focus:border-ring"
+                  />
+                  <p class="mt-1 text-xs text-muted-foreground">格式: IP:PORT</p>
+                </div>
+              </div>
+
+              <!-- socks5proxy 配置 -->
+              <div v-if="params.local === 'socks5proxy'" class="space-y-4">
+                <div>
+                  <label class="mb-2 block text-sm font-medium">SOCKS5代理监听端口 (-start-socks5) <span class="text-destructive">*</span></label>
+                  <input
+                    v-model.number="params['start-socks5']"
+                    type="number"
+                    min="1"
+                    max="65535"
+                    placeholder="例如: 1080"
+                    class="w-full rounded-lg border border-input bg-background px-4 py-2 text-base outline-none transition-colors focus:border-ring"
+                  />
+                  <p class="mt-1 text-xs text-muted-foreground">端口范围: 1-65535</p>
+                </div>
+              </div>
+
+              <!-- forwardshell 配置 -->
+              <div v-if="params.local === 'forwardshell'" class="space-y-4">
+                <div>
+                  <label class="mb-2 block text-sm font-medium">正向Shell监听端口 (-fsh-port)</label>
+                  <input
+                    v-model.number="params['fsh-port']"
+                    type="number"
+                    min="1"
+                    max="65535"
+                    placeholder="默认: 4444"
+                    class="w-full rounded-lg border border-input bg-background px-4 py-2 text-base outline-none transition-colors focus:border-ring"
+                  />
+                  <p class="mt-1 text-xs text-muted-foreground">端口范围: 1-65535，默认 4444</p>
+                </div>
+              </div>
+
+              <!-- keylogger 配置 -->
+              <div v-if="params.local === 'keylogger'" class="space-y-4">
+                <div>
+                  <label class="mb-2 block text-sm font-medium">键盘记录输出文件 (-keylog-output)</label>
+                  <input
+                    v-model="params['keylog-output']"
+                    type="text"
+                    placeholder="默认: keylog.txt"
+                    class="w-full rounded-lg border border-input bg-background px-4 py-2 text-base outline-none transition-colors focus:border-ring"
+                  />
+                  <p class="mt-1 text-xs text-muted-foreground">默认保存到 keylog.txt</p>
+                </div>
+              </div>
+
+              <!-- downloader 配置 -->
+              <div v-if="params.local === 'downloader'" class="space-y-4">
+                <div>
+                  <label class="mb-2 block text-sm font-medium">下载文件URL (-download-url) <span class="text-destructive">*</span></label>
+                  <input
+                    v-model="params['download-url']"
+                    type="text"
+                    placeholder="例如: http://example.com/file.exe"
+                    class="w-full rounded-lg border border-input bg-background px-4 py-2 text-base outline-none transition-colors focus:border-ring"
+                  />
+                </div>
+                <div>
+                  <label class="mb-2 block text-sm font-medium">下载保存路径 (-download-path) <span class="text-destructive">*</span></label>
+                  <input
+                    v-model="params['download-path']"
+                    type="text"
+                    placeholder="例如: /tmp/file.exe"
+                    class="w-full rounded-lg border border-input bg-background px-4 py-2 text-base outline-none transition-colors focus:border-ring"
+                  />
+                </div>
+              </div>
+
+              <!-- 持久化插件配置 -->
+              <div
+                v-if="['winregistry', 'winschtask', 'winservice', 'winstartup', 'winwmi', 'ldpreload', 'systemdservice', 'crontask'].includes(params.local)"
+                class="space-y-4"
+              >
+                <div>
+                  <label class="mb-2 block text-sm font-medium">持久化目标文件 (-persistence-file) <span class="text-destructive">*</span></label>
+                  <input
+                    v-model="params['persistence-file']"
+                    type="text"
+                    placeholder="例如: /tmp/backdoor.sh"
+                    class="w-full rounded-lg border border-input bg-background px-4 py-2 text-base outline-none transition-colors focus:border-ring"
+                  />
+                  <p class="mt-1 text-xs text-muted-foreground">要持久化执行的文件路径</p>
+                </div>
+              </div>
+
+              <!-- 无需额外配置的插件提示 -->
+              <div
+                v-if="['avdetect', 'dcinfo', 'envinfo', 'fileinfo', 'systeminfo', 'cleaner', 'shellenv', 'minidump'].includes(params.local)"
+                class="text-sm text-muted-foreground"
+              >
+                <Icon icon="mdi:information-outline" class="mr-1 inline-block text-base text-primary" />
+                该插件无需额外配置参数，直接执行即可
+              </div>
             </div>
           </div>
         </div>
@@ -414,6 +532,10 @@ const props = defineProps({
   scanControlOptions: {
     type: Object,
     required: true,
+  },
+  scanMode: {
+    type: String,
+    default: 'host',
   },
 })
 

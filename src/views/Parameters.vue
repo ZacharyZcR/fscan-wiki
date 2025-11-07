@@ -11,6 +11,125 @@
       </p>
     </div>
 
+    <!-- 扫描模式选择器 -->
+    <Card class="mb-8">
+      <CardContent class="p-8">
+        <div class="text-center mb-6">
+          <h2 class="text-2xl font-bold mb-2">选择扫描模式</h2>
+          <p class="text-sm text-muted-foreground">
+            三种扫描模式互斥，请选择一种模式进行配置
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <!-- 主机扫描模式 -->
+          <button
+            type="button"
+            class="group relative overflow-hidden rounded-xl border-2 p-6 transition-all hover:scale-105"
+            :class="
+              scanMode === 'host'
+                ? 'border-primary bg-primary/10'
+                : 'border-border bg-background hover:border-primary/50'
+            "
+            @click="switchScanMode('host')"
+          >
+            <div class="flex flex-col items-center gap-3">
+              <Icon
+                icon="mdi:lan"
+                class="text-5xl"
+                :class="scanMode === 'host' ? 'text-primary' : 'text-muted-foreground'"
+              />
+              <div>
+                <h3 class="text-xl font-bold" :class="scanMode === 'host' ? 'text-primary' : ''">
+                  主机扫描
+                </h3>
+                <p class="mt-1 text-sm text-muted-foreground">网络主机扫描</p>
+              </div>
+              <div class="mt-2 text-xs text-muted-foreground">
+                使用 -h 参数
+              </div>
+            </div>
+            <div
+              v-if="scanMode === 'host'"
+              class="absolute right-3 top-3"
+            >
+              <Icon icon="mdi:check-circle" class="text-2xl text-primary" />
+            </div>
+          </button>
+
+          <!-- Web扫描模式 -->
+          <button
+            type="button"
+            class="group relative overflow-hidden rounded-xl border-2 p-6 transition-all hover:scale-105"
+            :class="
+              scanMode === 'web'
+                ? 'border-primary bg-primary/10'
+                : 'border-border bg-background hover:border-primary/50'
+            "
+            @click="switchScanMode('web')"
+          >
+            <div class="flex flex-col items-center gap-3">
+              <Icon
+                icon="mdi:web"
+                class="text-5xl"
+                :class="scanMode === 'web' ? 'text-primary' : 'text-muted-foreground'"
+              />
+              <div>
+                <h3 class="text-xl font-bold" :class="scanMode === 'web' ? 'text-primary' : ''">
+                  Web 扫描
+                </h3>
+                <p class="mt-1 text-sm text-muted-foreground">Web URL 扫描</p>
+              </div>
+              <div class="mt-2 text-xs text-muted-foreground">
+                使用 -u 参数
+              </div>
+            </div>
+            <div
+              v-if="scanMode === 'web'"
+              class="absolute right-3 top-3"
+            >
+              <Icon icon="mdi:check-circle" class="text-2xl text-primary" />
+            </div>
+          </button>
+
+          <!-- 本地扫描模式 -->
+          <button
+            type="button"
+            class="group relative overflow-hidden rounded-xl border-2 p-6 transition-all hover:scale-105"
+            :class="
+              scanMode === 'local'
+                ? 'border-primary bg-primary/10'
+                : 'border-border bg-background hover:border-primary/50'
+            "
+            @click="switchScanMode('local')"
+          >
+            <div class="flex flex-col items-center gap-3">
+              <Icon
+                icon="mdi:desktop-tower"
+                class="text-5xl"
+                :class="scanMode === 'local' ? 'text-primary' : 'text-muted-foreground'"
+              />
+              <div>
+                <h3 class="text-xl font-bold" :class="scanMode === 'local' ? 'text-primary' : ''">
+                  本地扫描
+                </h3>
+                <p class="mt-1 text-sm text-muted-foreground">本地信息收集</p>
+              </div>
+              <div class="mt-2 text-xs text-muted-foreground">
+                使用 -local 参数
+              </div>
+            </div>
+            <div
+              v-if="scanMode === 'local'"
+              class="absolute right-3 top-3"
+            >
+              <Icon icon="mdi:check-circle" class="text-2xl text-primary" />
+            </div>
+          </button>
+        </div>
+      </CardContent>
+    </Card>
+
     <!-- 空白区域，为悬浮的命令预览提供间距 -->
     <div class="h-24"></div>
 
@@ -22,8 +141,9 @@
       @copy="copyCommand"
     />
 
-    <!-- 目标参数组件 -->
+    <!-- 目标参数组件 - 仅在主机扫描模式显示 -->
     <TargetParams
+      v-if="scanMode === 'host'"
       v-model:params="params"
       :port-presets="portPresets"
       @add-target="addTarget"
@@ -31,18 +151,19 @@
       @apply-port-preset="applyPortPreset"
     />
 
+    <!-- Web扫描组件 - 仅在Web扫描模式显示 -->
+    <WebScanParams v-if="scanMode === 'web'" v-model:params="params" />
+
     <!-- 扫描控制组件 -->
     <ScanControlParams
       v-model:params="params"
+      :scan-mode="scanMode"
       :scan-control-options="scanControlOptions"
       @toggle-option="toggleOption"
     />
 
-    <!-- 认证参数组件 -->
-    <AuthParams v-model:params="params" />
-
-    <!-- Web扫描组件 -->
-    <WebScanParams v-model:params="params" />
+    <!-- 认证参数组件 - 不在本地模式显示 -->
+    <AuthParams v-if="scanMode !== 'local'" v-model:params="params" />
 
     <!-- POC测试组件 -->
     <PocParams v-model:params="params" :poc-options="pocOptions" @toggle-option="toggleOption" />
@@ -102,6 +223,9 @@ provide('showCopySuccess', showCopySuccess)
 // 目标输入框
 const targetInput = ref('')
 provide('targetInput', targetInput)
+
+// 扫描模式状态：'host', 'web', 'local'
+const scanMode = ref('host')
 
 // 端口预设
 const portPresets = [
@@ -180,6 +304,15 @@ const params = reactive({
   o: 'result.txt', // 输出文件
   f: 'txt', // 输出格式
   log: 'SUCCESS', // 日志级别
+
+  // 本地插件配置参数
+  rsh: '', // reverseshell 反弹Shell目标
+  'start-socks5': 0, // socks5proxy 代理监听端口
+  'fsh-port': 4444, // forwardshell 正向Shell监听端口
+  'keylog-output': 'keylog.txt', // keylogger 输出文件
+  'download-url': '', // downloader 下载URL
+  'download-path': '', // downloader 保存路径
+  'persistence-file': '', // 持久化插件目标文件
 })
 
 // 扫描控制选项
@@ -449,6 +582,15 @@ const resetCommand = () => {
   params.f = 'txt'
   params.log = 'SUCCESS'
 
+  // 本地插件配置参数
+  params.rsh = ''
+  params['start-socks5'] = 0
+  params['fsh-port'] = 4444
+  params['keylog-output'] = 'keylog.txt'
+  params['download-url'] = ''
+  params['download-path'] = ''
+  params['persistence-file'] = ''
+
   // 重置所有选项
   for (const key in scanControlOptions) {
     scanControlOptions[key].enabled = false
@@ -471,6 +613,47 @@ const scrollToTop = () => {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
+// 切换扫描模式
+const switchScanMode = newMode => {
+  if (scanMode.value === newMode) return
+
+  const oldMode = scanMode.value
+  scanMode.value = newMode
+
+  // 根据新模式清空互斥参数
+  if (newMode === 'host') {
+    // 切换到主机模式：清空Web和Local参数
+    params.u = ''
+    params.uf = ''
+    params.local = ''
+  } else if (newMode === 'web') {
+    // 切换到Web模式：清空主机和Local参数
+    params.h = []
+    params.hf = ''
+    params.local = ''
+    targetInput.value = ''
+  } else if (newMode === 'local') {
+    // 切换到本地模式：清空主机和Web参数
+    params.h = []
+    params.hf = ''
+    params.u = ''
+    params.uf = ''
+    targetInput.value = ''
+  }
+}
+
+// 自动检测当前扫描模式
+const detectScanMode = () => {
+  if (params.local) {
+    return 'local'
+  } else if (params.u || params.uf) {
+    return 'web'
+  } else if (params.h.length > 0 || params.hf) {
+    return 'host'
+  }
+  return scanMode.value // 默认保持当前模式
+}
+
 // 添加点击和键盘事件，在有目标时允许快速复制
 onMounted(() => {
   window.addEventListener('keydown', e => {
@@ -484,6 +667,9 @@ onMounted(() => {
       }
     }
   })
+
+  // 初始化时检测扫描模式
+  scanMode.value = detectScanMode()
 })
 </script>
 
