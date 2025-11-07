@@ -1,5 +1,5 @@
 <template>
-  <Card class="mb-16">
+  <Card class="mb-6">
     <CardHeader>
       <div class="flex items-center gap-3">
         <Icon icon="mdi:target" class="text-2xl text-primary" />

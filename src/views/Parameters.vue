@@ -1,137 +1,94 @@
 <template>
-  <div class="max-w-7xl mx-auto px-6">
-    <!-- 页面标题区 -->
-    <div class="mb-10 text-center py-12">
-      <div class="inline-flex items-center justify-center p-4 rounded-full mb-6 bg-primary/10">
-        <Icon icon="mdi:console-line" class="text-5xl text-primary" />
+  <div class="max-w-7xl mx-auto px-4 md:px-6 pb-32">
+    <!-- 紧凑型页面头部 -->
+    <div class="mb-6 py-4 md:py-6">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="flex-shrink-0">
+            <Icon icon="mdi:console-line" class="text-3xl text-primary" />
+          </div>
+          <div>
+            <h1 class="text-2xl font-bold">Fscan 参数构建器</h1>
+            <p class="text-sm text-muted-foreground">交互式构建扫描命令</p>
+          </div>
+        </div>
+        <!-- 快速操作按钮 -->
+        <div class="flex gap-2">
+          <Button variant="outline" size="sm" @click="resetCommand">
+            <Icon icon="mdi:refresh" class="mr-1 text-base" />
+            <span class="hidden sm:inline">重置</span>
+          </Button>
+          <Button size="sm" @click="copyCommand" :disabled="!hasTargets">
+            <Icon icon="mdi:content-copy" class="mr-1 text-base" />
+            <span class="hidden sm:inline">复制命令</span>
+          </Button>
+        </div>
       </div>
-      <h1 class="text-5xl font-bold mb-4">Fscan 参数构建器</h1>
-      <p class="mt-4 text-xl max-w-3xl mx-auto text-muted-foreground">
-        交互式选择扫描参数，构建自定义 Fscan 命令
-      </p>
     </div>
 
-    <!-- 扫描模式选择器 -->
-    <Card class="mb-8">
-      <CardContent class="p-8">
-        <div class="text-center mb-6">
-          <h2 class="text-2xl font-bold mb-2">选择扫描模式</h2>
-          <p class="text-sm text-muted-foreground">
-            三种扫描模式互斥，请选择一种模式进行配置
-          </p>
+    <!-- Tabs式扫描模式选择器 -->
+    <Card class="mb-6">
+      <CardContent class="p-4">
+        <div class="mb-3">
+          <h2 class="text-sm font-medium text-muted-foreground">扫描模式</h2>
         </div>
-
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <!-- 主机扫描模式 -->
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 p-1 bg-muted rounded-lg">
+          <!-- 主机扫描 -->
           <button
             type="button"
-            class="group relative overflow-hidden rounded-xl border-2 p-6 transition-all hover:scale-105"
+            class="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-md transition-all"
             :class="
               scanMode === 'host'
-                ? 'border-primary bg-primary/10'
-                : 'border-border bg-background hover:border-primary/50'
+                ? 'bg-background shadow-sm font-medium'
+                : 'text-muted-foreground hover:text-foreground'
             "
             @click="switchScanMode('host')"
           >
-            <div class="flex flex-col items-center gap-3">
-              <Icon
-                icon="mdi:lan"
-                class="text-5xl"
-                :class="scanMode === 'host' ? 'text-primary' : 'text-muted-foreground'"
-              />
-              <div>
-                <h3 class="text-xl font-bold" :class="scanMode === 'host' ? 'text-primary' : ''">
-                  主机扫描
-                </h3>
-                <p class="mt-1 text-sm text-muted-foreground">网络主机扫描</p>
-              </div>
-              <div class="mt-2 text-xs text-muted-foreground">
-                使用 -h 参数
-              </div>
-            </div>
-            <div
-              v-if="scanMode === 'host'"
-              class="absolute right-3 top-3"
-            >
-              <Icon icon="mdi:check-circle" class="text-2xl text-primary" />
-            </div>
+            <Icon icon="mdi:lan" class="text-lg" />
+            <span class="text-sm">主机扫描</span>
+            <span class="hidden md:inline text-xs text-muted-foreground">(-h)</span>
           </button>
 
-          <!-- Web扫描模式 -->
+          <!-- Web扫描 -->
           <button
             type="button"
-            class="group relative overflow-hidden rounded-xl border-2 p-6 transition-all hover:scale-105"
+            class="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-md transition-all"
             :class="
               scanMode === 'web'
-                ? 'border-primary bg-primary/10'
-                : 'border-border bg-background hover:border-primary/50'
+                ? 'bg-background shadow-sm font-medium'
+                : 'text-muted-foreground hover:text-foreground'
             "
             @click="switchScanMode('web')"
           >
-            <div class="flex flex-col items-center gap-3">
-              <Icon
-                icon="mdi:web"
-                class="text-5xl"
-                :class="scanMode === 'web' ? 'text-primary' : 'text-muted-foreground'"
-              />
-              <div>
-                <h3 class="text-xl font-bold" :class="scanMode === 'web' ? 'text-primary' : ''">
-                  Web 扫描
-                </h3>
-                <p class="mt-1 text-sm text-muted-foreground">Web URL 扫描</p>
-              </div>
-              <div class="mt-2 text-xs text-muted-foreground">
-                使用 -u 参数
-              </div>
-            </div>
-            <div
-              v-if="scanMode === 'web'"
-              class="absolute right-3 top-3"
-            >
-              <Icon icon="mdi:check-circle" class="text-2xl text-primary" />
-            </div>
+            <Icon icon="mdi:web" class="text-lg" />
+            <span class="text-sm">Web扫描</span>
+            <span class="hidden md:inline text-xs text-muted-foreground">(-u)</span>
           </button>
 
-          <!-- 本地扫描模式 -->
+          <!-- 本地扫描 -->
           <button
             type="button"
-            class="group relative overflow-hidden rounded-xl border-2 p-6 transition-all hover:scale-105"
+            class="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-md transition-all"
             :class="
               scanMode === 'local'
-                ? 'border-primary bg-primary/10'
-                : 'border-border bg-background hover:border-primary/50'
+                ? 'bg-background shadow-sm font-medium'
+                : 'text-muted-foreground hover:text-foreground'
             "
             @click="switchScanMode('local')"
           >
-            <div class="flex flex-col items-center gap-3">
-              <Icon
-                icon="mdi:desktop-tower"
-                class="text-5xl"
-                :class="scanMode === 'local' ? 'text-primary' : 'text-muted-foreground'"
-              />
-              <div>
-                <h3 class="text-xl font-bold" :class="scanMode === 'local' ? 'text-primary' : ''">
-                  本地扫描
-                </h3>
-                <p class="mt-1 text-sm text-muted-foreground">本地信息收集</p>
-              </div>
-              <div class="mt-2 text-xs text-muted-foreground">
-                使用 -local 参数
-              </div>
-            </div>
-            <div
-              v-if="scanMode === 'local'"
-              class="absolute right-3 top-3"
-            >
-              <Icon icon="mdi:check-circle" class="text-2xl text-primary" />
-            </div>
+            <Icon icon="mdi:desktop-tower" class="text-lg" />
+            <span class="text-sm">本地扫描</span>
+            <span class="hidden md:inline text-xs text-muted-foreground">(-local)</span>
           </button>
+        </div>
+        <!-- 模式说明 -->
+        <div class="mt-3 text-xs text-muted-foreground">
+          <span v-if="scanMode === 'host'">网络主机和端口扫描，服务识别与暴力破解</span>
+          <span v-else-if="scanMode === 'web'">Web应用漏洞扫描，POC测试</span>
+          <span v-else>本地主机信息收集和后渗透工具</span>
         </div>
       </CardContent>
     </Card>
-
-    <!-- 空白区域，为悬浮的命令预览提供间距 -->
-    <div class="h-24"></div>
 
     <!-- 命令预览组件（始终显示） -->
     <CommandPreview
@@ -202,6 +159,8 @@
 <script setup>
 import { ref, reactive, computed, inject, provide, onMounted } from 'vue'
 import { Icon } from '@iconify/vue'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import CommandPreview from './CommandPreview.vue'
 import TargetParams from './TargetParams.vue'
 import ScanControlParams from './ScanControlParams.vue'

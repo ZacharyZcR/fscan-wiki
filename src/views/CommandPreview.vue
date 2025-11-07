@@ -1,44 +1,35 @@
 <template>
-  <div class="sticky top-20 z-30 mb-16">
+  <div class="sticky top-4 z-30 mb-6">
     <Card>
-      <CardHeader>
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <Icon icon="mdi:console" class="text-2xl text-primary" />
-            <CardTitle>命令预览</CardTitle>
+      <CardHeader class="pb-3">
+        <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div class="flex items-center gap-2">
+            <Icon icon="mdi:console" class="text-xl text-primary" />
+            <CardTitle class="text-base">命令预览</CardTitle>
           </div>
-          <div class="flex items-center gap-4">
+          <div class="flex flex-wrap items-center gap-2">
             <!-- 服务器地址输入 -->
             <input
               v-model="serverAddress"
               type="text"
               placeholder="服务器地址"
-              class="w-40 rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none transition-colors focus:border-ring"
+              class="w-32 md:w-40 rounded-lg border border-input bg-background px-3 py-1.5 text-sm outline-none transition-colors focus:border-ring"
             />
             <!-- 秘钥输入 -->
             <input
               v-model="serverKey"
               type="password"
               placeholder="服务器秘钥"
-              class="w-40 rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none transition-colors focus:border-ring"
+              class="w-32 md:w-40 rounded-lg border border-input bg-background px-3 py-1.5 text-sm outline-none transition-colors focus:border-ring"
             />
-
-            <Button variant="outline" size="sm" @click="$emit('reset')">
-              <Icon icon="mdi:refresh" class="mr-2 text-base" />
-              重置
-            </Button>
-            <Button :disabled="!hasTargets" size="sm" @click="$emit('copy')">
-              <Icon icon="mdi:content-copy" class="mr-2 text-base" />
-              复制命令
-            </Button>
           </div>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent class="pt-0">
         <div class="relative">
           <!-- 命令预览区域 -->
           <div
-            class="min-h-[80px] overflow-x-auto whitespace-pre-wrap break-all rounded-lg bg-muted/50 p-6 font-mono text-base"
+            class="min-h-[60px] overflow-x-auto whitespace-pre-wrap break-all rounded-lg bg-muted/50 p-4 font-mono text-sm"
           >
             <!-- 无目标时显示提示 -->
             <div
