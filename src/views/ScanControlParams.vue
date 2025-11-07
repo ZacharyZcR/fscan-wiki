@@ -1,84 +1,45 @@
 <template>
-  <div
-    class="mb-16 rounded-xl border overflow-hidden shadow-lg transition-colors duration-300"
-    :class="isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'"
-  >
-    <div
-      class="px-8 py-6 border-b flex items-center"
-      :class="isDark ? 'border-gray-700 bg-gray-750' : 'border-gray-200 bg-gray-50'"
-    >
-      <Icon
-        icon="mdi:tune-vertical"
-        class="mr-3 text-2xl"
-        :class="isDark ? 'text-blue-400' : 'text-blue-600'"
-      />
-      <h2 class="font-medium text-xl" :class="isDark ? 'text-gray-200' : 'text-gray-700'">
-        扫描控制参数
-      </h2>
-    </div>
-    <div class="p-8">
+  <Card class="mb-16">
+    <CardHeader>
+      <div class="flex items-center gap-3">
+        <Icon icon="mdi:tune-vertical" class="text-2xl text-primary" />
+        <CardTitle>扫描控制参数</CardTitle>
+      </div>
+    </CardHeader>
+    <CardContent>
       <!-- 扫描插件选择器 -->
       <div class="mb-10">
-        <div class="flex justify-between items-center mb-4">
-          <label class="text-lg font-medium" :class="isDark ? 'text-gray-300' : 'text-gray-700'">
-            扫描插件选择 (-m)
-          </label>
+        <div class="mb-4 flex items-center justify-between">
+          <label class="text-lg font-medium">扫描插件选择 (-m)</label>
           <div class="flex space-x-2">
-            <button
-              class="px-3 py-1.5 text-sm rounded-lg transition-all duration-200 flex items-center"
-              :class="
-                isDark
-                  ? 'bg-gray-700 hover:bg-gray-600 text-gray-300'
-                  : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-              "
-              @click="selectAllPlugins"
-            >
+            <Button variant="outline" size="sm" @click="selectAllPlugins">
               <Icon icon="mdi:check-all" class="mr-1 text-base" />
               全选
-            </button>
-            <button
-              class="px-3 py-1.5 text-sm rounded-lg transition-all duration-200 flex items-center"
-              :class="
-                isDark
-                  ? 'bg-gray-700 hover:bg-gray-600 text-gray-300'
-                  : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-              "
-              @click="clearPluginSelection"
-            >
+            </Button>
+            <Button variant="outline" size="sm" @click="clearPluginSelection">
               <Icon icon="mdi:close-box-multiple-outline" class="mr-1 text-base" />
               清空
-            </button>
+            </Button>
             <div class="relative">
-              <button
-                class="px-3 py-1.5 text-sm rounded-lg transition-all duration-200 flex items-center"
-                :class="
-                  isDark
-                    ? 'bg-gray-700 hover:bg-gray-600 text-gray-300'
-                    : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                "
-                @click="showPresets = !showPresets"
-              >
+              <Button variant="outline" size="sm" @click="showPresets = !showPresets">
                 <Icon icon="mdi:lightning-bolt" class="mr-1 text-base" />
                 预设
                 <Icon
                   :icon="showPresets ? 'mdi:chevron-up' : 'mdi:chevron-down'"
                   class="ml-1 text-base"
                 />
-              </button>
+              </Button>
               <!-- 预设下拉菜单 -->
               <div
                 v-if="showPresets"
-                class="absolute right-0 mt-1 rounded-lg shadow-lg overflow-hidden z-10 w-48 border"
-                :class="isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'"
+                class="absolute right-0 z-10 mt-1 w-48 overflow-hidden rounded-lg border border-border bg-card shadow-lg"
               >
                 <div class="py-1">
                   <button
                     v-for="preset in pluginPresets"
                     :key="preset.name"
-                    class="block w-full text-left px-4 py-2 text-sm transition-colors duration-200"
-                    :class="
-                      isDark ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-100'
-                    "
+                    type="button"
+                    class="block w-full px-4 py-2 text-left text-sm transition-colors hover:bg-accent"
                     @click="applyPluginPreset(preset.value)"
                   >
                     {{ preset.name }}
@@ -90,27 +51,23 @@
         </div>
 
         <!-- 插件搜索 -->
-        <div class="mb-4 relative">
-          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Icon icon="mdi:magnify" class="text-gray-400 text-lg" />
+        <div class="relative mb-4">
+          <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+            <Icon icon="mdi:magnify" class="text-lg text-muted-foreground" />
           </div>
           <input
             v-model="pluginSearchQuery"
             type="text"
             placeholder="搜索插件..."
-            class="pl-10 w-full px-4 py-3 text-base rounded-lg border outline-none transition-colors duration-200"
-            :class="
-              isDark
-                ? 'bg-gray-700 border-gray-600 text-gray-200 focus:border-blue-500'
-                : 'bg-white border-gray-300 text-gray-700 focus:border-blue-500'
-            "
+            class="w-full rounded-lg border border-input bg-background px-4 py-3 pl-10 text-base outline-none transition-colors focus:border-ring"
           />
           <button
             v-if="pluginSearchQuery"
-            class="absolute inset-y-0 right-0 pr-3 flex items-center"
+            type="button"
+            class="absolute inset-y-0 right-0 flex items-center pr-3"
             @click="pluginSearchQuery = ''"
           >
-            <Icon icon="mdi:close-circle" class="text-gray-400 hover:text-gray-600 text-lg" />
+            <Icon icon="mdi:close-circle" class="text-lg text-muted-foreground hover:text-foreground" />
           </button>
         </div>
 
@@ -119,64 +76,40 @@
           <div
             v-for="plugin in selectedPlugins"
             :key="plugin"
-            class="text-sm px-3 py-1.5 rounded-full flex items-center group transition-all duration-200"
-            :class="
-              isDark
-                ? 'bg-blue-800/40 text-blue-300 hover:bg-blue-700/40'
-                : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-            "
+            class="group flex items-center rounded-full bg-primary/10 px-3 py-1.5 text-sm text-primary transition-all hover:bg-primary/20"
           >
             <span class="mr-2">{{ plugin }}</span>
             <button
-              class="text-sm p-0.5 rounded-full group-hover:bg-red-500/20"
+              type="button"
+              class="rounded-full p-0.5 text-sm transition-colors group-hover:text-destructive"
               @click="togglePlugin(plugin)"
             >
-              <Icon
-                icon="mdi:close-circle"
-                class="text-base transition-colors duration-200"
-                :class="
-                  isDark
-                    ? 'text-blue-400 group-hover:text-red-400'
-                    : 'text-blue-500 group-hover:text-red-500'
-                "
-              />
+              <Icon icon="mdi:close-circle" class="text-base" />
             </button>
           </div>
         </div>
 
         <!-- 分组的插件选择器 -->
-        <div
-          class="border rounded-lg overflow-hidden"
-          :class="isDark ? 'border-gray-700' : 'border-gray-200'"
-        >
+        <div class="overflow-hidden rounded-lg border border-border">
           <div v-for="(group, groupName) in filteredPluginGroups" :key="groupName">
             <!-- 分组标题 -->
             <div
-              class="px-4 py-3 flex justify-between items-center cursor-pointer"
-              :class="
-                isDark
-                  ? 'bg-gray-750 border-b border-gray-700'
-                  : 'bg-gray-50 border-b border-gray-200'
-              "
+              class="flex cursor-pointer items-center justify-between border-b border-border bg-muted/50 px-4 py-3"
               @click="toggleGroup(groupName)"
             >
               <div class="flex items-center">
-                <Icon
-                  :icon="getGroupIcon(groupName)"
-                  class="mr-2 text-xl"
-                  :class="isDark ? 'text-blue-400' : 'text-blue-600'"
-                />
-                <span class="font-medium" :class="isDark ? 'text-gray-200' : 'text-gray-700'">
+                <Icon :icon="getGroupIcon(groupName)" class="mr-2 text-xl text-primary" />
+                <span class="font-medium">
                   {{ getGroupDisplayName(groupName) }}
                 </span>
               </div>
               <div class="flex items-center">
-                <span class="text-sm mr-2" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
+                <span class="mr-2 text-sm text-muted-foreground">
                   已选 {{ getSelectedCountInGroup(groupName) }}/{{ group.length }}
                 </span>
                 <Icon
                   :icon="expandedGroups[groupName] ? 'mdi:chevron-up' : 'mdi:chevron-down'"
-                  :class="isDark ? 'text-gray-400' : 'text-gray-600'"
+                  class="text-muted-foreground"
                 />
               </div>
             </div>
@@ -184,38 +117,20 @@
             <!-- 分组内容 -->
             <div
               v-if="expandedGroups[groupName]"
-              class="px-4 py-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2"
-              :class="
-                isDark
-                  ? 'bg-gray-800/40 border-b border-gray-700'
-                  : 'bg-white border-b border-gray-200'
-              "
+              class="grid grid-cols-1 gap-2 border-b border-border bg-background px-4 py-3 md:grid-cols-2 lg:grid-cols-3"
             >
               <div v-for="plugin in group" :key="plugin.name" class="flex items-center">
-                <label
-                  class="flex items-center space-x-2 cursor-pointer"
-                  :class="
-                    isDark
-                      ? 'text-gray-300 hover:text-gray-200'
-                      : 'text-gray-700 hover:text-gray-900'
-                  "
-                >
+                <label class="flex cursor-pointer items-center space-x-2 hover:text-primary">
                   <input
                     type="checkbox"
                     :checked="isPluginSelected(plugin.name)"
-                    class="form-checkbox h-5 w-5 rounded transition-colors duration-200"
-                    :class="
-                      isDark
-                        ? 'text-blue-500 border-gray-600 bg-gray-700'
-                        : 'text-blue-500 border-gray-300 bg-white'
-                    "
+                    class="form-checkbox h-5 w-5 rounded border-input bg-background text-primary transition-colors"
                     @change="togglePlugin(plugin.name)"
                   />
                   <span>{{ plugin.name }}</span>
                   <span
                     v-if="plugin.ports && plugin.ports.length"
-                    class="text-xs opacity-70"
-                    :class="isDark ? 'text-gray-400' : 'text-gray-500'"
+                    class="text-xs text-muted-foreground opacity-70"
                   >
                     (端口: {{ formatPorts(plugin.ports) }})
                   </span>
@@ -227,46 +142,31 @@
 
         <!-- 自定义模式输入 -->
         <div class="mt-4">
-          <label
-            class="block mb-2 text-sm font-medium"
-            :class="isDark ? 'text-gray-400' : 'text-gray-600'"
-          >
+          <label class="mb-2 block text-sm font-medium text-muted-foreground">
             自定义扫描模式 (手动输入，逗号分隔)
           </label>
           <input
             v-model.trim="customPluginInput"
             type="text"
             placeholder="例如: ssh,ftp,mysql"
-            class="w-full px-4 py-3 text-base rounded-lg border outline-none transition-colors duration-200"
-            :class="
-              isDark
-                ? 'bg-gray-700 border-gray-600 text-gray-200 focus:border-blue-500'
-                : 'bg-white border-gray-300 text-gray-700 focus:border-blue-500'
-            "
+            class="w-full rounded-lg border border-input bg-background px-4 py-3 text-base outline-none transition-colors focus:border-ring"
             @input="updateFromCustomInput"
           />
         </div>
       </div>
 
       <!-- 线程和超时设置 -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+      <div class="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2">
         <!-- 线程数量 -->
         <div>
-          <label
-            class="block mb-3 text-lg font-medium flex justify-between"
-            :class="isDark ? 'text-gray-300' : 'text-gray-700'"
-          >
+          <label class="mb-3 flex justify-between text-lg font-medium">
             扫描线程数 (-t)
-            <span class="text-sm" :class="isDark ? 'text-gray-500' : 'text-gray-500'">1-2000</span>
+            <span class="text-sm text-muted-foreground">1-2000</span>
           </label>
           <div class="flex items-center">
             <button
-              class="px-4 py-3 rounded-l-lg border border-r-0 transition-colors duration-200"
-              :class="
-                isDark
-                  ? 'bg-gray-700 border-gray-600 text-gray-400 hover:text-gray-200'
-                  : 'bg-gray-100 border-gray-300 text-gray-700'
-              "
+              type="button"
+              class="rounded-l-lg border border-r-0 border-input bg-muted px-4 py-3 transition-colors hover:bg-muted/80"
               @click="decrementThreadNum"
             >
               <Icon icon="mdi:minus" class="text-lg" />
@@ -276,20 +176,11 @@
               type="number"
               min="1"
               max="2000"
-              class="w-full px-4 py-3 text-base border text-center outline-none transition-colors duration-200"
-              :class="
-                isDark
-                  ? 'bg-gray-700 border-gray-600 text-gray-200 focus:border-blue-500'
-                  : 'bg-white border-gray-300 text-gray-700 focus:border-blue-500'
-              "
+              class="w-full border border-input bg-background px-4 py-3 text-center text-base outline-none transition-colors focus:border-ring"
             />
             <button
-              class="px-4 py-3 rounded-r-lg border border-l-0 transition-colors duration-200"
-              :class="
-                isDark
-                  ? 'bg-gray-700 border-gray-600 text-gray-400 hover:text-gray-200'
-                  : 'bg-gray-100 border-gray-300 text-gray-700'
-              "
+              type="button"
+              class="rounded-r-lg border border-l-0 border-input bg-muted px-4 py-3 transition-colors hover:bg-muted/80"
               @click="incrementThreadNum"
             >
               <Icon icon="mdi:plus" class="text-lg" />
@@ -299,12 +190,9 @@
 
         <!-- 单次超时时间 -->
         <div>
-          <label
-            class="block mb-3 text-lg font-medium flex justify-between"
-            :class="isDark ? 'text-gray-300' : 'text-gray-700'"
-          >
+          <label class="mb-3 flex justify-between text-lg font-medium">
             单次连接超时时间 (-time)
-            <span :class="isDark ? 'text-gray-400' : 'text-gray-600'">{{ params.time }} 秒</span>
+            <span class="text-muted-foreground">{{ params.time }} 秒</span>
           </label>
           <input
             v-model.number="params.time"
@@ -312,30 +200,22 @@
             min="1"
             max="30"
             step="1"
-            class="w-full h-3 rounded-lg appearance-none cursor-pointer transition-all duration-200"
-            :class="isDark ? 'bg-gray-700' : 'bg-gray-200'"
+            class="h-2 w-full cursor-pointer appearance-none rounded-lg bg-muted"
           />
         </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+      <div class="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2">
         <!-- 模块线程数 -->
         <div>
-          <label
-            class="block mb-3 text-lg font-medium flex justify-between"
-            :class="isDark ? 'text-gray-300' : 'text-gray-700'"
-          >
+          <label class="mb-3 flex justify-between text-lg font-medium">
             模块线程数 (-mt)
-            <span class="text-sm" :class="isDark ? 'text-gray-500' : 'text-gray-500'">1-100</span>
+            <span class="text-sm text-muted-foreground">1-100</span>
           </label>
           <div class="flex items-center">
             <button
-              class="px-4 py-3 rounded-l-lg border border-r-0 transition-colors duration-200"
-              :class="
-                isDark
-                  ? 'bg-gray-700 border-gray-600 text-gray-400 hover:text-gray-200'
-                  : 'bg-gray-100 border-gray-300 text-gray-700'
-              "
+              type="button"
+              class="rounded-l-lg border border-r-0 border-input bg-muted px-4 py-3 transition-colors hover:bg-muted/80"
               @click="decrementModuleThreadNum"
             >
               <Icon icon="mdi:minus" class="text-lg" />
@@ -345,20 +225,11 @@
               type="number"
               min="1"
               max="100"
-              class="w-full px-4 py-3 text-base border text-center outline-none transition-colors duration-200"
-              :class="
-                isDark
-                  ? 'bg-gray-700 border-gray-600 text-gray-200 focus:border-blue-500'
-                  : 'bg-white border-gray-300 text-gray-700 focus:border-blue-500'
-              "
+              class="w-full border border-input bg-background px-4 py-3 text-center text-base outline-none transition-colors focus:border-ring"
             />
             <button
-              class="px-4 py-3 rounded-r-lg border border-l-0 transition-colors duration-200"
-              :class="
-                isDark
-                  ? 'bg-gray-700 border-gray-600 text-gray-400 hover:text-gray-200'
-                  : 'bg-gray-100 border-gray-300 text-gray-700'
-              "
+              type="button"
+              class="rounded-r-lg border border-l-0 border-input bg-muted px-4 py-3 transition-colors hover:bg-muted/80"
               @click="incrementModuleThreadNum"
             >
               <Icon icon="mdi:plus" class="text-lg" />
@@ -368,12 +239,9 @@
 
         <!-- 全局超时时间 -->
         <div>
-          <label
-            class="block mb-3 text-lg font-medium flex justify-between"
-            :class="isDark ? 'text-gray-300' : 'text-gray-700'"
-          >
+          <label class="mb-3 flex justify-between text-lg font-medium">
             全局超时时间 (-gt)
-            <span :class="isDark ? 'text-gray-400' : 'text-gray-600'">{{ params.gt }} 秒</span>
+            <span class="text-muted-foreground">{{ params.gt }} 秒</span>
           </label>
           <input
             v-model.number="params.gt"
@@ -381,27 +249,20 @@
             min="60"
             max="600"
             step="30"
-            class="w-full h-3 rounded-lg appearance-none cursor-pointer transition-all duration-200"
-            :class="isDark ? 'bg-gray-700' : 'bg-gray-200'"
+            class="h-2 w-full cursor-pointer appearance-none rounded-lg bg-muted"
           />
         </div>
+
         <!-- 最大重试次数控制 -->
         <div>
-          <label
-            class="block mb-3 text-lg font-medium flex justify-between"
-            :class="isDark ? 'text-gray-300' : 'text-gray-700'"
-          >
+          <label class="mb-3 flex justify-between text-lg font-medium">
             最大重试次数 (-retry)
-            <span class="text-sm" :class="isDark ? 'text-gray-500' : 'text-gray-500'">1-10</span>
+            <span class="text-sm text-muted-foreground">1-10</span>
           </label>
           <div class="flex items-center">
             <button
-              class="px-4 py-3 rounded-l-lg border border-r-0 transition-colors duration-200"
-              :class="
-                isDark
-                  ? 'bg-gray-700 border-gray-600 text-gray-400 hover:text-gray-200'
-                  : 'bg-gray-100 border-gray-300 text-gray-700'
-              "
+              type="button"
+              class="rounded-l-lg border border-r-0 border-input bg-muted px-4 py-3 transition-colors hover:bg-muted/80"
               @click="decrementRetryNum"
             >
               <Icon icon="mdi:minus" class="text-lg" />
@@ -411,20 +272,11 @@
               type="number"
               min="1"
               max="10"
-              class="w-full px-4 py-3 text-base border text-center outline-none transition-colors duration-200"
-              :class="
-                isDark
-                  ? 'bg-gray-700 border-gray-600 text-gray-200 focus:border-blue-500'
-                  : 'bg-white border-gray-300 text-gray-700 focus:border-blue-500'
-              "
+              class="w-full border border-input bg-background px-4 py-3 text-center text-base outline-none transition-colors focus:border-ring"
             />
             <button
-              class="px-4 py-3 rounded-r-lg border border-l-0 transition-colors duration-200"
-              :class="
-                isDark
-                  ? 'bg-gray-700 border-gray-600 text-gray-400 hover:text-gray-200'
-                  : 'bg-gray-100 border-gray-300 text-gray-700'
-              "
+              type="button"
+              class="rounded-r-lg border border-l-0 border-input bg-muted px-4 py-3 transition-colors hover:bg-muted/80"
               @click="incrementRetryNum"
             >
               <Icon icon="mdi:plus" class="text-lg" />
@@ -435,21 +287,14 @@
 
       <!-- 存活优先扫描数量 -->
       <div class="mb-8">
-        <label
-          class="block mb-3 text-lg font-medium flex justify-between"
-          :class="isDark ? 'text-gray-300' : 'text-gray-700'"
-        >
+        <label class="mb-3 flex justify-between text-lg font-medium">
           存活优先扫描数量 (-top)
-          <span class="text-sm" :class="isDark ? 'text-gray-500' : 'text-gray-500'">1-100</span>
+          <span class="text-sm text-muted-foreground">1-100</span>
         </label>
-        <div class="flex items-center max-w-md mx-auto">
+        <div class="mx-auto flex max-w-md items-center">
           <button
-            class="px-4 py-3 rounded-l-lg border border-r-0 transition-colors duration-200"
-            :class="
-              isDark
-                ? 'bg-gray-700 border-gray-600 text-gray-400 hover:text-gray-200'
-                : 'bg-gray-100 border-gray-300 text-gray-700'
-            "
+            type="button"
+            class="rounded-l-lg border border-r-0 border-input bg-muted px-4 py-3 transition-colors hover:bg-muted/80"
             @click="decrementLiveTop"
           >
             <Icon icon="mdi:minus" class="text-lg" />
@@ -459,20 +304,11 @@
             type="number"
             min="1"
             max="100"
-            class="w-full px-4 py-3 text-base border text-center outline-none transition-colors duration-200"
-            :class="
-              isDark
-                ? 'bg-gray-700 border-gray-600 text-gray-200 focus:border-blue-500'
-                : 'bg-white border-gray-300 text-gray-700 focus:border-blue-500'
-            "
+            class="w-full border border-input bg-background px-4 py-3 text-center text-base outline-none transition-colors focus:border-ring"
           />
           <button
-            class="px-4 py-3 rounded-r-lg border border-l-0 transition-colors duration-200"
-            :class="
-              isDark
-                ? 'bg-gray-700 border-gray-600 text-gray-400 hover:text-gray-200'
-                : 'bg-gray-100 border-gray-300 text-gray-700'
-            "
+            type="button"
+            class="rounded-r-lg border border-l-0 border-input bg-muted px-4 py-3 transition-colors hover:bg-muted/80"
             @click="incrementLiveTop"
           >
             <Icon icon="mdi:plus" class="text-lg" />
@@ -481,66 +317,51 @@
       </div>
 
       <!-- 扫描控制选项 -->
-      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+      <div class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
         <div
           v-for="(option, key) in scanControlOptions"
           :key="key"
-          class="flex items-center justify-between p-5 rounded-xl transition-all duration-200 hover:shadow-md"
-          :class="[
-            option.enabled
-              ? isDark
-                ? 'bg-blue-900/30 border border-blue-500/20'
-                : 'bg-blue-50 border border-blue-100'
-              : isDark
-                ? 'bg-gray-750 border border-gray-700'
-                : 'bg-gray-50 border border-gray-200',
-          ]"
+          class="flex items-center justify-between rounded-xl border p-5 transition-all"
+          :class="option.enabled ? 'border-primary/20 bg-primary/10' : 'border-border bg-muted/50 hover:bg-muted'"
         >
           <div class="flex-1">
-            <div
-              class="font-medium text-base flex items-center"
-              :class="isDark ? 'text-gray-200' : 'text-gray-700'"
-            >
+            <div class="flex items-center text-base font-medium">
               <Icon
                 :icon="option.icon"
                 class="mr-2 text-xl"
-                :class="
-                  option.enabled
-                    ? isDark
-                      ? 'text-blue-400'
-                      : 'text-blue-600'
-                    : isDark
-                      ? 'text-gray-500'
-                      : 'text-gray-400'
-                "
+                :class="option.enabled ? 'text-primary' : 'text-muted-foreground'"
               />
               {{ option.name }}
             </div>
-            <div class="text-sm mt-1.5 ml-7" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
+            <div class="ml-7 mt-1.5 text-sm text-muted-foreground">
               {{ option.description }}
             </div>
           </div>
-          <!-- 开关样式 -->
-          <button class="flex-shrink-0 ml-4" @click="toggleOptionLocal(key, option)">
-            <div
-              class="w-14 h-7 rounded-full transition-colors duration-200 flex items-center px-0.5"
-              :class="option.enabled ? 'bg-blue-600' : isDark ? 'bg-gray-600' : 'bg-gray-300'"
-            >
-              <div
-                class="w-6 h-6 rounded-full bg-white transform transition-transform duration-200 shadow-md"
-                :class="option.enabled ? 'translate-x-7' : 'translate-x-0'"
-              ></div>
-            </div>
+          <!-- Toggle Switch -->
+          <button
+            type="button"
+            class="relative ml-4 inline-flex h-7 w-14 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            :class="option.enabled ? 'bg-primary' : 'bg-input'"
+            role="switch"
+            :aria-checked="option.enabled"
+            @click="toggleOptionLocal(key, option)"
+          >
+            <span
+              class="pointer-events-none block h-6 w-6 rounded-full bg-background shadow-lg ring-0 transition-transform"
+              :class="option.enabled ? 'translate-x-7' : 'translate-x-0'"
+            ></span>
           </button>
         </div>
       </div>
-    </div>
-  </div>
+    </CardContent>
+  </Card>
 </template>
 
 <script setup>
 import { ref, inject, computed, watch } from 'vue'
 import { Icon } from '@iconify/vue'
+import { Button } from '@/components/ui/button'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 
 const params = defineModel('params', {
   type: Object,
@@ -879,27 +700,6 @@ watch(
 </script>
 
 <style scoped>
-/* 滑块样式 */
-input[type='range']::-webkit-slider-thumb {
-  appearance: none;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #3b82f6;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-input[type='range']::-webkit-slider-thumb:hover {
-  background: #2563eb;
-  transform: scale(1.1);
-}
-
-.dark input[type='range']::-webkit-slider-thumb {
-  background: #3b82f6;
-  box-shadow: 0 0 4px rgba(59, 130, 246, 0.6);
-}
-
 /* 自定义复选框样式 */
 .form-checkbox {
   appearance: none;
