@@ -298,83 +298,140 @@ fscan -h 192.168.1.0/24 -json output.json</code></pre>
     description: '插件架构和开发指南',
     icon: 'mdi:puzzle',
     content: `
-      <h2>插件架构</h2>
-      <p>fscan 采用模块化插件架构，每个扫描功能都是独立的插件。</p>
+      <h2>设计目标</h2>
+      <p>fscan 的插件系统旨在实现：</p>
+      <ul>
+        <li><strong>零依赖</strong>：插件之间完全解耦，可以任意组合</li>
+        <li><strong>易扩展</strong>：添加新插件不需要修改核心代码</li>
+        <li><strong>可裁剪</strong>：通过构建标签实现编译时选择</li>
+        <li><strong>统一接口</strong>：所有插件遵循相同的调用规范</li>
+      </ul>
+
+      <h2>架构设计</h2>
+
+      <h3>分层结构</h3>
+      <p>fscan 采用三层插件架构：</p>
+      <ul>
+        <li><strong>核心层</strong>：插件注册表和调度器</li>
+        <li><strong>接口层</strong>：统一的插件接口定义</li>
+        <li><strong>实现层</strong>：具体的插件实现</li>
+      </ul>
+
+      <h3>注册机制</h3>
+      <p>插件采用<strong>自注册模式</strong>：</p>
+      <ul>
+        <li>每个插件在 <code>init()</code> 函数中向注册表注册自己</li>
+        <li>核心层维护一个全局插件注册表</li>
+        <li>运行时根据注册表动态调用插件</li>
+      </ul>
+      <p><strong>优势</strong>：核心代码不需要知道有哪些插件存在，添加新插件时零侵入。</p>
+
+      <h3>接口设计</h3>
+      <p>所有插件实现统一的接口：</p>
+      <ul>
+        <li><code>Scan(ctx, hostInfo)</code>：执行扫描逻辑</li>
+        <li><code>Name()</code>：返回插件名称</li>
+        <li><code>Priority()</code>：返回执行优先级</li>
+      </ul>
+      <p><strong>好处</strong>：调度器可以用相同的方式调用所有插件，不需要特殊处理。</p>
 
       <h2>插件分类</h2>
-      <h3>1. 服务类插件 (plugins/services)</h3>
-      <p>用于扫描和识别网络服务：</p>
+
+      <h3>1. 服务类插件（plugins/services）</h3>
+      <p><strong>设计特点</strong>：网络协议扫描，体积小，无依赖</p>
       <ul>
-        <li><strong>数据库</strong>: MySQL, Redis, MongoDB, PostgreSQL, Oracle, MSSQL</li>
-        <li><strong>远程访问</strong>: SSH, RDP, VNC, Telnet</li>
-        <li><strong>文件共享</strong>: SMB, FTP, Rsync</li>
-        <li><strong>消息队列</strong>: RabbitMQ, Kafka, ActiveMQ</li>
-        <li><strong>其他</strong>: LDAP, SMTP, Elasticsearch, Neo4j, Cassandra</li>
+        <li><strong>数据库</strong>：MySQL, Redis, MongoDB, PostgreSQL, Oracle, MSSQL</li>
+        <li><strong>远程访问</strong>：SSH, RDP, VNC, Telnet</li>
+        <li><strong>文件共享</strong>：SMB, FTP, Rsync</li>
+        <li><strong>消息队列</strong>：RabbitMQ, Kafka, ActiveMQ</li>
+        <li><strong>其他</strong>：LDAP, SMTP, Elasticsearch, Neo4j, Cassandra</li>
       </ul>
 
-      <h3>2. Web 插件 (plugins/web)</h3>
+      <h3>2. Web 插件（plugins/web）</h3>
+      <p><strong>设计特点</strong>：HTTP 协议专用，支持复杂的 Web 场景</p>
       <ul>
-        <li><strong>webtitle</strong>: 获取 Web 页面标题和指纹</li>
-        <li><strong>webpoc</strong>: Web 漏洞扫描（POC 检测）</li>
+        <li><strong>webtitle</strong>：轻量级指纹识别</li>
+        <li><strong>webpoc</strong>：重量级漏洞扫描（包含 POC 数据库）</li>
       </ul>
 
-      <h3>3. 本地插件 (plugins/local)</h3>
-      <p>后渗透和权限维持功能：</p>
+      <h3>3. 本地插件（plugins/local）</h3>
+      <p><strong>设计特点</strong>：系统级操作，需要高权限</p>
       <ul>
-        <li><strong>信息收集</strong>: systeminfo, envinfo, fileinfo, avdetect</li>
-        <li><strong>远程控制</strong>: reverseshell, forwardshell, socks5proxy</li>
-        <li><strong>权限维持</strong>: crontask, systemdservice, winservice, winstartup</li>
-        <li><strong>凭证获取</strong>: minidump, keylogger</li>
-        <li><strong>工具</strong>: downloader, cleaner</li>
+        <li><strong>信息收集</strong>：systeminfo, envinfo, fileinfo, avdetect</li>
+        <li><strong>远程控制</strong>：reverseshell, forwardshell, socks5proxy</li>
+        <li><strong>权限维持</strong>：crontask, systemdservice, winservice, winstartup</li>
+        <li><strong>凭证获取</strong>：minidump, keylogger</li>
+        <li><strong>工具</strong>：downloader, cleaner</li>
       </ul>
 
-      <h2>插件开发指南</h2>
-      <h3>基础结构</h3>
-      <pre><code>//go:build plugin_myservice || !plugin_selective
+      <h2>解耦设计</h2>
 
-package services
-
-import (
-    "context"
-    "github.com/shadow1ng/fscan/common"
-    "github.com/shadow1ng/fscan/plugins"
-)
-
-type MyServicePlugin struct {
-    plugins.BasePlugin
-}
-
-func NewMyServicePlugin() *MyServicePlugin {
-    return &MyServicePlugin{
-        BasePlugin: plugins.NewBasePlugin("myservice"),
-    }
-}
-
-func (p *MyServicePlugin) Scan(ctx context.Context, info *common.HostInfo) error {
-    // 实现扫描逻辑
-    return nil
-}
-
-func init() {
-    plugins.RegisterServicePlugin("myservice", func() plugins.ServicePlugin {
-        return NewMyServicePlugin()
-    })
-}</code></pre>
-
-      <h3>关键要点</h3>
+      <h3>编译时解耦</h3>
+      <p>通过构建标签实现：</p>
       <ul>
-        <li>添加构建标签: <code>//go:build plugin_xxx || !plugin_selective</code></li>
-        <li>继承 <code>BasePlugin</code></li>
-        <li>实现 <code>Scan()</code> 方法</li>
+        <li>每个插件独立声明构建条件</li>
+        <li>不参与编译的插件代码完全不会被包含</li>
+        <li>核心层无需知道哪些插件被编译</li>
+      </ul>
+
+      <h3>运行时解耦</h3>
+      <p>通过注册表和接口实现：</p>
+      <ul>
+        <li>调度器只知道接口，不知道具体实现</li>
+        <li>插件之间不相互引用</li>
+        <li>可以动态增减插件而不影响其他模块</li>
+      </ul>
+
+      <h2>扩展性设计</h2>
+
+      <h3>添加新插件的步骤</h3>
+      <ol>
+        <li>创建新的插件文件（如 <code>newservice.go</code>）</li>
+        <li>添加构建标签 <code>//go:build plugin_newservice || !plugin_selective</code></li>
+        <li>实现插件接口（继承 BasePlugin，实现 Scan 方法）</li>
         <li>在 <code>init()</code> 中注册插件</li>
-      </ul>
+      </ol>
+      <p><strong>关键</strong>：无需修改任何现有代码，核心层会自动发现和调用新插件。</p>
 
-      <h2>构建标签说明</h2>
-      <p>构建标签格式: <code>//go:build plugin_name || !plugin_selective</code></p>
+      <h3>插件优先级控制</h3>
+      <p>某些插件需要优先执行（如端口扫描），某些需要延后执行（如漏洞检测）。插件通过 <code>Priority()</code> 方法声明优先级，调度器按优先级排序后执行。</p>
+
+      <h2>最小接口原则</h2>
+      <p>插件接口只定义必需的方法：</p>
       <ul>
-        <li><strong>完整编译</strong>: 不指定标签，所有插件都会被包含</li>
-        <li><strong>选择性编译</strong>: 指定 <code>plugin_selective</code> 后，只包含明确指定的插件</li>
+        <li><code>Scan()</code>：执行扫描（必须）</li>
+        <li><code>Name()</code>：标识插件（必须）</li>
+        <li><code>Priority()</code>：控制顺序（可选，默认值）</li>
       </ul>
+      <p>不需要的功能（如配置验证、依赖声明）都不在接口中，保持接口简洁。</p>
+
+      <h2>Context 机制</h2>
+      <p>所有插件的 <code>Scan()</code> 方法接收 <code>context.Context</code> 参数：</p>
+      <ul>
+        <li><strong>超时控制</strong>：调度器可以设置全局超时</li>
+        <li><strong>取消机制</strong>：用户中断时可以立即停止所有插件</li>
+        <li><strong>资源清理</strong>：插件可以监听 Context 并优雅关闭</li>
+      </ul>
+      <p>这是 Go 标准的并发控制模式，无需自己实现信号机制。</p>
+
+      <h2>设计权衡</h2>
+
+      <h3>为什么用自注册而不是配置文件？</h3>
+      <ul>
+        <li>✅ 配置和代码在一起，不会出现不同步</li>
+        <li>✅ 编译时检查，配置错误会导致编译失败</li>
+        <li>✅ 无需解析配置文件，减少启动时间</li>
+        <li>❌ 缺点：运行时无法动态加载插件</li>
+      </ul>
+      <p>fscan 是安全工具，稳定性优先于灵活性。</p>
+
+      <h3>为什么插件不能相互调用？</h3>
+      <ul>
+        <li>避免循环依赖</li>
+        <li>便于选择性编译（不需要依赖解析）</li>
+        <li>插件失败不会影响其他插件</li>
+      </ul>
+      <p>如果多个插件需要共享功能，应该提取到 <code>common</code> 包中。</p>
     `,
   },
   configuration: {
