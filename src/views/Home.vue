@@ -1,35 +1,26 @@
 <template>
   <div class="space-y-12">
     <!-- Hero Section -->
-    <section
-      class="relative overflow-hidden rounded-xl bg-gradient-to-r from-primary to-blue-600 p-12 text-white"
-    >
+    <section class="relative overflow-hidden rounded-xl bg-primary p-12 text-primary-foreground">
       <div class="relative z-10 mx-auto max-w-3xl text-center">
-        <div
-          class="mb-6 inline-flex items-center rounded-full bg-white/10 px-4 py-1.5 text-sm backdrop-blur"
-        >
+        <div class="mb-6 inline-flex items-center rounded-full bg-background/10 px-4 py-1.5 text-sm backdrop-blur">
           <Icon icon="mdi:rocket-launch" class="mr-2" />
           新版本 2.0.0-build4 现已发布
         </div>
 
         <h1 class="mb-4 text-4xl font-bold leading-tight md:text-5xl">Fscan 安全扫描工具</h1>
 
-        <p class="mb-8 text-lg text-blue-100">快速、高效的内网综合扫描工具，助力您的安全测试工作</p>
+        <p class="mb-8 text-lg opacity-90">快速、高效的内网综合扫描工具，助力您的安全测试工作</p>
 
         <div class="flex flex-col gap-4 sm:flex-row sm:justify-center">
-          <Button as-child size="lg">
+          <Button as-child size="lg" variant="secondary">
             <router-link to="/parameters">
               <Icon icon="mdi:console" class="mr-2" />
               参数配置
             </router-link>
           </Button>
 
-          <Button
-            as-child
-            variant="outline"
-            size="lg"
-            class="border-white/30 text-white hover:bg-white/10"
-          >
+          <Button as-child variant="outline" size="lg" class="border-primary-foreground/30 bg-transparent hover:bg-background/10">
             <a href="https://github.com/shadow1ng/fscan/releases/tag/2.0.0-build4" target="_blank">
               <Icon icon="mdi:download" class="mr-2" />
               下载最新版
@@ -38,12 +29,8 @@
         </div>
 
         <!-- Stats -->
-        <div class="mt-8 flex flex-wrap justify-center gap-6 text-sm">
-          <a
-            href="https://github.com/shadow1ng/fscan"
-            target="_blank"
-            class="flex items-center hover:text-blue-100"
-          >
+        <div class="mt-8 flex flex-wrap justify-center gap-6 text-sm opacity-90">
+          <a href="https://github.com/shadow1ng/fscan" target="_blank" class="flex items-center hover:opacity-80 transition-opacity">
             <Icon icon="mdi:github" class="mr-2" />
             GitHub 项目
           </a>
@@ -225,43 +212,43 @@ const coreFeatures = [
     title: '端口扫描',
     description: '快速扫描主机开放端口，支持自定义端口范围和多线程扫描',
     icon: 'mdi:radar',
-    bgColor: 'bg-blue-100 dark:bg-blue-900/20',
-    iconColor: 'text-blue-600 dark:text-blue-300',
+    bgColor: 'bg-primary/10',
+    iconColor: 'text-primary',
   },
   {
     title: '漏洞检测',
     description: '内置多种漏洞检测模块，可检测常见的Web应用和系统漏洞',
     icon: 'mdi:shield-bug',
-    bgColor: 'bg-red-100 dark:bg-red-900/20',
-    iconColor: 'text-red-600 dark:text-red-300',
+    bgColor: 'bg-destructive/10',
+    iconColor: 'text-destructive',
   },
   {
     title: '服务识别',
     description: '自动识别目标主机运行的服务类型和版本信息',
     icon: 'mdi:fingerprint',
-    bgColor: 'bg-purple-100 dark:bg-purple-900/20',
-    iconColor: 'text-purple-600 dark:text-purple-300',
+    bgColor: 'bg-primary/10',
+    iconColor: 'text-primary',
   },
   {
     title: '口令爆破',
     description: '支持多种协议的口令爆破，包括SSH、FTP、SMB、MSSQL等',
     icon: 'mdi:key',
-    bgColor: 'bg-amber-100 dark:bg-amber-900/20',
-    iconColor: 'text-amber-600 dark:text-amber-300',
+    bgColor: 'bg-primary/10',
+    iconColor: 'text-primary',
   },
   {
     title: '内网穿透',
     description: '支持通过代理进行扫描，便于内网环境下的渗透测试',
     icon: 'mdi:lan-connect',
-    bgColor: 'bg-green-100 dark:bg-green-900/20',
-    iconColor: 'text-green-600 dark:text-green-300',
+    bgColor: 'bg-primary/10',
+    iconColor: 'text-primary',
   },
   {
     title: '结果导出',
     description: '扫描结果可导出为多种格式，便于分析和报告生成',
     icon: 'mdi:file-export',
-    bgColor: 'bg-cyan-100 dark:bg-cyan-900/20',
-    iconColor: 'text-cyan-600 dark:text-cyan-300',
+    bgColor: 'bg-primary/10',
+    iconColor: 'text-primary',
   },
 ]
 
@@ -270,48 +257,48 @@ const projectResources = [
     title: '开发分支',
     description: '最新开发版本',
     icon: 'mdi:source-branch',
-    bgColor: 'bg-blue-100 dark:bg-blue-900/20',
-    iconColor: 'text-blue-600 dark:text-blue-300',
+    bgColor: 'bg-primary/10',
+    iconColor: 'text-primary',
     link: 'https://github.com/shadow1ng/fscan/tree/dev',
   },
   {
     title: '稳定版本',
     description: '1.8.4 版本代码',
     icon: 'mdi:source-commit',
-    bgColor: 'bg-green-100 dark:bg-green-900/20',
-    iconColor: 'text-green-600 dark:text-green-300',
+    bgColor: 'bg-primary/10',
+    iconColor: 'text-primary',
     link: 'https://github.com/shadow1ng/fscan/tree/1.8.4-bak',
   },
   {
     title: '最新版本下载',
     description: '2.0.0-build4',
     icon: 'mdi:download',
-    bgColor: 'bg-purple-100 dark:bg-purple-900/20',
-    iconColor: 'text-purple-600 dark:text-purple-300',
+    bgColor: 'bg-primary/10',
+    iconColor: 'text-primary',
     link: 'https://github.com/shadow1ng/fscan/releases/tag/2.0.0-build4',
   },
   {
     title: '稳定版本下载',
     description: '1.8.4 版本',
     icon: 'mdi:download-box',
-    bgColor: 'bg-amber-100 dark:bg-amber-900/20',
-    iconColor: 'text-amber-600 dark:text-amber-300',
+    bgColor: 'bg-primary/10',
+    iconColor: 'text-primary',
     link: 'https://github.com/shadow1ng/fscan/releases/tag/1.8.4',
   },
   {
     title: '问题反馈',
     description: '报告 Bug 或功能建议',
     icon: 'mdi:bug',
-    bgColor: 'bg-red-100 dark:bg-red-900/20',
-    iconColor: 'text-red-600 dark:text-red-300',
+    bgColor: 'bg-destructive/10',
+    iconColor: 'text-destructive',
     link: 'https://github.com/shadow1ng/fscan/issues',
   },
   {
     title: 'GitHub 仓库',
     description: '查看源代码',
     icon: 'mdi:github',
-    bgColor: 'bg-gray-100 dark:bg-gray-700/30',
-    iconColor: 'text-gray-600 dark:text-gray-300',
+    bgColor: 'bg-accent',
+    iconColor: 'text-accent-foreground',
     link: 'https://github.com/shadow1ng/fscan',
   },
 ]
