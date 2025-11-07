@@ -182,101 +182,80 @@ fscan -h 192.168.1.0/24 -json output.json</code></pre>
         <li><strong>最小权限原则</strong>：只编译授权使用的功能，避免法律风险</li>
       </ul>
 
-      <h2>设计理念：数据结构优于算法</h2>
+      <h2>设计理念</h2>
 
-      <h3>核心思想：插件即数据</h3>
-      <p>我们不是在"排除代码"，而是在"选择数据"。每个插件都是独立的数据包，构建系统只是一个数据过滤器。</p>
-      <p><strong>好的设计</strong>：统一的构建标签格式，消除所有特殊情况。</p>
+      <h3>核心机制</h3>
+      <p>fscan 使用 Go 的构建标签（build tags）实现编译时插件选择。每个插件文件都包含一个简单的标签：</p>
       <pre><code>//go:build plugin_xxx || !plugin_selective</code></pre>
-      <p>这个简单的布尔表达式实现了两种行为的完美统一：</p>
+
+      <p><strong>工作原理</strong>：</p>
       <ul>
-        <li>默认模式（不指定标签）：<code>!plugin_selective</code> 为真，所有插件都被包含</li>
-        <li>选择模式（指定 <code>plugin_selective</code>）：<code>!plugin_selective</code> 为假，只有明确指定的插件被包含</li>
+        <li><strong>默认编译</strong>：不指定任何标签时，<code>!plugin_selective</code> 为真，所有插件都被包含</li>
+        <li><strong>选择编译</strong>：指定 <code>-tags "plugin_selective,plugin_ssh"</code> 时，只有 SSH 插件被包含</li>
       </ul>
 
-      <h3>为什么是 "默认全包含"？</h3>
-      <p>这是一个<strong>实用主义</strong>选择，而不是理论完美：</p>
+      <h3>为什么默认全包含？</h3>
       <ul>
-        <li><strong>新用户友好</strong>：直接 <code>go build</code> 就能得到功能完整的工具</li>
-        <li><strong>零配置原则</strong>：不需要学习任何构建选项就能使用</li>
-        <li><strong>兼容性优先</strong>：现有的构建脚本和 CI/CD 流程零改动</li>
-      </ul>
-      <p>只有当用户<strong>主动</strong>指定 <code>plugin_selective</code> 时，才切换到"白名单"模式。</p>
-
-      <h3>消除边界情况</h3>
-      <p>好的设计没有特殊情况。我们不需要：</p>
-      <ul>
-        <li>❌ 插件白名单配置文件</li>
-        <li>❌ 复杂的依赖关系声明</li>
-        <li>❌ 多层嵌套的条件判断</li>
-        <li>❌ "核心插件"和"可选插件"的区分</li>
-      </ul>
-      <p>只需要：</p>
-      <ul>
-        <li>✅ 统一的构建标签</li>
-        <li>✅ 一个全局开关 <code>plugin_selective</code></li>
+        <li>新用户直接 <code>go build</code> 即可获得完整功能</li>
+        <li>无需学习任何构建选项</li>
+        <li>兼容现有的构建脚本和 CI/CD 流程</li>
       </ul>
 
-      <h2>架构设计：三层插件体系</h2>
+      <h3>设计优势</h3>
+      <ul>
+        <li>无需配置文件，标签直接写在代码中</li>
+        <li>插件之间零依赖，可以任意组合</li>
+        <li>编译时决策，零运行时开销</li>
+      </ul>
+
+      <h2>插件分类</h2>
 
       <h3>1. 服务类插件（plugins/services）</h3>
-      <p><strong>设计定位</strong>：网络服务的通用扫描框架</p>
+      <p>用于网络服务扫描和凭据爆破：</p>
       <ul>
-        <li><strong>特点</strong>：体积小（每个 0.1-0.5 MB），依赖少，可独立运行</li>
-        <li><strong>典型场景</strong>：信息收集、横向移动、凭据爆破</li>
-        <li><strong>代表插件</strong>：SSH, MySQL, Redis, SMB, FTP</li>
+        <li><strong>体积</strong>：每个 0.1-0.5 MB</li>
+        <li><strong>代表插件</strong>：SSH, MySQL, Redis, SMB, FTP, RDP, MongoDB 等</li>
+        <li><strong>特点</strong>：插件之间零依赖，可任意组合</li>
       </ul>
-      <p><strong>设计优势</strong>：这些插件之间<strong>零依赖</strong>，可以任意组合。扫描 SSH 的代码完全不知道 MySQL 插件的存在。</p>
 
       <h3>2. Web 插件（plugins/web）</h3>
-      <p><strong>设计定位</strong>：Web 应用安全专用模块</p>
+      <p>Web 应用安全扫描模块：</p>
       <ul>
-        <li><strong>webtitle</strong>：轻量级指纹识别（~0 MB，只是 HTTP 客户端封装）</li>
-        <li><strong>webpoc</strong>：重量级漏洞扫描（~6 MB，包含大量 POC 规则数据库）</li>
+        <li><strong>webtitle</strong>：Web 指纹识别（体积增加 ~0 MB）</li>
+        <li><strong>webpoc</strong>：Web 漏洞扫描（体积增加 ~6 MB，包含 POC 数据库）</li>
       </ul>
-      <p><strong>关键决策</strong>：为什么分离 webtitle 和 webpoc？</p>
-      <ul>
-        <li>99% 的场景只需要 <code>webtitle</code> 做指纹识别</li>
-        <li><code>webpoc</code> 的 6MB POC 数据库在大多数情况下是死代码</li>
-        <li>分离后，基础 Web 扫描几乎零体积成本</li>
-      </ul>
+      <p>两个插件独立，可根据需求单独选择。</p>
 
       <h3>3. 本地插件（plugins/local）</h3>
-      <p><strong>设计定位</strong>：后渗透和权限维持</p>
+      <p>后渗透和权限维持功能：</p>
       <ul>
-        <li><strong>特点</strong>：高度敏感，容易触发告警，法律风险高</li>
-        <li><strong>使用场景</strong>：授权渗透测试的后期阶段</li>
         <li><strong>典型插件</strong>：systeminfo, keylogger, reverseshell, persistence</li>
+        <li><strong>注意</strong>：这些功能较为敏感，建议根据授权范围选择性编译</li>
       </ul>
-      <p><strong>安全考量</strong>：这些模块默认包含在完整编译中，但可以轻松移除以满足合规要求。</p>
 
-      <h2>使用场景：按需定制</h2>
+      <h2>使用场景</h2>
 
-      <h3>场景一：内网信息收集（最小化）</h3>
-      <p><strong>需求</strong>：通过 Webshell 上传，文件大小限制 5MB</p>
-      <p><strong>方案</strong>：只编译基础服务扫描插件</p>
+      <h3>场景一：最小化部署</h3>
+      <p>适用于文件大小受限的环境（如通过漏洞上传）：</p>
       <pre><code>go build -tags "plugin_selective,plugin_ssh,plugin_mysql,plugin_redis,plugin_smb"</code></pre>
-      <p><strong>效果</strong>：二进制体积 < 5MB，包含 4 个最常见的服务扫描</p>
+      <p>二进制体积 < 5MB，包含基础服务扫描。</p>
 
-      <h3>场景二：Web 渗透专用</h3>
-      <p><strong>需求</strong>：只做 Web 应用测试，不需要网络扫描</p>
-      <p><strong>方案</strong>：只编译 Web 插件</p>
+      <h3>场景二：Web 渗透测试</h3>
+      <p>只需要 Web 应用扫描功能：</p>
       <pre><code>go build -tags "plugin_selective,plugin_webtitle,plugin_webpoc"</code></pre>
-      <p><strong>效果</strong>：二进制体积 ~10MB，专注 Web 漏洞检测</p>
+      <p>二进制体积 ~10MB。</p>
 
-      <h3>场景三：合规性渗透测试</h3>
-      <p><strong>需求</strong>：合同禁止使用后渗透工具（keylogger、shell）</p>
-      <p><strong>方案</strong>：排除所有 local 插件</p>
+      <h3>场景三：合规性要求</h3>
+      <p>排除敏感的后渗透功能：</p>
       <pre><code>go build -tags "plugin_selective,plugin_ssh,plugin_mysql,plugin_webtitle"</code></pre>
-      <p><strong>效果</strong>：完全不包含敏感功能，避免法律风险</p>
+      <p>不包含 keylogger、reverseshell 等敏感模块。</p>
 
-      <h3>场景四：完整功能（默认）</h3>
-      <p><strong>需求</strong>：本地测试或完整授权的渗透项目</p>
-      <p><strong>方案</strong>：不指定任何标签</p>
+      <h3>场景四：完整功能</h3>
+      <p>本地测试或完整授权的项目：</p>
       <pre><code>go build</code></pre>
-      <p><strong>效果</strong>：包含所有 50+ 插件，二进制 15-30 MB</p>
+      <p>包含所有插件，二进制 15-30 MB。</p>
 
-      <h2>体积对比：精确到字节的优化</h2>
+      <h2>体积对比</h2>
 
       <table style="width:100%; border-collapse: collapse; margin: 20px 0;">
         <thead>
@@ -309,29 +288,6 @@ fscan -h 192.168.1.0/24 -json output.json</code></pre>
           </tr>
         </tbody>
       </table>
-
-      <h2>设计哲学：实用主义胜于理论完美</h2>
-
-      <blockquote style="border-left: 4px solid #4CAF50; padding-left: 15px; color: #666; font-style: italic;">
-        "Theory and practice sometimes clash. Theory loses. Every single time."
-        <br>— Linus Torvalds
-      </blockquote>
-
-      <p>我们没有设计：</p>
-      <ul>
-        <li>❌ 复杂的插件依赖解析系统（理论上更完美）</li>
-        <li>❌ 动态插件加载机制（理论上更灵活）</li>
-        <li>❌ 插件市场和版本管理（理论上更现代）</li>
-      </ul>
-
-      <p>我们只做了：</p>
-      <ul>
-        <li>✅ 一个简单的布尔表达式</li>
-        <li>✅ 编译时决策（零运行时开销）</li>
-        <li>✅ 默认全包含（零学习成本）</li>
-      </ul>
-
-      <p><strong>结果</strong>：用最简单的方案解决了最实际的问题 —— 体积优化和功能裁剪。</p>
 
       <h2>快速开始</h2>
       <p>访问 <strong>构建配置器</strong> 页面，通过可视化界面选择所需插件，自动生成编译命令。无需记忆任何标签名称。</p>
