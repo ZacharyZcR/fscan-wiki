@@ -1321,203 +1321,205 @@ func makeICMPEchoRequest(host string) []byte {
     icon: 'mdi:lan-connect',
     content: `
       <h2>设计目标</h2>
-      <p>端口扫描的核心目标：</p>
+      <p>端口扫描在速度和稳定性之间取得平衡：</p>
       <ul>
-        <li><strong>速度</strong>：1000 端口 < 10 秒</li>
-        <li><strong>准确</strong>：减少漏扫和误报</li>
-        <li><strong>隐蔽</strong>：避免被 IDS/IPS 检测</li>
-        <li><strong>稳定</strong>：不触发连接数限制</li>
+        <li><strong>稳定性优先</strong>：使用标准TCP连接，兼容性最好</li>
+        <li><strong>资源感知</strong>：智能处理连接耗尽问题</li>
+        <li><strong>集成服务识别</strong>：扫描即识别，无需二次连接</li>
+        <li><strong>零特权</strong>：普通用户即可运行</li>
       </ul>
 
-      <h2>扫描方法</h2>
+      <h2>扫描方法：TCP Connect</h2>
 
-      <h3>1. SYN 扫描（默认）</h3>
-      <p><strong>原理</strong>：半开连接，发送 SYN 但不完成握手</p>
+      <h3>为什么只用Connect扫描？</h3>
+      <p>fscan只实现TCP Connect扫描，不使用SYN扫描：</p>
+      <table>
+        <tr><th>特性</th><th>Connect扫描</th><th>SYN扫描</th></tr>
+        <tr><td>权限需求</td><td>普通用户</td><td>需要root/管理员</td></tr>
+        <tr><td>实现复杂度</td><td>调用系统connect()</td><td>需要原始套接字</td></tr>
+        <tr><td>兼容性</td><td>全平台</td><td>需处理平台差异</td></tr>
+        <tr><td>集成服务识别</td><td>连接已建立，直接识别</td><td>需二次连接</td></tr>
+      </table>
+
+      <h3>实现方式（<code>core/port_scan.go:210</code>）</h3>
+      <pre><code>func scanSinglePort(host string, port int, timeout time.Duration) error {
+    // 使用标准TCP连接
+    conn, err := net.DialTimeout("tcp", fmt.Sprintf("%s:%d", host, port), timeout)
+    if err != nil {
+        return err  // 端口关闭或超时
+    }
+    defer conn.Close()
+
+    // 端口开放，立即进行服务识别
+    serviceInfo := SmartIdentify(conn)
+
+    return nil
+}</code></pre>
+
+      <h2>并发控制：Semaphore模式</h2>
+
+      <h3>使用golang.org/x/sync/semaphore</h3>
+      <p>不使用简单channel，而用加权信号量（<code>core/port_scan.go:54</code>）：</p>
+      <pre><code>import "golang.org/x/sync/semaphore"
+
+sem := semaphore.NewWeighted(int64(ThreadNum))  // 默认600
+g, ctx := errgroup.WithContext(context.Background())
+
+for _, host := range hosts {
+    for _, port := range ports {
+        sem.Acquire(ctx, 1)  // 获取信号量
+
+        g.Go(func() error {
+            defer sem.Release(1)  // 释放信号量
+            return scanSinglePort(host, port, timeout)
+        })
+    }
+}
+
+g.Wait()  // 等待所有goroutine完成</code></pre>
+
+      <h3>为什么用semaphore而非channel？</h3>
       <ul>
-        <li>发送 SYN 包</li>
-        <li>收到 SYN-ACK → 端口开放</li>
-        <li>收到 RST → 端口关闭</li>
-        <li>不发送最后的 ACK，连接不建立</li>
+        <li>✅ 支持加权获取（未来可扩展）</li>
+        <li>✅ 与errgroup集成，统一错误处理</li>
+        <li>✅ 支持context取消</li>
       </ul>
+
+      <h2>资源耗尽智能重试</h2>
+
+      <h3>问题：高并发导致连接失败</h3>
+      <p>扫描1万端口 × 600并发 = 可能耗尽文件描述符：</p>
+      <ul>
+        <li>"too many open files"</li>
+        <li>"cannot assign requested address"（本地端口耗尽）</li>
+        <li>"no buffer space available"</li>
+      </ul>
+
+      <h3>解决方案：智能重试（<code>core/port_scan.go:113</code>）</h3>
+      <pre><code>func connectWithRetry(addr string, timeout time.Duration, maxRetries int) (net.Conn, error) {
+    for attempt := 0; attempt < 3; attempt++ {
+        conn, err := net.DialTimeout("tcp", addr, timeout)
+        if err == nil {
+            return conn, nil
+        }
+
+        // 只对资源耗尽错误重试，端口关闭直接返回
+        if !isResourceExhaustedError(err) {
+            return nil, err
+        }
+
+        // 指数退避：50ms → 150ms
+        time.Sleep(time.Duration(50*(attempt+1)) * time.Millisecond)
+    }
+    return nil, lastErr
+}</code></pre>
+
+      <h3>资源耗尽检测（<code>core/port_scan.go:144</code>）</h3>
+      <pre><code>func isResourceExhaustedError(err error) bool {
+    errStr := err.Error()
+    patterns := []string{
+        "too many open files",
+        "no buffer space available",
+        "cannot assign requested address",
+    }
+    for _, p := range patterns {
+        if strings.Contains(errStr, p) {
+            return true
+        }
+    }
+    return false
+}</code></pre>
+      <p><strong>设计理念</strong>：区分"端口关闭"和"资源不足"，只重试后者</p>
+
+      <h2>集成服务识别</h2>
+
+      <h3>扫描即识别（<code>core/port_scan.go:233</code>）</h3>
+      <p>连接建立后立即识别服务，避免二次连接：</p>
+      <pre><code>conn, _ := net.DialTimeout("tcp", addr, timeout)
+defer conn.Close()
+
+// 连接已建立，复用它进行服务识别
+serviceInfo := SmartIdentify(host, port, conn, timeout)
+
+if serviceInfo.Name != "unknown" {
+    LogInfo("%s [%s]", addr, serviceInfo.Name)
+}
+
+// 智能判断是否为Web服务
+if IsWebServiceByFingerprint(serviceInfo) {
+    MarkAsWebService(host, port)  // 后续自动调用WebTitle/WebPOC
+}</code></pre>
+
+      <h3>为什么集成？</h3>
+      <ul>
+        <li>✅ 减少50%网络请求（不需要二次连接）</li>
+        <li>✅ 降低被检测概率</li>
+        <li>✅ 加快扫描速度</li>
+      </ul>
+
+      <h2>结果存储：sync.Map</h2>
+
+      <h3>为什么用sync.Map？</h3>
+      <p>存储开放端口列表（<code>core/port_scan.go:56</code>）：</p>
+      <pre><code>var aliveMap sync.Map
+
+// 并发写入（无需加锁）
+aliveMap.Store(addr, struct{}{})
+
+// 收集结果
+var aliveAddrs []string
+aliveMap.Range(func(key, _ interface{}) bool {
+    aliveAddrs = append(aliveAddrs, key.(string))
+    return true
+})</code></pre>
       <p><strong>优势</strong>：</p>
       <ul>
-        <li>速度快，不占用连接资源</li>
-        <li>不会在目标日志中留下完整连接记录</li>
-        <li>适合大规模扫描</li>
-      </ul>
-      <p><strong>劣势</strong>：需要 root 权限构造原始 TCP 包</p>
-
-      <h3>2. Connect 扫描（备用）</h3>
-      <p><strong>原理</strong>：完整的 TCP 三次握手</p>
-      <ul>
-        <li>调用系统 <code>connect()</code></li>
-        <li>成功 → 端口开放</li>
-        <li>超时/拒绝 → 端口关闭</li>
-      </ul>
-      <p><strong>优势</strong>：不需要特权</p>
-      <p><strong>劣势</strong>：</p>
-      <ul>
-        <li>速度慢，需要完成握手并关闭连接</li>
-        <li>会在目标日志中留下记录</li>
-        <li>占用连接资源，可能触发限制</li>
+        <li>内置并发安全，无需手动加锁</li>
+        <li>读多写少场景性能优于Mutex+Map</li>
+        <li>支持Range遍历</li>
       </ul>
 
-      <h2>端口选择策略</h2>
+      <h2>进度条集成</h2>
 
-      <h3>问题：扫描 65535 端口太慢</h3>
-      <p>全端口扫描需要 10+ 分钟，大多数情况不实用</p>
+      <h3>实时进度（<code>core/port_scan.go:45</code>）</h3>
+      <pre><code>// 预计算总任务数
+totalTasks := len(hosts) * len(ports)
+common.InitProgressBar(int64(totalTasks), "端口扫描中（600线程）")
 
-      <h3>解决方案：智能端口集</h3>
-      <ul>
-        <li><strong>Top 1000</strong>（默认）：覆盖 95% 场景</li>
-        <li><strong>Top 100</strong>：快速扫描，5 秒完成</li>
-        <li><strong>全端口</strong>：<code>-p 1-65535</code>，用于深度扫描</li>
-        <li><strong>自定义</strong>：<code>-p 80,443,8080-8090</code></li>
-      </ul>
+// 每完成一个端口
+defer func() {
+    common.UpdateProgressBar(1)
+}()
 
-      <h3>Top 端口的选择依据</h3>
-      <p>基于真实互联网扫描数据：</p>
-      <ul>
-        <li>80, 443, 8080, 8000, 8443（Web 服务）</li>
-        <li>22, 23, 3389（远程访问）</li>
-        <li>445, 139（SMB）</li>
-        <li>3306, 5432, 1433, 6379, 27017（数据库）</li>
-      </ul>
-
-      <h2>并发扫描设计</h2>
-
-      <h3>三级并发模型</h3>
-      <ol>
-        <li><strong>主机级</strong>：同时扫描多个主机</li>
-        <li><strong>端口级</strong>：同时扫描单个主机的多个端口</li>
-        <li><strong>批次级</strong>：分批发送，避免网络拥塞</li>
-      </ol>
-
-      <h3>速率控制</h3>
-      <p><strong>问题</strong>：瞬间发送 1000 个 SYN 包会导致：</p>
-      <ul>
-        <li>网络拥塞，丢包率高</li>
-        <li>触发防火墙限速</li>
-        <li>本地端口耗尽</li>
-      </ul>
-      <p><strong>解决</strong>：令牌桶限速</p>
-      <pre><code>// 每秒最多 500 个包
-rateLimiter := time.NewTicker(2 * time.Millisecond)
-for _, port := range ports {
-    <-rateLimiter.C  // 等待令牌
-    go scanPort(host, port)
-}</code></pre>
-
-      <h2>超时和重试</h2>
-
-      <h3>超时设置</h3>
-      <ul>
-        <li><strong>SYN 扫描</strong>：1 秒（等待 SYN-ACK）</li>
-        <li><strong>Connect 扫描</strong>：2 秒（完整握手）</li>
-      </ul>
-
-      <h3>动态超时调整</h3>
-      <p>根据网络延迟动态调整：</p>
-      <ul>
-        <li>测量前 10 个端口的 RTT</li>
-        <li>超时 = 平均 RTT × 3</li>
-        <li>防止慢速网络漏扫</li>
-      </ul>
-
-      <h3>重试策略</h3>
-      <ul>
-        <li>默认不重试（速度优先）</li>
-        <li>丢包率 > 10% 时自动降速并重试</li>
-      </ul>
-
-      <h2>结果验证</h2>
-
-      <h3>问题：误报</h3>
-      <p>某些情况下会误判端口状态：</p>
-      <ul>
-        <li>防火墙返回 RST 伪装端口关闭</li>
-        <li>负载均衡器响应所有端口</li>
-      </ul>
-
-      <h3>解决方案：二次验证</h3>
-      <ul>
-        <li>SYN 扫描发现开放端口后，用 Connect 验证</li>
-        <li>发送应用层数据，检测真实服务</li>
-        <li>过滤掉"蜜罐"端口</li>
-      </ul>
-
-      <h2>防火墙规避</h2>
-
-      <h3>1. 随机化</h3>
-      <ul>
-        <li><strong>端口顺序随机</strong>：不按 1,2,3... 扫描</li>
-        <li><strong>源端口随机</strong>：避免被识别为扫描器</li>
-        <li><strong>时间随机</strong>：包之间加入随机延迟</li>
-      </ul>
-
-      <h3>2. 分片扫描</h3>
-      <p>将 TCP 包分片，绕过简单的包过滤：</p>
-      <ul>
-        <li>TCP 头分片到多个 IP 包</li>
-        <li>某些防火墙只检查第一个分片</li>
-      </ul>
-      <p><strong>注意</strong>：现代防火墙大多能重组分片，效果有限</p>
-
-      <h3>3. 慢速扫描</h3>
-      <p>提供 <code>-scan-rate</code> 参数：</p>
-      <ul>
-        <li><code>--scan-rate 10</code>：每秒 10 个端口</li>
-        <li>极慢但隐蔽，避免触发速率限制</li>
-      </ul>
-
-      <h2>SYN 扫描实现细节</h2>
-
-      <h3>构造 TCP SYN 包</h3>
-      <pre><code>type TCPHeader struct {
-    SrcPort  uint16
-    DstPort  uint16
-    SeqNum   uint32
-    AckNum   uint32
-    Flags    uint8  // SYN = 0x02
-    Window   uint16
-    Checksum uint16
-    Urgent   uint16
-}</code></pre>
-
-      <h3>接收 SYN-ACK</h3>
-      <p>使用 BPF 过滤器只接收目标响应：</p>
-      <pre><code>// 只接收来自目标 IP 的 SYN-ACK 或 RST
-filter := fmt.Sprintf("src host %s and (tcp[tcpflags] & (tcp-syn|tcp-ack) != 0)", targetIP)</code></pre>
-
-      <h2>端口状态分类</h2>
-
-      <ul>
-        <li><strong>Open</strong>：收到 SYN-ACK</li>
-        <li><strong>Closed</strong>：收到 RST</li>
-        <li><strong>Filtered</strong>：无响应（被防火墙丢弃）</li>
-        <li><strong>Open|Filtered</strong>：收到 ICMP 不可达</li>
-      </ul>
-      <p>默认只报告 Open 状态，减少噪音</p>
+// 扫描完成
+common.FinishProgressBar()</code></pre>
 
       <h2>设计权衡</h2>
 
-      <h3>为什么默认 SYN 而不是 Connect？</h3>
+      <h3>为什么不用SYN扫描？</h3>
       <ul>
-        <li>✅ SYN 扫描速度快 10 倍</li>
-        <li>✅ 不占用连接资源</li>
-        <li>✅ 更隐蔽（不完成握手）</li>
-        <li>❌ 缺点：需要 root 权限</li>
+        <li>✅ Connect扫描无需权限，开箱即用</li>
+        <li>✅ 连接已建立，服务识别无需二次连接</li>
+        <li>✅ 代码简单，跨平台一致</li>
+        <li>❌ 缺点：速度比SYN慢（但集成服务识别后总体更快）</li>
+        <li>❌ 缺点：会在目标日志留下记录</li>
       </ul>
-      <p>无权限时自动降级到 Connect 扫描</p>
 
-      <h3>为什么不默认全端口扫描？</h3>
+      <h3>为什么用semaphore而非channel？</h3>
       <ul>
-        <li>✅ Top 1000 端口覆盖 95% 场景</li>
-        <li>✅ 扫描时间从 10 分钟降到 10 秒</li>
-        <li>✅ 减少网络流量和目标负载</li>
-        <li>❌ 缺点：可能漏掉非标端口的服务</li>
+        <li>✅ 与errgroup天然集成</li>
+        <li>✅ 支持context取消</li>
+        <li>✅ 代码更清晰</li>
+        <li>❌ 缺点：需要额外依赖golang.org/x/sync</li>
       </ul>
-      <p>提供 <code>-p -</code> 参数扫描全端口</p>
+
+      <h3>为什么智能重试而非降低并发？</h3>
+      <ul>
+        <li>✅ 大部分端口不会耗尽资源，降低并发浪费性能</li>
+        <li>✅ 仅对真正失败的连接重试，精准应对</li>
+        <li>✅ 指数退避避免反复失败</li>
+        <li>❌ 缺点：增加少量代码复杂度</li>
+      </ul>
     `,
   },
   'service-identification': {
