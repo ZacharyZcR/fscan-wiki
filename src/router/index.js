@@ -15,6 +15,11 @@ const routes = [
     component: () => import('../views/Parameters.vue'),
   },
   {
+    path: '/build',
+    name: 'BuildConfigurator',
+    component: () => import('../views/BuildConfigurator.vue'),
+  },
+  {
     path: '/about',
     name: 'About',
     component: () => import('../views/About.vue'),

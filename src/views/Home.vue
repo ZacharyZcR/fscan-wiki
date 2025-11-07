@@ -26,6 +26,13 @@
             </router-link>
           </Button>
 
+          <Button as-child size="lg" variant="secondary">
+            <router-link to="/build">
+              <Icon icon="mdi:hammer-wrench" class="mr-2" />
+              构建配置
+            </router-link>
+          </Button>
+
           <Button
             as-child
             variant="outline"
