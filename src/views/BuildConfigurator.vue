@@ -464,9 +464,7 @@ const selectAllWeb = () => {
 }
 
 const clearAllWeb = () => {
-  selectedPlugins.value = selectedPlugins.value.filter(
-    tag => !webPlugins.find(p => p.tag === tag)
-  )
+  selectedPlugins.value = selectedPlugins.value.filter(tag => !webPlugins.find(p => p.tag === tag))
 }
 
 const selectAllLocal = () => {

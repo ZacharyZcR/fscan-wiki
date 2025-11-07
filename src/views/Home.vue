@@ -33,6 +33,13 @@
             </router-link>
           </Button>
 
+          <Button as-child size="lg" variant="secondary">
+            <router-link to="/docs">
+              <Icon icon="mdi:book-open-variant" class="mr-2" />
+              查看文档
+            </router-link>
+          </Button>
+
           <Button
             as-child
             variant="outline"
