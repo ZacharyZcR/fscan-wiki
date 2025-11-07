@@ -405,33 +405,31 @@ const pluginSearchQuery = ref('')
 const expandedGroups = ref({
   network: true,
   database: true,
-  web: true,
+  messagequeue: true,
   vulnerability: true,
-  windows: true,
-  local: false,
 })
 
 // 自定义插件输入
 const customPluginInput = ref('')
 
-// 扫描插件数据
+// 扫描插件数据 - 基于 fscan/Plugins/services/ 实际插件
 const plugins = ref([
-  // 标准网络服务扫描插件
+  // 网络服务扫描插件
   { name: 'ftp', group: 'network', ports: [21], description: 'FTP服务扫描' },
   { name: 'ssh', group: 'network', ports: [22, 2222], description: 'SSH服务扫描' },
   { name: 'telnet', group: 'network', ports: [23], description: 'Telnet服务扫描' },
   { name: 'findnet', group: 'network', ports: [135], description: 'Windows网络发现' },
   { name: 'netbios', group: 'network', ports: [139], description: 'NetBIOS服务扫描' },
   { name: 'smb', group: 'network', ports: [445], description: 'SMB服务扫描' },
-  { name: 'rdp', group: 'network', ports: [3389, 13389, 33389], description: '远程桌面服务扫描' },
-  { name: 'vnc', group: 'network', ports: [5900, 5901, 5902], description: 'VNC服务扫描' },
+  { name: 'smb2', group: 'network', ports: [445], description: 'SMB2服务扫描' },
+  { name: 'smbghost', group: 'network', ports: [445], description: 'SMB Ghost漏洞扫描' },
+  { name: 'smbinfo', group: 'network', ports: [445], description: 'SMB信息收集' },
   { name: 'ldap', group: 'network', ports: [389, 636], description: 'LDAP服务扫描' },
   { name: 'smtp', group: 'network', ports: [25, 465, 587], description: 'SMTP服务扫描' },
-  { name: 'imap', group: 'network', ports: [143, 993], description: 'IMAP服务扫描' },
-  { name: 'pop3', group: 'network', ports: [110, 995], description: 'POP3服务扫描' },
   { name: 'snmp', group: 'network', ports: [161, 162], description: 'SNMP服务扫描' },
-  { name: 'modbus', group: 'network', ports: [502, 5020], description: 'Modbus协议扫描' },
   { name: 'rsync', group: 'network', ports: [873], description: 'Rsync服务扫描' },
+  { name: 'rdp', group: 'network', ports: [3389], description: '远程桌面服务扫描' },
+  { name: 'vnc', group: 'network', ports: [5900, 5901, 5902], description: 'VNC服务扫描' },
 
   // 数据库服务
   { name: 'mssql', group: 'database', ports: [1433, 1434], description: 'MSSQL数据库扫描' },
@@ -442,7 +440,7 @@ const plugins = ref([
     ports: [3306, 3307, 13306, 33306],
     description: 'MySQL数据库扫描',
   },
-  { name: 'postgres', group: 'database', ports: [5432, 5433], description: 'PostgreSQL数据库扫描' },
+  { name: 'postgresql', group: 'database', ports: [5432, 5433], description: 'PostgreSQL数据库扫描' },
   { name: 'redis', group: 'database', ports: [6379, 6380, 16379], description: 'Redis数据库扫描' },
   { name: 'memcached', group: 'database', ports: [11211], description: 'Memcached服务扫描' },
   { name: 'mongodb', group: 'database', ports: [27017, 27018], description: 'MongoDB数据库扫描' },
@@ -454,39 +452,28 @@ const plugins = ref([
     ports: [9200, 9300],
     description: 'Elasticsearch服务扫描',
   },
+
+  // 消息队列
   {
     name: 'rabbitmq',
-    group: 'database',
+    group: 'messagequeue',
     ports: [5672, 5671, 15672, 15671],
     description: 'RabbitMQ消息队列扫描',
   },
-  { name: 'kafka', group: 'database', ports: [9092, 9093], description: 'Kafka消息队列扫描' },
-  { name: 'activemq', group: 'database', ports: [61613], description: 'ActiveMQ消息队列扫描' },
+  { name: 'kafka', group: 'messagequeue', ports: [9092, 9093], description: 'Kafka消息队列扫描' },
+  { name: 'activemq', group: 'messagequeue', ports: [61613], description: 'ActiveMQ消息队列扫描' },
 
-  // Web应用扫描插件
-  { name: 'webtitle', group: 'web', ports: [], description: 'Web标题扫描' },
-  { name: 'webpoc', group: 'web', ports: [], description: 'Web漏洞检测' },
-
-  // 特殊漏洞扫描插件
+  // 漏洞扫描
   { name: 'ms17010', group: 'vulnerability', ports: [445], description: 'MS17-010永恒之蓝漏洞' },
-
-  // Windows系统专用插件
-  { name: 'smb', group: 'windows', ports: [445], description: 'SMB扫描' },
-  { name: 'smb2', group: 'windows', ports: [445], description: 'SMB2扫描' },
-
-  // 本地信息收集插件
-  { name: 'localinfo', group: 'local', ports: [], description: '本地信息收集' },
-  { name: 'dcinfo', group: 'local', ports: [], description: '域控信息收集' },
-  { name: 'minidump', group: 'local', ports: [], description: '内存转储' },
 ])
 
 // 插件预设
 const pluginPresets = [
   { name: '全部模式 (All)', value: 'all' },
-  { name: 'Web扫描', value: 'web,webtitle,webpoc' },
-  { name: '数据库扫描', value: 'mssql,oracle,mysql,postgres,redis,mongodb,elasticsearch' },
-  { name: '网络服务扫描', value: 'ftp,ssh,telnet,smb,rdp,vnc,smtp,pop3,imap' },
-  { name: '漏洞检测', value: 'ms17010,webpoc' },
+  { name: '数据库扫描', value: 'mssql,oracle,mysql,postgresql,redis,mongodb,elasticsearch' },
+  { name: '网络服务扫描', value: 'ftp,ssh,telnet,smb,smb2,rdp,vnc,smtp,ldap,netbios' },
+  { name: '消息队列扫描', value: 'rabbitmq,kafka,activemq' },
+  { name: '漏洞检测', value: 'ms17010,smbghost' },
 ]
 
 // 按分组获取所有插件
@@ -557,10 +544,8 @@ const getGroupIcon = group => {
   const icons = {
     network: 'mdi:lan',
     database: 'mdi:database',
-    web: 'mdi:web',
+    messagequeue: 'mdi:message-processing',
     vulnerability: 'mdi:shield-alert',
-    windows: 'mdi:microsoft-windows',
-    local: 'mdi:laptop',
   }
   return icons[group] || 'mdi:folder'
 }
@@ -570,10 +555,8 @@ const getGroupDisplayName = group => {
   const names = {
     network: '网络服务',
     database: '数据库服务',
-    web: 'Web应用',
+    messagequeue: '消息队列',
     vulnerability: '漏洞检测',
-    windows: 'Windows专用',
-    local: '本地信息收集',
   }
   return names[group] || group
 }
