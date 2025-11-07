@@ -2,26 +2,13 @@
   <div class="max-w-7xl mx-auto px-6">
     <!-- 页面标题区 -->
     <div class="mb-10 text-center py-12">
-      <div
-        class="inline-flex items-center justify-center p-4 rounded-full mb-6 bg-opacity-10"
-        :class="isDark ? 'bg-blue-500' : 'bg-blue-100'"
-      >
-        <Icon
-          icon="mdi:console-line"
-          class="text-5xl"
-          :class="isDark ? 'text-blue-400' : 'text-blue-600'"
-        />
+      <div class="inline-flex items-center justify-center p-4 rounded-full mb-6 bg-primary/10">
+        <Icon icon="mdi:console-line" class="text-5xl text-primary" />
       </div>
-      <h1
-        class="text-5xl font-bold transition-colors duration-300 mb-4"
-        :class="isDark ? 'text-white' : 'text-gray-800'"
-      >
+      <h1 class="text-5xl font-bold mb-4">
         Fscan 参数构建器
       </h1>
-      <p
-        class="mt-4 text-xl transition-colors duration-300 max-w-3xl mx-auto"
-        :class="isDark ? 'text-gray-400' : 'text-gray-600'"
-      >
+      <p class="mt-4 text-xl max-w-3xl mx-auto text-muted-foreground">
         交互式选择扫描参数，构建自定义 Fscan 命令
       </p>
     </div>
