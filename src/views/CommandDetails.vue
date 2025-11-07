@@ -48,8 +48,7 @@
             </div>
           </li>
 
-          <li
-            v-if="params.p"
+          <li v-if="scanMode === 'host' && params.p"
             class="flex items-start rounded-xl p-6 transition-colors duration-200 hover:bg-accent/50"
           >
             <div class="mr-5 mt-0.5 flex-shrink-0 rounded-xl bg-purple-100 p-3 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400">
@@ -63,7 +62,7 @@
             </div>
           </li>
 
-          <li class="flex items-start rounded-xl p-6 transition-colors duration-200 hover:bg-accent/50">
+          <li v-if="scanMode === 'host'" class="flex items-start rounded-xl p-6 transition-colors duration-200 hover:bg-accent/50">
             <div class="mr-5 mt-0.5 flex-shrink-0 rounded-xl bg-green-100 p-3 text-green-600 dark:bg-green-900/20 dark:text-green-400">
               <Icon icon="mdi:speedometer" class="text-2xl" />
             </div>
@@ -148,6 +147,10 @@ const props = defineProps({
   enabledOptions: {
     type: Array,
     required: true,
+  },
+  scanMode: {
+    type: String,
+    default: 'host',
   },
 })
 

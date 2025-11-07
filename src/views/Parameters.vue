@@ -138,6 +138,7 @@
       :params="params"
       :has-targets="hasTargets"
       :enabled-options="getEnabledOptions()"
+      :scan-mode="scanMode"
     />
 
     <!-- 悬浮操作按钮 -->
