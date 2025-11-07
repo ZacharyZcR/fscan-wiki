@@ -2,27 +2,9 @@
   <div class="sticky top-4 z-30 mb-6">
     <Card>
       <CardHeader class="pb-3">
-        <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div class="flex items-center gap-2">
-            <Icon icon="mdi:console" class="text-xl text-primary" />
-            <CardTitle class="text-base">命令预览</CardTitle>
-          </div>
-          <div class="flex flex-wrap items-center gap-2">
-            <!-- 服务器地址输入 -->
-            <input
-              v-model="serverAddress"
-              type="text"
-              placeholder="服务器地址"
-              class="w-32 md:w-40 rounded-lg border border-input bg-background px-3 py-1.5 text-sm outline-none transition-colors focus:border-ring"
-            />
-            <!-- 秘钥输入 -->
-            <input
-              v-model="serverKey"
-              type="password"
-              placeholder="服务器秘钥"
-              class="w-32 md:w-40 rounded-lg border border-input bg-background px-3 py-1.5 text-sm outline-none transition-colors focus:border-ring"
-            />
-          </div>
+        <div class="flex items-center gap-2">
+          <Icon icon="mdi:console" class="text-xl text-primary" />
+          <CardTitle class="text-base">命令预览</CardTitle>
         </div>
       </CardHeader>
       <CardContent class="pt-0">
@@ -73,16 +55,12 @@
       </CardContent>
     </Card>
   </div>
-  <!-- 仅当服务器地址存在时渲染 ScanResultCard -->
-  <ScanResultCard v-if="serverAddress" />
 </template>
 
 <script setup>
-import { computed, inject, ref, onMounted, watch } from 'vue'
+import { computed, inject } from 'vue'
 import { Icon } from '@iconify/vue'
-import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-import ScanResultCard from './ScanResultCard.vue'
 
 const props = defineProps({
   params: {
@@ -97,24 +75,7 @@ const props = defineProps({
 
 const emit = defineEmits(['reset', 'copy'])
 
-const isDark = inject('isDark')
 const showCopySuccess = inject('showCopySuccess')
-const serverAddress = ref('')
-const serverKey = ref('')
-
-onMounted(() => {
-  serverAddress.value = localStorage.getItem('serverAddress') || ''
-  serverKey.value = localStorage.getItem('serverKey') || ''
-})
-
-// 实时保存到 localStorage
-watch(serverAddress, newVal => {
-  localStorage.setItem('serverAddress', newVal)
-})
-
-watch(serverKey, newVal => {
-  localStorage.setItem('serverKey', newVal)
-})
 
 // 格式化命令显示
 const formattedCommand = computed(() => {
