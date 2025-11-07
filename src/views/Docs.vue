@@ -1785,125 +1785,183 @@ version := match[1]  // "7.4"</code></pre>
     description: 'Web 应用扫描架构',
     icon: 'mdi:web',
     content: `
-      <h2>设计目标</h2>
-      <p>Web 扫描模块专注于 HTTP/HTTPS 服务的深度识别：</p>
+      <h2>核心功能</h2>
+      <p>Web扫描模块专注于HTTP/HTTPS服务的漏洞检测（<code>core/web_scanner.go</code> + <code>webscan/</code>）：</p>
       <ul>
-        <li><strong>指纹识别</strong>：识别 Web 框架、CMS、中间件</li>
-        <li><strong>信息收集</strong>：标题、状态码、响应头、证书</li>
-        <li><strong>漏洞检测</strong>：内置 POC 检测常见漏洞</li>
-        <li><strong>目录发现</strong>：敏感路径和文件探测</li>
+        <li><strong>协议检测</strong>：智能识别HTTP/HTTPS服务</li>
+        <li><strong>指纹匹配</strong>：基于服务识别结果触发POC</li>
+        <li><strong>POC检测</strong>：内置YAML POC库（embed.FS嵌入）</li>
       </ul>
 
-      <h2>Web 指纹识别</h2>
+      <h2>协议检测：TLS握手优先</h2>
 
-      <h3>多维度特征匹配</h3>
-      <p>fscan 从多个维度提取 Web 特征：</p>
+      <h3>问题：如何快速判断端口是HTTP还是HTTPS？</h3>
+      <p>不能依赖端口号（80/443），很多服务运行在非标准端口。</p>
+
+      <h3>解决方案：TLS握手 + HTTP回退（<code>core/web_scanner.go:32</code>）</h3>
+      <pre><code>func DetectHTTPScheme(host string, port int) string {
+    // 第一步：尝试TLS握手（优先检测HTTPS）
+    tlsConn, err := tls.DialWithDialer(...)
+    if err == nil {
+        return "https"  // TLS握手成功
+    }
+
+    // 第二步：尝试HTTP请求（回退检测HTTP）
+    resp, err := client.Head(httpURL)
+    if err == nil {
+        return "http"  // HTTP请求成功
+    }
+
+    return ""  // 都失败，不是Web服务
+}</code></pre>
+
+      <h3>为什么TLS握手优先？</h3>
       <ul>
-        <li><strong>HTTP 响应头</strong>：Server、X-Powered-By、Set-Cookie</li>
-        <li><strong>HTML 内容</strong>：特定标签、关键字、注释</li>
-        <li><strong>URL 路径</strong>：/admin、/wp-admin 等特征路径</li>
-        <li><strong>Favicon</strong>：图标哈希值（MD5/MurmurHash）</li>
-        <li><strong>特定文件</strong>：robots.txt、README.md</li>
+        <li>✅ 握手失败代价小（不需要发送完整HTTP请求）</li>
+        <li>✅ 速度快（HTTPS服务立即识别）</li>
+        <li>✅ 准确性高（TLS握手成功必定是HTTPS）</li>
       </ul>
 
-      <h3>指纹库组织</h3>
-      <p>按 Web 技术分类：</p>
+      <h2>Web服务判断：关键词过滤</h2>
+
+      <h3>基于服务指纹的简单规则（<code>core/web_scanner.go:196</code>）</h3>
+      <pre><code>var (
+    nonWebKeywords = []string{
+        "oracle", "mysql", "postgresql", "redis", "mongodb", "ssh",
+        "telnet", "ftp", "smtp", "pop3", "imap", "ldap", "snmp", "vnc", "rdp", "smb",
+    }
+    webKeywords = []string{
+        "http", "https", "ssl", "tls", "nginx", "apache", "iis", "tomcat",
+        "jetty", "nodejs", "php", "asp", "jsp",
+    }
+)
+
+func IsWebServiceByFingerprint(serviceInfo *ServiceInfo) bool {
+    // 非Web服务优先检查（短路）
+    for _, keyword := range nonWebKeywords {
+        if strings.Contains(serviceName, keyword) {
+            return false
+        }
+    }
+    // Web服务名检查
+    for _, keyword := range webKeywords {
+        if strings.Contains(serviceName, keyword) {
+            return true
+        }
+    }
+    return false
+}</code></pre>
+
+      <h3>为什么不用复杂的指纹库？</h3>
       <ul>
-        <li><strong>Web 服务器</strong>：Apache、Nginx、IIS、Tomcat</li>
-        <li><strong>应用框架</strong>：Spring、Django、Laravel、Express</li>
-        <li><strong>CMS</strong>：WordPress、Drupal、Joomla</li>
-        <li><strong>中间件</strong>：Shiro、Struts2</li>
+        <li>简单关键词匹配已经解决90%的识别需求</li>
+        <li>服务识别阶段已经获取了Banner，直接复用</li>
+        <li>误判成本低：最多多发几个HTTP请求</li>
       </ul>
 
-      <h2>HTTP 请求设计</h2>
+      <h2>POC系统：embed.FS嵌入</h2>
 
-      <h3>自定义 HTTP 客户端</h3>
-      <p>为什么不直接用 Go 的 http.Client？</p>
+      <h3>问题：POC文件如何分发？</h3>
+      <p>早期fscan需要单独携带POC目录，部署不便。</p>
+
+      <h3>解决方案：编译期嵌入（<code>webscan/web_scan.go:39</code>）</h3>
+      <pre><code>//go:embed pocs
+var pocsFS embed.FS
+
+func initPocs() {
+    entries, err := pocsFS.ReadDir("pocs")
+    // 遍历加载所有YAML POC
+}</code></pre>
+
+      <h3>优势</h3>
       <ul>
-        <li><strong>超时精确控制</strong>：连接超时、读取超时分别设置</li>
-        <li><strong>重定向处理</strong>：自定义重定向策略，记录跳转链</li>
-        <li><strong>代理支持</strong>：HTTP/SOCKS5 代理</li>
-        <li><strong>证书验证</strong>：支持跳过 SSL 验证</li>
+        <li>✅ 单文件部署：POC直接编译进二进制</li>
+        <li>✅ 无需外部依赖：不用担心POC文件丢失</li>
+        <li>✅ 可选外部POC：<code>-pocpath</code>支持加载外部POC目录</li>
       </ul>
 
-      <h3>请求头伪造</h3>
-      <p>避免被 WAF 识别为扫描器：</p>
-      <pre><code>User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)
-Accept: text/html,application/xhtml+xml
-Accept-Language: zh-CN,zh;q=0.9,en;q=0.8
-Accept-Encoding: gzip, deflate</code></pre>
+      <h2>基于指纹的POC匹配</h2>
 
-      <h2>响应处理</h2>
+      <h3>执行流程（<code>webscan/web_scan.go:74</code>）</h3>
+      <pre><code>func WebScan(info *common.HostInfo) {
+    if len(info.Info) > 0 {
+        // 基于指纹信息执行POC
+        scanByFingerprints(ctx, target, info.Info)
+    } else if common.Pocinfo.PocName != "" {
+        // 基于指定POC名称执行
+        executePOCs(ctx, config.PocInfo{Target: target, PocName: "shiro"})
+    } else {
+        // 执行所有POC（全量扫描）
+        executePOCs(ctx, config.PocInfo{Target: target})
+    }
+}</code></pre>
 
-      <h3>编码检测和转换</h3>
-      <p>Web 页面可能使用各种编码：</p>
+      <h3>指纹到POC的映射</h3>
+      <p>服务识别阶段识别出的指纹（如"Apache Shiro"）会触发对应的POC：</p>
+      <pre><code>func scanByFingerprints(ctx context.Context, target string, fingerprints []string) {
+    for _, fingerprint := range fingerprints {
+        pocName := lib.CheckInfoPoc(fingerprint)  // "shiro" → "shiro"
+        if pocName != "" {
+            executePOCs(ctx, config.PocInfo{Target: target, PocName: pocName})
+        }
+    }
+}</code></pre>
+
+      <h2>HTTP客户端：统一配置</h2>
+
+      <h3>createHTTPClient（<code>core/web_scanner.go:85</code>）</h3>
+      <pre><code>func createHTTPClient() *http.Client {
+    transport := &http.Transport{
+        TLSClientConfig:   &tls.Config{InsecureSkipVerify: true},
+        DisableKeepAlives: true,
+    }
+
+    // 配置代理
+    if common.HttpProxy != "" {
+        transport.Proxy = http.ProxyURL(proxyURL)
+    }
+
+    return &http.Client{
+        Timeout:   timeout,
+        Transport: transport,
+        CheckRedirect: func(req *http.Request, via []*http.Request) error {
+            return http.ErrUseLastResponse  // 不跟随重定向
+        },
+    }
+}</code></pre>
+
+      <h3>配置项</h3>
       <ul>
-        <li>检测 Content-Type: charset=xxx</li>
-        <li>检测 HTML meta charset</li>
-        <li>自动转换为 UTF-8</li>
-      </ul>
-
-      <h3>内容提取</h3>
-      <ul>
-        <li><strong>标题提取</strong>：<code>&lt;title&gt;...&lt;/title&gt;</code></li>
-        <li><strong>关键字提取</strong>：正则匹配特定模式</li>
-        <li><strong>链接提取</strong>：用于目录爆破</li>
+        <li><code>InsecureSkipVerify: true</code> - 跳过证书验证（内网自签名证书）</li>
+        <li><code>DisableKeepAlives: true</code> - 避免连接池耗尽</li>
+        <li><code>CheckRedirect</code> - 不自动跟随重定向（避免误导）</li>
+        <li>代理支持：<code>-proxy http://proxy:8080</code></li>
       </ul>
 
       <h2>并发控制</h2>
 
-      <h3>问题：HTTP 请求的特殊性</h3>
+      <h3>POC并发执行（<code>webscan/web_scan.go:160</code>）</h3>
+      <pre><code>// 执行POC检测
+lib.CheckMultiPoc(req, matchedPocs, common.PocNum)</code></pre>
+
+      <p><code>common.PocNum</code>控制并发数量（默认20）：</p>
       <ul>
-        <li>HTTP Keep-Alive 可能占用连接</li>
-        <li>某些 Web 服务器限制单 IP 连接数</li>
-        <li>大量并发可能触发 WAF</li>
+        <li>过小：扫描速度慢</li>
+        <li>过大：触发WAF或消耗资源</li>
+        <li>通过<code>-num</code>参数调整</li>
       </ul>
-
-      <h3>解决方案：分级限速</h3>
-      <ul>
-        <li>单个主机并发：10</li>
-        <li>全局并发：100</li>
-        <li>提供 --web-threads 参数调整</li>
-      </ul>
-
-      <h2>POC 集成</h2>
-
-      <h3>POC 执行时机</h3>
-      <p>在指纹识别后执行对应的 POC：</p>
-      <ol>
-        <li>识别出 Struts2 → 执行 Struts2 相关 POC</li>
-        <li>识别出 Shiro → 执行 Shiro 反序列化 POC</li>
-        <li>识别出 Spring → 执行 Spring 相关 POC</li>
-      </ol>
-
-      <h3>POC 优先级</h3>
-      <ul>
-        <li><strong>高危 POC</strong>：RCE、SQL 注入优先</li>
-        <li><strong>中危 POC</strong>：文件读取、SSRF</li>
-        <li><strong>低危 POC</strong>：信息泄露</li>
-      </ul>
-
-      <h2>HTTPS 处理</h2>
-
-      <h3>证书信息提取</h3>
-      <pre><code>cert := response.TLS.PeerCertificates[0]
-domain := cert.Subject.CommonName
-issuer := cert.Issuer.CommonName
-notBefore := cert.NotBefore
-notAfter := cert.NotAfter</code></pre>
-
-      <h3>证书验证绕过</h3>
-      <p>某些内网环境使用自签名证书：</p>
-      <pre><code>InsecureSkipVerify: true</code></pre>
 
       <h2>设计权衡</h2>
 
-      <h3>为什么单独分离 Web 扫描？</h3>
+      <h3>为什么单独分离Web扫描？</h3>
       <ul>
-        <li>✅ Web 扫描逻辑复杂，独立模块便于维护</li>
-        <li>✅ 可选编译，减少不需要 Web 扫描时的体积</li>
-        <li>✅ 便于集成第三方 POC 库</li>
+        <li>✅ POC库体积大（embed.FS嵌入后增加数MB）</li>
+        <li>✅ 可选编译：不需要Web扫描时可以减少二进制体积</li>
+        <li>✅ 独立维护：POC更新不影响核心扫描逻辑</li>
       </ul>
+
+      <h3>为什么不实现目录爆破？</h3>
+      <p>专注于POC检测，目录爆破有专门工具（dirsearch、gobuster）更合适。</p>
     `,
   },
   'local-scan': {
