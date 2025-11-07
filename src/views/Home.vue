@@ -7,7 +7,11 @@
           class="mb-6 inline-flex items-center rounded-full bg-background/10 px-4 py-1.5 text-sm backdrop-blur"
         >
           <Icon icon="mdi:rocket-launch" class="mr-2" />
-          新版本 2.0.0-build4 现已发布
+          <span v-if="latestRelease.isLoading">加载版本信息...</span>
+          <span v-else-if="latestRelease.error">
+            新版本 {{ latestRelease.version }} 现已发布 (离线)
+          </span>
+          <span v-else>新版本 {{ latestRelease.version }} 现已发布</span>
         </div>
 
         <h1 class="mb-4 text-4xl font-bold leading-tight md:text-5xl">Fscan 安全扫描工具</h1>
@@ -28,7 +32,7 @@
             size="lg"
             class="border-primary-foreground/30 bg-transparent hover:bg-background/10"
           >
-            <a href="https://github.com/shadow1ng/fscan/releases/tag/2.0.0-build4" target="_blank">
+            <a :href="latestRelease.url" target="_blank">
               <Icon icon="mdi:download" class="mr-2" />
               下载最新版
             </a>
@@ -204,7 +208,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { Icon } from '@iconify/vue'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
@@ -212,6 +216,13 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 const repoStats = ref({
   stars: '...',
   forks: '...',
+})
+
+const latestRelease = ref({
+  version: '',
+  url: 'https://github.com/shadow1ng/fscan/releases',
+  isLoading: true,
+  error: false,
 })
 
 const githubIssues = ref([])
@@ -263,7 +274,7 @@ const coreFeatures = [
   },
 ]
 
-const projectResources = [
+const projectResources = computed(() => [
   {
     title: '开发分支',
     description: '最新开发版本',
@@ -282,11 +293,15 @@ const projectResources = [
   },
   {
     title: '最新版本下载',
-    description: '2.0.0-build4',
+    description: latestRelease.value.isLoading
+      ? '加载中...'
+      : latestRelease.value.error
+        ? `${latestRelease.value.version} (离线)`
+        : latestRelease.value.version,
     icon: 'mdi:download',
     bgColor: 'bg-primary/10',
     iconColor: 'text-primary',
-    link: 'https://github.com/shadow1ng/fscan/releases/tag/2.0.0-build4',
+    link: latestRelease.value.url,
   },
   {
     title: '稳定版本下载',
@@ -312,7 +327,7 @@ const projectResources = [
     iconColor: 'text-accent-foreground',
     link: 'https://github.com/shadow1ng/fscan',
   },
-]
+])
 
 const formatDate = dateString => {
   const date = new Date(dateString)
@@ -339,6 +354,37 @@ const fetchRepoStats = async () => {
   }
 }
 
+const fetchLatestRelease = async () => {
+  try {
+    const response = await fetch('https://api.github.com/repos/shadow1ng/fscan/releases/latest')
+    if (response.ok) {
+      const data = await response.json()
+      latestRelease.value = {
+        version: data.tag_name,
+        url: data.html_url,
+        isLoading: false,
+        error: false,
+      }
+    } else {
+      console.error('GitHub API 返回错误:', response.status, response.statusText)
+      latestRelease.value = {
+        version: '2.0.0-build4',
+        url: 'https://github.com/shadow1ng/fscan/releases/tag/2.0.0-build4',
+        isLoading: false,
+        error: true,
+      }
+    }
+  } catch (error) {
+    console.error('获取最新版本失败:', error)
+    latestRelease.value = {
+      version: '2.0.0-build4',
+      url: 'https://github.com/shadow1ng/fscan/releases/tag/2.0.0-build4',
+      isLoading: false,
+      error: true,
+    }
+  }
+}
+
 const fetchGithubIssues = async () => {
   try {
     const response = await fetch(
@@ -359,6 +405,7 @@ const fetchGithubIssues = async () => {
 
 onMounted(() => {
   fetchRepoStats()
+  fetchLatestRelease()
   fetchGithubIssues()
 })
 </script>
