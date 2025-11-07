@@ -160,6 +160,43 @@
         </CardContent>
       </Card>
 
+      <!-- Web插件 -->
+      <Card class="mb-6">
+        <CardHeader>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <Icon icon="mdi:web" class="text-2xl text-primary" />
+              <CardTitle>Web插件</CardTitle>
+            </div>
+            <div class="flex gap-2">
+              <Button size="sm" variant="outline" @click="selectAllWeb">全选</Button>
+              <Button size="sm" variant="outline" @click="clearAllWeb">清空</Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div class="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
+            <div
+              v-for="plugin in webPlugins"
+              :key="plugin.tag"
+              class="flex cursor-pointer items-center gap-2 rounded-lg border p-3 transition-colors hover:bg-accent"
+              :class="selectedPlugins.includes(plugin.tag) ? 'border-primary bg-primary/5' : ''"
+              @click="togglePlugin(plugin.tag)"
+            >
+              <input
+                type="checkbox"
+                :checked="selectedPlugins.includes(plugin.tag)"
+                class="h-4 w-4 text-primary"
+              />
+              <div class="flex items-center gap-2">
+                <Icon :icon="plugin.icon" class="text-lg text-primary" />
+                <span class="text-sm font-medium">{{ plugin.name }}</span>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <!-- 本地插件 -->
       <Card class="mb-6">
         <CardHeader>
@@ -337,6 +374,11 @@ const servicePlugins = [
   { tag: 'plugin_ms17010', name: 'MS17-010', icon: 'mdi:bug' },
 ]
 
+const webPlugins = [
+  { tag: 'plugin_webtitle', name: 'WebTitle', icon: 'mdi:file-document-outline' },
+  { tag: 'plugin_webpoc', name: 'WebPoc', icon: 'mdi:bug-check' },
+]
+
 const localPlugins = [
   {
     tag: 'plugin_systeminfo',
@@ -410,6 +452,20 @@ const selectAllService = () => {
 const clearAllService = () => {
   selectedPlugins.value = selectedPlugins.value.filter(
     tag => !servicePlugins.find(p => p.tag === tag)
+  )
+}
+
+const selectAllWeb = () => {
+  webPlugins.forEach(p => {
+    if (!selectedPlugins.value.includes(p.tag)) {
+      selectedPlugins.value.push(p.tag)
+    }
+  })
+}
+
+const clearAllWeb = () => {
+  selectedPlugins.value = selectedPlugins.value.filter(
+    tag => !webPlugins.find(p => p.tag === tag)
   )
 }
 
