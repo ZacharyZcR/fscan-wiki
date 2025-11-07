@@ -47,7 +47,9 @@
               <Icon icon="mdi:eye-outline" class="text-xl text-primary" />
               <span>{{ repoInfo.watchers_count.toLocaleString() }} 关注</span>
             </div>
-            <div class="inline-flex items-center gap-2 rounded-lg bg-primary/10 px-3 py-2 text-primary">
+            <div
+              class="inline-flex items-center gap-2 rounded-lg bg-primary/10 px-3 py-2 text-primary"
+            >
               <Icon icon="mdi:calendar-clock" class="text-xl" />
               <span>更新于 {{ formatDate(repoInfo.updated_at) }}</span>
             </div>
@@ -262,10 +264,16 @@
             <!-- 版本信息 -->
             <div class="mb-2 flex flex-wrap items-center gap-2">
               <h3 class="text-lg font-semibold">{{ release.tag_name }}</h3>
-              <span v-if="index === 0" class="rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
+              <span
+                v-if="index === 0"
+                class="rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary"
+              >
                 最新
               </span>
-              <span v-if="release.prerelease" class="rounded-full bg-secondary px-2 py-0.5 text-xs text-secondary-foreground">
+              <span
+                v-if="release.prerelease"
+                class="rounded-full bg-secondary px-2 py-0.5 text-xs text-secondary-foreground"
+              >
                 预发布
               </span>
             </div>

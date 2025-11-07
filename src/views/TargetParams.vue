@@ -18,10 +18,7 @@
             class="flex-1 rounded-l-lg border border-input bg-background px-4 py-3 text-base outline-none transition-colors focus:border-ring"
             @keyup.enter="addTargetLocal"
           />
-          <Button
-            class="rounded-l-none"
-            @click="addTargetLocal"
-          >
+          <Button class="rounded-l-none" @click="addTargetLocal">
             <Icon icon="mdi:plus" class="mr-2 text-lg" />
             添加
           </Button>
@@ -95,12 +92,11 @@
                 "
                 @click="applyPortPresetLocal(preset.value)"
               >
-                <Icon
-                  :icon="preset.icon"
-                  class="mr-2 text-base"
-                />
+                <Icon :icon="preset.icon" class="mr-2 text-base" />
                 {{ preset.name }}
-                <span v-if="preset.count" class="ml-1 text-xs opacity-70">({{ preset.count }})</span>
+                <span v-if="preset.count" class="ml-1 text-xs opacity-70"
+                  >({{ preset.count }})</span
+                >
               </button>
             </div>
           </div>
@@ -203,7 +199,6 @@ const params = defineModel('params', {
 
 const emit = defineEmits(['add-target', 'remove-target', 'apply-port-preset'])
 
-const isDark = inject('isDark')
 const targetInput = inject('targetInput')
 const targetInputValue = ref('')
 

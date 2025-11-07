@@ -67,7 +67,10 @@
             class="absolute inset-y-0 right-0 flex items-center pr-3"
             @click="pluginSearchQuery = ''"
           >
-            <Icon icon="mdi:close-circle" class="text-lg text-muted-foreground hover:text-foreground" />
+            <Icon
+              icon="mdi:close-circle"
+              class="text-lg text-muted-foreground hover:text-foreground"
+            />
           </button>
         </div>
 
@@ -303,7 +306,9 @@
 
           <!-- 本地插件快速选择 -->
           <div class="mt-4">
-            <label class="mb-2 block text-sm font-medium text-muted-foreground">可用本地插件（点击选择）</label>
+            <label class="mb-2 block text-sm font-medium text-muted-foreground"
+              >可用本地插件（点击选择）</label
+            >
             <div class="grid grid-cols-2 gap-2 md:grid-cols-4 lg:grid-cols-6">
               <button
                 v-for="plugin in localPlugins"
@@ -327,15 +332,26 @@
           <!-- 本地插件配置参数 -->
           <div v-if="params.local" class="mt-6">
             <div class="rounded-lg border border-primary/20 bg-primary/5 p-4">
-              <h3 class="mb-4 flex items-center text-lg font-medium">
-                <Icon icon="mdi:cog" class="mr-2 text-xl text-primary" />
-                {{ params.local }} 插件配置
-              </h3>
+              <!-- 插件标题和简介 -->
+              <div class="mb-4">
+                <h3 class="mb-2 flex items-center text-lg font-medium">
+                  <Icon
+                    :icon="getLocalPluginInfo(params.local)?.icon || 'mdi:cog'"
+                    class="mr-2 text-xl text-primary"
+                  />
+                  {{ params.local }} - {{ getLocalPluginInfo(params.local)?.description }}
+                </h3>
+                <p class="text-sm text-muted-foreground">
+                  {{ getLocalPluginInfo(params.local)?.detail }}
+                </p>
+              </div>
 
               <!-- reverseshell 配置 -->
               <div v-if="params.local === 'reverseshell'" class="space-y-4">
                 <div>
-                  <label class="mb-2 block text-sm font-medium">反弹Shell目标地址 (-rsh) <span class="text-destructive">*</span></label>
+                  <label class="mb-2 block text-sm font-medium"
+                    >反弹Shell目标地址 (-rsh) <span class="text-destructive">*</span></label
+                  >
                   <input
                     v-model="params.rsh"
                     type="text"
@@ -349,7 +365,10 @@
               <!-- socks5proxy 配置 -->
               <div v-if="params.local === 'socks5proxy'" class="space-y-4">
                 <div>
-                  <label class="mb-2 block text-sm font-medium">SOCKS5代理监听端口 (-start-socks5) <span class="text-destructive">*</span></label>
+                  <label class="mb-2 block text-sm font-medium"
+                    >SOCKS5代理监听端口 (-start-socks5)
+                    <span class="text-destructive">*</span></label
+                  >
                   <input
                     v-model.number="params['start-socks5']"
                     type="number"
@@ -365,7 +384,9 @@
               <!-- forwardshell 配置 -->
               <div v-if="params.local === 'forwardshell'" class="space-y-4">
                 <div>
-                  <label class="mb-2 block text-sm font-medium">正向Shell监听端口 (-fsh-port)</label>
+                  <label class="mb-2 block text-sm font-medium"
+                    >正向Shell监听端口 (-fsh-port)</label
+                  >
                   <input
                     v-model.number="params['fsh-port']"
                     type="number"
@@ -381,7 +402,9 @@
               <!-- keylogger 配置 -->
               <div v-if="params.local === 'keylogger'" class="space-y-4">
                 <div>
-                  <label class="mb-2 block text-sm font-medium">键盘记录输出文件 (-keylog-output)</label>
+                  <label class="mb-2 block text-sm font-medium"
+                    >键盘记录输出文件 (-keylog-output)</label
+                  >
                   <input
                     v-model="params['keylog-output']"
                     type="text"
@@ -395,7 +418,9 @@
               <!-- downloader 配置 -->
               <div v-if="params.local === 'downloader'" class="space-y-4">
                 <div>
-                  <label class="mb-2 block text-sm font-medium">下载文件URL (-download-url) <span class="text-destructive">*</span></label>
+                  <label class="mb-2 block text-sm font-medium"
+                    >下载文件URL (-download-url) <span class="text-destructive">*</span></label
+                  >
                   <input
                     v-model="params['download-url']"
                     type="text"
@@ -404,7 +429,9 @@
                   />
                 </div>
                 <div>
-                  <label class="mb-2 block text-sm font-medium">下载保存路径 (-download-path) <span class="text-destructive">*</span></label>
+                  <label class="mb-2 block text-sm font-medium"
+                    >下载保存路径 (-download-path) <span class="text-destructive">*</span></label
+                  >
                   <input
                     v-model="params['download-path']"
                     type="text"
@@ -416,11 +443,25 @@
 
               <!-- 持久化插件配置 -->
               <div
-                v-if="['winregistry', 'winschtask', 'winservice', 'winstartup', 'winwmi', 'ldpreload', 'systemdservice', 'crontask'].includes(params.local)"
+                v-if="
+                  [
+                    'winregistry',
+                    'winschtask',
+                    'winservice',
+                    'winstartup',
+                    'winwmi',
+                    'ldpreload',
+                    'systemdservice',
+                    'crontask',
+                  ].includes(params.local)
+                "
                 class="space-y-4"
               >
                 <div>
-                  <label class="mb-2 block text-sm font-medium">持久化目标文件 (-persistence-file) <span class="text-destructive">*</span></label>
+                  <label class="mb-2 block text-sm font-medium"
+                    >持久化目标文件 (-persistence-file)
+                    <span class="text-destructive">*</span></label
+                  >
                   <input
                     v-model="params['persistence-file']"
                     type="text"
@@ -433,10 +474,24 @@
 
               <!-- 无需额外配置的插件提示 -->
               <div
-                v-if="['avdetect', 'dcinfo', 'envinfo', 'fileinfo', 'systeminfo', 'cleaner', 'shellenv', 'minidump'].includes(params.local)"
+                v-if="
+                  [
+                    'avdetect',
+                    'dcinfo',
+                    'envinfo',
+                    'fileinfo',
+                    'systeminfo',
+                    'cleaner',
+                    'shellenv',
+                    'minidump',
+                  ].includes(params.local)
+                "
                 class="text-sm text-muted-foreground"
               >
-                <Icon icon="mdi:information-outline" class="mr-1 inline-block text-base text-primary" />
+                <Icon
+                  icon="mdi:information-outline"
+                  class="mr-1 inline-block text-base text-primary"
+                />
                 该插件无需额外配置参数，直接执行即可
               </div>
             </div>
@@ -456,9 +511,7 @@
             placeholder="每分钟最大发包数"
             class="w-full rounded-lg border border-input bg-background px-4 py-3 text-base outline-none transition-colors focus:border-ring"
           />
-          <div class="mt-2 text-sm text-muted-foreground">
-            0 表示无限制
-          </div>
+          <div class="mt-2 text-sm text-muted-foreground">0 表示无限制</div>
         </div>
 
         <!-- 最大发包总数 -->
@@ -471,9 +524,7 @@
             placeholder="整个程序最大发包总数"
             class="w-full rounded-lg border border-input bg-background px-4 py-3 text-base outline-none transition-colors focus:border-ring"
           />
-          <div class="mt-2 text-sm text-muted-foreground">
-            0 表示无限制
-          </div>
+          <div class="mt-2 text-sm text-muted-foreground">0 表示无限制</div>
         </div>
       </div>
 
@@ -483,7 +534,11 @@
           v-for="(option, key) in scanControlOptions"
           :key="key"
           class="flex items-center justify-between rounded-xl border p-5 transition-all"
-          :class="option.enabled ? 'border-primary/20 bg-primary/10' : 'border-border bg-muted/50 hover:bg-muted'"
+          :class="
+            option.enabled
+              ? 'border-primary/20 bg-primary/10'
+              : 'border-border bg-muted/50 hover:bg-muted'
+          "
         >
           <div class="flex-1">
             <div class="flex items-center text-base font-medium">
@@ -519,7 +574,7 @@
 </template>
 
 <script setup>
-import { ref, inject, computed, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { Icon } from '@iconify/vue'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
@@ -529,7 +584,7 @@ const params = defineModel('params', {
   required: true,
 })
 
-const props = defineProps({
+defineProps({
   scanControlOptions: {
     type: Object,
     required: true,
@@ -541,8 +596,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['toggle-option'])
-
-const isDark = inject('isDark')
 
 // 选择预设下拉菜单控制
 const showPresets = ref(false)
@@ -589,7 +642,12 @@ const plugins = ref([
     ports: [3306, 3307, 13306, 33306],
     description: 'MySQL数据库扫描',
   },
-  { name: 'postgresql', group: 'database', ports: [5432, 5433], description: 'PostgreSQL数据库扫描' },
+  {
+    name: 'postgresql',
+    group: 'database',
+    ports: [5432, 5433],
+    description: 'PostgreSQL数据库扫描',
+  },
   { name: 'redis', group: 'database', ports: [6379, 6380, 16379], description: 'Redis数据库扫描' },
   { name: 'memcached', group: 'database', ports: [11211], description: 'Memcached服务扫描' },
   { name: 'mongodb', group: 'database', ports: [27017, 27018], description: 'MongoDB数据库扫描' },
@@ -619,33 +677,138 @@ const plugins = ref([
 // 本地插件列表 - 基于 fscan/Plugins/local/ 实际插件
 const localPlugins = ref([
   // 信息收集类
-  { name: 'avdetect', icon: 'mdi:shield-search', description: 'AV/EDR 检测' },
-  { name: 'dcinfo', icon: 'mdi:domain', description: '域控信息收集' },
-  { name: 'envinfo', icon: 'mdi:information-outline', description: '环境信息收集' },
-  { name: 'fileinfo', icon: 'mdi:file-search', description: '文件信息收集' },
-  { name: 'systeminfo', icon: 'mdi:information', description: '系统信息收集' },
+  {
+    name: 'avdetect',
+    icon: 'mdi:shield-search',
+    description: 'AV/EDR 检测',
+    detail: '检测目标系统上安装的杀毒软件和端点检测响应(EDR)产品，帮助评估安全防护水平',
+  },
+  {
+    name: 'dcinfo',
+    icon: 'mdi:domain',
+    description: '域控信息收集',
+    detail: '收集域控制器相关信息，包括域名、域控IP、域用户等关键Active Directory信息',
+  },
+  {
+    name: 'envinfo',
+    icon: 'mdi:information-outline',
+    description: '环境信息收集',
+    detail: '收集系统环境变量、路径配置、运行时环境等信息，用于了解目标系统配置',
+  },
+  {
+    name: 'fileinfo',
+    icon: 'mdi:file-search',
+    description: '文件信息收集',
+    detail: '搜索并收集目标系统中的敏感文件信息，如配置文件、密钥文件、数据库文件等',
+  },
+  {
+    name: 'systeminfo',
+    icon: 'mdi:information',
+    description: '系统信息收集',
+    detail: '收集目标系统的详细信息，包括操作系统版本、补丁级别、硬件配置、网络接口等',
+  },
 
   // 后渗透工具类
-  { name: 'cleaner', icon: 'mdi:broom', description: '清理痕迹' },
-  { name: 'downloader', icon: 'mdi:download', description: '文件下载器' },
-  { name: 'forwardshell', icon: 'mdi:console', description: '正向Shell' },
-  { name: 'keylogger', icon: 'mdi:keyboard', description: '键盘记录' },
-  { name: 'minidump', icon: 'mdi:memory', description: '内存转储' },
-  { name: 'reverseshell', icon: 'mdi:console-network', description: '反弹Shell' },
-  { name: 'shellenv', icon: 'mdi:application-cog', description: 'Shell环境设置' },
-  { name: 'socks5proxy', icon: 'mdi:proxy', description: 'SOCKS5代理服务器' },
+  {
+    name: 'cleaner',
+    icon: 'mdi:broom',
+    description: '清理痕迹',
+    detail: '清理渗透测试过程中留下的日志、临时文件等痕迹，用于规避检测和取证分析',
+  },
+  {
+    name: 'downloader',
+    icon: 'mdi:download',
+    description: '文件下载器',
+    detail: '从指定URL下载文件到目标系统，支持HTTP/HTTPS协议，用于投递后续工具或载荷',
+  },
+  {
+    name: 'forwardshell',
+    icon: 'mdi:console',
+    description: '正向Shell',
+    detail: '在目标系统上启动正向Shell监听服务，等待攻击者主动连接以执行命令',
+  },
+  {
+    name: 'keylogger',
+    icon: 'mdi:keyboard',
+    description: '键盘记录',
+    detail: '记录目标系统的键盘输入，可用于捕获密码、敏感信息等用户输入内容',
+  },
+  {
+    name: 'minidump',
+    icon: 'mdi:memory',
+    description: '内存转储',
+    detail: '转储目标进程的内存数据（如lsass.exe），可用于离线提取凭据和敏感信息',
+  },
+  {
+    name: 'reverseshell',
+    icon: 'mdi:console-network',
+    description: '反弹Shell',
+    detail: '目标系统主动连接到攻击者指定的地址，建立反向Shell用于远程命令执行',
+  },
+  {
+    name: 'shellenv',
+    icon: 'mdi:application-cog',
+    description: 'Shell环境设置',
+    detail: '配置Shell运行环境，设置必要的环境变量和路径，为后续操作提供稳定环境',
+  },
+  {
+    name: 'socks5proxy',
+    icon: 'mdi:proxy',
+    description: 'SOCKS5代理服务器',
+    detail: '在目标系统上启动SOCKS5代理服务，用于流量转发和内网穿透访问',
+  },
 
   // Linux持久化类
-  { name: 'ldpreload', icon: 'mdi:linux', description: 'LD_PRELOAD持久化' },
-  { name: 'systemdservice', icon: 'mdi:cog', description: 'Systemd服务持久化' },
-  { name: 'crontask', icon: 'mdi:clock-outline', description: '计划任务持久化' },
+  {
+    name: 'ldpreload',
+    icon: 'mdi:linux',
+    description: 'LD_PRELOAD持久化',
+    detail: '利用Linux的LD_PRELOAD机制实现持久化，通过预加载恶意动态库在进程启动时执行代码',
+  },
+  {
+    name: 'systemdservice',
+    icon: 'mdi:cog',
+    description: 'Systemd服务持久化',
+    detail: '创建Systemd服务单元实现持久化，在Linux系统启动时自动运行指定程序',
+  },
+  {
+    name: 'crontask',
+    icon: 'mdi:clock-outline',
+    description: '计划任务持久化',
+    detail: '通过添加Cron计划任务实现持久化，定期或在特定时间自动执行指定命令',
+  },
 
   // Windows持久化类
-  { name: 'winregistry', icon: 'mdi:registry', description: 'Windows注册表持久化' },
-  { name: 'winschtask', icon: 'mdi:calendar-clock', description: 'Windows计划任务' },
-  { name: 'winservice', icon: 'mdi:cog-outline', description: 'Windows服务持久化' },
-  { name: 'winstartup', icon: 'mdi:startup', description: 'Windows启动项持久化' },
-  { name: 'winwmi', icon: 'mdi:database-cog', description: 'Windows WMI持久化' },
+  {
+    name: 'winregistry',
+    icon: 'mdi:file-cog',
+    description: 'Windows注册表持久化',
+    detail: '修改Windows注册表Run键实现持久化，在用户登录或系统启动时自动运行程序',
+  },
+  {
+    name: 'winschtask',
+    icon: 'mdi:calendar-clock',
+    description: 'Windows计划任务',
+    detail: '创建Windows计划任务实现持久化，支持定时执行、触发器执行等多种启动方式',
+  },
+  {
+    name: 'winservice',
+    icon: 'mdi:cog-outline',
+    description: 'Windows服务持久化',
+    detail: '创建Windows系统服务实现持久化，以SYSTEM权限在后台运行，重启后自动启动',
+  },
+  {
+    name: 'winstartup',
+    icon: 'mdi:rocket-launch',
+    description: 'Windows启动项持久化',
+    detail: '在Windows启动文件夹中添加快捷方式实现持久化，用户登录时自动执行',
+  },
+  {
+    name: 'winwmi',
+    icon: 'mdi:database-cog',
+    description: 'Windows WMI持久化',
+    detail: '利用Windows Management Instrumentation事件订阅实现持久化，隐蔽性强',
+  },
 ])
 
 // 插件预设
@@ -857,6 +1020,11 @@ const selectLocalPlugin = pluginName => {
   } else {
     params.value.local = pluginName
   }
+}
+
+// 获取本地插件信息
+const getLocalPluginInfo = pluginName => {
+  return localPlugins.value.find(p => p.name === pluginName)
 }
 
 // 切换选项本地方法

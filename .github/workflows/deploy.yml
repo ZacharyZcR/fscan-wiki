@@ -2,32 +2,63 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [ main ] # 或 master，取决于你的默认分支
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # 这一行很重要，给予写入权限
+      contents: write
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 18
+          cache: 'npm'
 
-      - name: Install dependencies
+      - name: 📦 Install dependencies
         run: npm ci
 
-      - name: Build
+      - name: 🔍 Lint check
+        run: npm run lint
+
+      - name: 🏗️ Build
         run: NODE_OPTIONS=--openssl-legacy-provider npm run build
 
-      - name: Deploy
+      - name: 📊 Build size report
+        run: |
+          echo "### Build Output 📦" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| File | Size |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|------|" >> $GITHUB_STEP_SUMMARY
+          cd dist/assets
+          for file in *.js *.css; do
+            if [ -f "$file" ]; then
+              size=$(du -h "$file" | cut -f1)
+              echo "| $file | $size |" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
+
+      - name: 🚀 Deploy to GitHub Pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: dist
           branch: gh-pages
           clean: true
-          token: ${{ secrets.GITHUB_TOKEN }}  # 使用 GitHub 自动提供的令牌
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 📤 Upload build artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-failure-logs
+          path: |
+            dist
+            node_modules/.vite
+          retention-days: 7

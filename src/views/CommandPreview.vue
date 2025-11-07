@@ -77,8 +77,6 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['reset', 'copy'])
-
 const showCopySuccess = inject('showCopySuccess')
 
 // 定义各扫描模式允许的参数
@@ -87,23 +85,72 @@ const getModeAllowedParams = () => {
 
   if (props.scanMode === 'host') {
     return [
-      'h', 'hf', 'eh', 'ehf', 'p', 'ep', 'pf',
-      'm', 't', 'time', 'mt', 'gt', 'retry', 'np', 'ao', 'nobr', 'rate', 'maxpkts',
-      'user', 'pwd', 'usera', 'pwda', 'userf', 'pwdf', 'upf', 'hash', 'hashf', 'domain', 'sshkey',
-      'rf', 'rs', 'noredis', 'rwp', 'rwc', 'rwf',
-      ...commonParams
+      'h',
+      'hf',
+      'eh',
+      'ehf',
+      'p',
+      'ep',
+      'pf',
+      'm',
+      't',
+      'time',
+      'mt',
+      'gt',
+      'retry',
+      'np',
+      'ao',
+      'nobr',
+      'rate',
+      'maxpkts',
+      'user',
+      'pwd',
+      'usera',
+      'pwda',
+      'userf',
+      'pwdf',
+      'upf',
+      'hash',
+      'hashf',
+      'domain',
+      'sshkey',
+      'rf',
+      'rs',
+      'noredis',
+      'rwp',
+      'rwc',
+      'rwf',
+      ...commonParams,
     ]
   } else if (props.scanMode === 'web') {
     return [
-      'u', 'uf', 'cookie', 'wt', 'max-redirect', 'proxy', 'socks5',
-      'pocpath', 'pocname', 'num', 'full', 'dns', 'nopoc',
-      ...commonParams
+      'u',
+      'uf',
+      'cookie',
+      'wt',
+      'max-redirect',
+      'proxy',
+      'socks5',
+      'pocpath',
+      'pocname',
+      'num',
+      'full',
+      'dns',
+      'nopoc',
+      ...commonParams,
     ]
   } else if (props.scanMode === 'local') {
     return [
-      'local', 'rsh', 'start-socks5', 'fsh-port', 'keylog-output',
-      'download-url', 'download-path', 'persistence-file', 'win-pe',
-      ...commonParams
+      'local',
+      'rsh',
+      'start-socks5',
+      'fsh-port',
+      'keylog-output',
+      'download-url',
+      'download-path',
+      'persistence-file',
+      'win-pe',
+      ...commonParams,
     ]
   }
   return []

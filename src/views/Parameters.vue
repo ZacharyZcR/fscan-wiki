@@ -18,7 +18,7 @@
             <Icon icon="mdi:refresh" class="mr-1 text-base" />
             <span class="hidden sm:inline">重置</span>
           </Button>
-          <Button size="sm" @click="copyCommand" :disabled="!hasTargets">
+          <Button size="sm" :disabled="!hasTargets" @click="copyCommand">
             <Icon icon="mdi:content-copy" class="mr-1 text-base" />
             <span class="hidden sm:inline">复制命令</span>
           </Button>
@@ -32,7 +32,9 @@
         <div class="mb-3">
           <h2 class="text-sm font-medium text-muted-foreground">扫描模式</h2>
         </div>
-        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 p-1 bg-muted rounded-lg">
+        <div
+          class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 p-1 bg-muted rounded-lg"
+        >
           <!-- 主机扫描 -->
           <button
             type="button"
@@ -121,10 +123,19 @@
     />
 
     <!-- 认证参数组件 - 不在本地模式显示 -->
-    <AuthParams v-if="scanMode !== 'local'" v-model:params="params" />
+    <AuthParams
+      v-if="scanMode !== 'local'"
+      v-model:params="params"
+      :selected-plugins="selectedPlugins"
+    />
 
     <!-- POC测试组件 -->
-    <PocParams v-if="scanMode === 'web'" v-model:params="params" :poc-options="pocOptions" @toggle-option="toggleOption" />
+    <PocParams
+      v-if="scanMode === 'web'"
+      v-model:params="params"
+      :poc-options="pocOptions"
+      @toggle-option="toggleOption"
+    />
 
     <!-- 输出控制组件 -->
     <OutputParams
@@ -374,27 +385,94 @@ const getModeAllowedParams = () => {
 
   if (scanMode.value === 'host') {
     return [
-      'h', 'hf', 'eh', 'ehf', 'p', 'ep', 'pf',
-      'm', 't', 'time', 'mt', 'gt', 'retry', 'np', 'ao', 'nobr', 'rate', 'maxpkts',
-      'user', 'pwd', 'usera', 'pwda', 'userf', 'pwdf', 'upf', 'hash', 'hashf', 'domain', 'sshkey',
-      'rf', 'rs', 'noredis', 'rwp', 'rwc', 'rwf',
-      ...commonParams
+      'h',
+      'hf',
+      'eh',
+      'ehf',
+      'p',
+      'ep',
+      'pf',
+      'm',
+      't',
+      'time',
+      'mt',
+      'gt',
+      'retry',
+      'np',
+      'ao',
+      'nobr',
+      'rate',
+      'maxpkts',
+      'user',
+      'pwd',
+      'usera',
+      'pwda',
+      'userf',
+      'pwdf',
+      'upf',
+      'hash',
+      'hashf',
+      'domain',
+      'sshkey',
+      'rf',
+      'rs',
+      'noredis',
+      'rwp',
+      'rwc',
+      'rwf',
+      ...commonParams,
     ]
   } else if (scanMode.value === 'web') {
     return [
-      'u', 'uf', 'cookie', 'wt', 'max-redirect', 'proxy', 'socks5',
-      'pocpath', 'pocname', 'num', 'full', 'dns', 'nopoc',
-      ...commonParams
+      'u',
+      'uf',
+      'cookie',
+      'wt',
+      'max-redirect',
+      'proxy',
+      'socks5',
+      'pocpath',
+      'pocname',
+      'num',
+      'full',
+      'dns',
+      'nopoc',
+      ...commonParams,
     ]
   } else if (scanMode.value === 'local') {
     return [
-      'local', 'rsh', 'start-socks5', 'fsh-port', 'keylog-output',
-      'download-url', 'download-path', 'persistence-file', 'win-pe',
-      ...commonParams
+      'local',
+      'rsh',
+      'start-socks5',
+      'fsh-port',
+      'keylog-output',
+      'download-url',
+      'download-path',
+      'persistence-file',
+      'win-pe',
+      ...commonParams,
     ]
   }
   return []
 }
+
+// 获取当前选中的插件列表（用于参数可见性控制）
+const selectedPlugins = computed(() => {
+  // Web 模式或本地模式：返回空数组（显示所有认证参数）
+  if (scanMode.value !== 'host') return []
+
+  // 未选择插件：返回空数组（显示所有认证参数）
+  if (!params.m) return []
+
+  // 选择了 'all'：返回 ['all']（显示所有认证参数）
+  if (params.m.toLowerCase() === 'all') return ['all']
+
+  // 选择了具体插件：解析并返回插件列表
+  return params.m
+    .split(',')
+    .map(p => p.trim())
+    .filter(p => p)
+})
 
 // 构建完整命令用于复制
 const builtCommand = computed(() => {
@@ -644,7 +722,6 @@ const scrollToTop = () => {
 const switchScanMode = newMode => {
   if (scanMode.value === newMode) return
 
-  const oldMode = scanMode.value
   scanMode.value = newMode
 
   // 根据新模式清空互斥参数

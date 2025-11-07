@@ -23,8 +23,12 @@
       <!-- 已添加目标时的详情列表 -->
       <div v-else>
         <ul class="mb-8 space-y-6">
-          <li class="flex items-start rounded-xl p-6 transition-colors duration-200 hover:bg-accent/50">
-            <div class="mr-5 mt-0.5 flex-shrink-0 rounded-xl bg-blue-100 p-3 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400">
+          <li
+            class="flex items-start rounded-xl p-6 transition-colors duration-200 hover:bg-accent/50"
+          >
+            <div
+              class="mr-5 mt-0.5 flex-shrink-0 rounded-xl bg-blue-100 p-3 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400"
+            >
               <Icon icon="mdi:target" class="text-2xl" />
             </div>
             <div>
@@ -48,10 +52,13 @@
             </div>
           </li>
 
-          <li v-if="scanMode === 'host' && params.p"
+          <li
+            v-if="scanMode === 'host' && params.p"
             class="flex items-start rounded-xl p-6 transition-colors duration-200 hover:bg-accent/50"
           >
-            <div class="mr-5 mt-0.5 flex-shrink-0 rounded-xl bg-purple-100 p-3 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400">
+            <div
+              class="mr-5 mt-0.5 flex-shrink-0 rounded-xl bg-purple-100 p-3 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400"
+            >
               <Icon icon="mdi:lan-connect" class="text-2xl" />
             </div>
             <div>
@@ -62,8 +69,13 @@
             </div>
           </li>
 
-          <li v-if="scanMode === 'host'" class="flex items-start rounded-xl p-6 transition-colors duration-200 hover:bg-accent/50">
-            <div class="mr-5 mt-0.5 flex-shrink-0 rounded-xl bg-green-100 p-3 text-green-600 dark:bg-green-900/20 dark:text-green-400">
+          <li
+            v-if="scanMode === 'host'"
+            class="flex items-start rounded-xl p-6 transition-colors duration-200 hover:bg-accent/50"
+          >
+            <div
+              class="mr-5 mt-0.5 flex-shrink-0 rounded-xl bg-green-100 p-3 text-green-600 dark:bg-green-900/20 dark:text-green-400"
+            >
               <Icon icon="mdi:speedometer" class="text-2xl" />
             </div>
             <div>
@@ -80,7 +92,9 @@
             v-if="params.o"
             class="flex items-start rounded-xl p-6 transition-colors duration-200 hover:bg-accent/50"
           >
-            <div class="mr-5 mt-0.5 flex-shrink-0 rounded-xl bg-amber-100 p-3 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400">
+            <div
+              class="mr-5 mt-0.5 flex-shrink-0 rounded-xl bg-amber-100 p-3 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400"
+            >
               <Icon icon="mdi:file-document-outline" class="text-2xl" />
             </div>
             <div>
@@ -98,7 +112,9 @@
             :key="option.param"
             class="flex items-start rounded-xl p-6 transition-colors duration-200 hover:bg-accent/50"
           >
-            <div class="mr-5 mt-0.5 flex-shrink-0 rounded-xl bg-indigo-100 p-3 text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400">
+            <div
+              class="mr-5 mt-0.5 flex-shrink-0 rounded-xl bg-indigo-100 p-3 text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400"
+            >
               <Icon :icon="option.icon || 'mdi:check-circle'" class="text-2xl" />
             </div>
             <div>
@@ -114,7 +130,9 @@
       <!-- 提示信息 -->
       <div class="rounded-xl border border-dashed border-border bg-muted/30 p-8">
         <div class="flex items-start">
-          <div class="mr-5 flex-shrink-0 rounded-full bg-yellow-100 p-3 text-yellow-600 dark:bg-yellow-900/20 dark:text-yellow-400">
+          <div
+            class="mr-5 flex-shrink-0 rounded-full bg-yellow-100 p-3 text-yellow-600 dark:bg-yellow-900/20 dark:text-yellow-400"
+          >
             <Icon icon="mdi:lightbulb-outline" class="text-2xl" />
           </div>
           <div>
@@ -131,11 +149,10 @@
 </template>
 
 <script setup>
-import { inject } from 'vue'
 import { Icon } from '@iconify/vue'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 
-const props = defineProps({
+defineProps({
   params: {
     type: Object,
     required: true,
@@ -153,6 +170,4 @@ const props = defineProps({
     default: 'host',
   },
 })
-
-const isDark = inject('isDark')
 </script>

@@ -81,7 +81,9 @@
               step="1"
               class="h-2 w-full cursor-pointer appearance-none rounded-lg bg-muted"
             />
-            <div class="flex min-w-[80px] items-center justify-center rounded-lg border border-input bg-muted px-3 py-2 text-base font-medium">
+            <div
+              class="flex min-w-[80px] items-center justify-center rounded-lg border border-input bg-muted px-3 py-2 text-base font-medium"
+            >
               {{ params.wt }}s
             </div>
           </div>
@@ -126,7 +128,6 @@
 </template>
 
 <script setup>
-import { inject } from 'vue'
 import { Icon } from '@iconify/vue'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 
@@ -134,8 +135,6 @@ const params = defineModel('params', {
   type: Object,
   required: true,
 })
-
-const isDark = inject('isDark')
 
 // 最大重定向次数控制
 const incrementMaxRedirect = () => {

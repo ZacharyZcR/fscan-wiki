@@ -12,7 +12,9 @@
         <div>
           <label class="mb-3 block text-lg font-medium">输出文件 (-o)</label>
           <div class="flex items-center">
-            <div class="flex-shrink-0 rounded-l-lg border border-r-0 border-input bg-muted px-4 py-3 text-base">
+            <div
+              class="flex-shrink-0 rounded-l-lg border border-r-0 border-input bg-muted px-4 py-3 text-base"
+            >
               <Icon icon="mdi:file-document-outline" class="text-lg" />
             </div>
             <input
@@ -24,7 +26,10 @@
               :disabled="outputOptions.no.enabled"
             />
           </div>
-          <div v-if="outputOptions.no.enabled" class="mt-2 flex items-center gap-1 text-xs text-amber-500">
+          <div
+            v-if="outputOptions.no.enabled"
+            class="mt-2 flex items-center gap-1 text-xs text-amber-500"
+          >
             <Icon icon="mdi:alert-circle-outline" />
             <span>已启用禁用保存选项，输出文件设置将被忽略</span>
           </div>
@@ -82,7 +87,11 @@
           v-for="(option, key) in outputOptions"
           :key="key"
           class="flex items-center justify-between rounded-xl border p-5 transition-all"
-          :class="option.enabled ? 'border-primary/20 bg-primary/10' : 'border-border bg-muted/50 hover:bg-muted'"
+          :class="
+            option.enabled
+              ? 'border-primary/20 bg-primary/10'
+              : 'border-border bg-muted/50 hover:bg-muted'
+          "
         >
           <div class="flex-1">
             <div class="flex items-center text-base font-medium">
@@ -118,7 +127,6 @@
 </template>
 
 <script setup>
-import { inject } from 'vue'
 import { Icon } from '@iconify/vue'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 
@@ -127,7 +135,7 @@ const params = defineModel('params', {
   required: true,
 })
 
-const props = defineProps({
+defineProps({
   outputOptions: {
     type: Object,
     default: () => ({
@@ -184,8 +192,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['toggle-option'])
-
-const isDark = inject('isDark')
 
 // 日志级别选项
 const logLevels = [

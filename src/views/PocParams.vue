@@ -99,7 +99,6 @@
 </template>
 
 <script setup>
-import { inject } from 'vue'
 import { Icon } from '@iconify/vue'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 
@@ -108,7 +107,7 @@ const params = defineModel('params', {
   required: true,
 })
 
-const props = defineProps({
+defineProps({
   pocOptions: {
     type: Object,
     required: true,
@@ -116,8 +115,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['toggle-option'])
-
-const isDark = inject('isDark')
 
 // POC线程数控制
 const incrementPocNum = () => {

@@ -3,7 +3,9 @@
     <!-- Hero Section -->
     <section class="relative overflow-hidden rounded-xl bg-primary p-12 text-primary-foreground">
       <div class="relative z-10 mx-auto max-w-3xl text-center">
-        <div class="mb-6 inline-flex items-center rounded-full bg-background/10 px-4 py-1.5 text-sm backdrop-blur">
+        <div
+          class="mb-6 inline-flex items-center rounded-full bg-background/10 px-4 py-1.5 text-sm backdrop-blur"
+        >
           <Icon icon="mdi:rocket-launch" class="mr-2" />
           新版本 2.0.0-build4 现已发布
         </div>
@@ -20,7 +22,12 @@
             </router-link>
           </Button>
 
-          <Button as-child variant="outline" size="lg" class="border-primary-foreground/30 bg-transparent hover:bg-background/10">
+          <Button
+            as-child
+            variant="outline"
+            size="lg"
+            class="border-primary-foreground/30 bg-transparent hover:bg-background/10"
+          >
             <a href="https://github.com/shadow1ng/fscan/releases/tag/2.0.0-build4" target="_blank">
               <Icon icon="mdi:download" class="mr-2" />
               下载最新版
@@ -30,7 +37,11 @@
 
         <!-- Stats -->
         <div class="mt-8 flex flex-wrap justify-center gap-6 text-sm opacity-90">
-          <a href="https://github.com/shadow1ng/fscan" target="_blank" class="flex items-center hover:opacity-80 transition-opacity">
+          <a
+            href="https://github.com/shadow1ng/fscan"
+            target="_blank"
+            class="flex items-center hover:opacity-80 transition-opacity"
+          >
             <Icon icon="mdi:github" class="mr-2" />
             GitHub 项目
           </a>

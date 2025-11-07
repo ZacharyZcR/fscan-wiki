@@ -31,7 +31,10 @@
           <!-- Only show progress bar when scanning is active -->
           <div v-if="scanStatus === 'active'" class="w-full">
             <div class="h-2 w-full rounded-full bg-muted">
-              <div class="h-2 rounded-full bg-blue-600" :style="{ width: scanProgress + '%' }"></div>
+              <div
+                class="h-2 rounded-full bg-blue-600"
+                :style="{ width: scanProgress + '%' }"
+              ></div>
             </div>
           </div>
         </div>
@@ -184,14 +187,11 @@
 </template>
 
 <script setup>
-import { ref, computed, inject } from 'vue'
+import { ref, computed } from 'vue'
 import { Icon } from '@iconify/vue'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import JsonViewer from 'vue-json-viewer' // 导入 vue-json-viewer
-
-// 定义isDark属性，根据环境判断是否为深色模式
-const isDark = inject('isDark')
 
 // 扫描状态相关数据 - 只有两种状态：扫描中(active)和完成(completed)
 const scanStatus = ref('completed') // 默认为扫描中状态，可以根据需要更改
