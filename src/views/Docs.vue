@@ -1528,17 +1528,43 @@ common.FinishProgressBar()</code></pre>
     icon: 'mdi:application-cog',
     content: `
       <h2>设计目标</h2>
-      <p>服务识别的目标是准确识别开放端口上的服务：</p>
+      <p>服务识别集成在端口扫描中，复用TCP连接减少网络请求：</p>
       <ul>
-        <li><strong>准确性</strong>：正确识别服务类型和版本</li>
-        <li><strong>完整性</strong>：支持常见的 100+ 种服务</li>
-        <li><strong>效率</strong>：单个端口识别 < 3 秒</li>
-        <li><strong>健壮性</strong>：处理异常响应和超时</li>
+        <li><strong>准确性</strong>：使用nmap指纹库，识别100+服务</li>
+        <li><strong>效率优先</strong>：Banner优先，减少主动探测</li>
+        <li><strong>零二次连接</strong>：复用端口扫描的连接</li>
+        <li><strong>智能探测</strong>：根据端口选择探测器</li>
+      </ul>
+
+      <h2>SmartIdentify：两阶段识别（<code>core/service_probe.go:91</code>）</h2>
+
+      <h3>阶段1：被动Banner读取</h3>
+      <p>优先读取服务主动发送的Banner（<code>tryInitialBanner</code>）：</p>
+      <pre><code>func (s *SmartPortInfoScanner) SmartIdentify() (*ServiceInfo, error) {
+    // 第一阶段：读取初始Banner（大部分服务会主动发送）
+    s.tryInitialBanner()
+    if s.info.Found {
+        return s.buildServiceInfo(), nil
+    }
+
+    // 第二阶段：智能探测策略（减少探测器数量）
+    s.smartProbeStrategy()
+
+    return s.buildServiceInfo(), nil
+}</code></pre>
+      <p><strong>优势</strong>：SSH、FTP、SMTP等服务主动发送Banner，无需探测</p>
+
+      <h3>阶段2：智能探测策略</h3>
+      <p>仅在Banner识别失败时进行主动探测（<code>smartProbeStrategy</code>）：</p>
+      <ul>
+        <li>优先使用端口专用探测器（如80端口用HTTP探测器）</li>
+        <li>使用nmap指纹库匹配</li>
+        <li>减少探测次数，提升速度</li>
       </ul>
 
       <h2>识别方法</h2>
 
-      <h3>1. Banner 抓取（主要方法）</h3>
+      <h3>1. Banner 抓取（优先方法）</h3>
       <p><strong>原理</strong>：连接服务并读取 Banner 信息</p>
       <ul>
         <li>建立 TCP 连接</li>
