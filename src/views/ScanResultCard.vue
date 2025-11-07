@@ -1,183 +1,133 @@
 <template>
-  <div
-    class="rounded-xl border overflow-hidden shadow-lg transition-colors duration-300 mb-16"
-    :class="isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'"
-  >
-    <div
-      class="px-6 py-4 border-b flex items-center gap-4"
-      :class="
-        isDark
-          ? 'border-gray-700 bg-gray-800/90 backdrop-blur-sm'
-          : 'border-gray-200 bg-white/90 backdrop-blur-sm'
-      "
-    >
-      <div class="flex items-center shrink-0">
-        <Icon
-          icon="mdi:console"
-          class="mr-2 text-xl"
-          :class="isDark ? 'text-blue-400' : 'text-blue-600'"
-        />
-        <span class="font-medium text-lg" :class="isDark ? 'text-gray-200' : 'text-gray-700'"
-          >扫描结果</span
-        >
-      </div>
-      <div class="flex-1 px-4">
-        <div class="flex items-center justify-between mb-2">
-          <div class="flex items-center">
-            <span class="font-medium text-sm" :class="isDark ? 'text-gray-300' : 'text-gray-600'"
-              >扫描状态:</span
-            >
-            <span
-              class="ml-2 px-2 py-0.5 rounded-full text-xs font-semibold"
-              :class="{
-                'bg-green-100 text-green-800': scanStatus === 'active',
-                'bg-blue-100 text-blue-800': scanStatus === 'completed',
-                'bg-gray-100 text-gray-800': !['active', 'completed'].includes(scanStatus),
-              }"
-            >
-              {{ scanStatusText }}
+  <Card class="mb-16">
+    <CardHeader>
+      <div class="flex items-center gap-4">
+        <div class="flex shrink-0 items-center gap-2">
+          <Icon icon="mdi:console" class="text-xl text-primary" />
+          <CardTitle>扫描结果</CardTitle>
+        </div>
+        <div class="flex-1 px-4">
+          <div class="mb-2 flex items-center justify-between">
+            <div class="flex items-center">
+              <span class="text-sm font-medium text-muted-foreground">扫描状态:</span>
+              <span
+                class="ml-2 rounded-full px-2 py-0.5 text-xs font-semibold"
+                :class="{
+                  'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200':
+                    scanStatus === 'active',
+                  'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200':
+                    scanStatus === 'completed',
+                  'bg-muted text-muted-foreground': !['active', 'completed'].includes(scanStatus),
+                }"
+              >
+                {{ scanStatusText }}
+              </span>
+            </div>
+            <span v-if="scanStatus === 'active'" class="text-xs text-muted-foreground">
+              进度: {{ scanProgress }}%
             </span>
           </div>
-          <span
-            v-if="scanStatus === 'active'"
-            class="text-xs"
-            :class="isDark ? 'text-gray-400' : 'text-gray-500'"
-          >
-            进度: {{ scanProgress }}%
-          </span>
-        </div>
 
-        <!-- Only show progress bar when scanning is active -->
-        <div v-if="scanStatus === 'active'" class="w-full">
-          <div class="w-full rounded-full h-2" :class="isDark ? 'bg-gray-700' : 'bg-gray-200'">
-            <div class="bg-blue-600 h-2 rounded-full" :style="{ width: scanProgress + '%' }"></div>
+          <!-- Only show progress bar when scanning is active -->
+          <div v-if="scanStatus === 'active'" class="w-full">
+            <div class="h-2 w-full rounded-full bg-muted">
+              <div class="h-2 rounded-full bg-blue-600" :style="{ width: scanProgress + '%' }"></div>
+            </div>
           </div>
         </div>
+        <div class="flex items-center space-x-4">
+          <Button @click="execute">
+            <Icon icon="mdi:play-circle" class="mr-1.5 text-base" />
+            RPC调用
+          </Button>
+        </div>
       </div>
-      <div class="flex items-center space-x-4">
-        <button
-          class="text-sm px-4 py-2 rounded-lg transition-all duration-200 flex items-center hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
-          :class="
-            isDark
-              ? 'bg-blue-600 hover:bg-blue-700 text-white'
-              : 'bg-blue-600 hover:bg-blue-700 text-white'
-          "
-          @click="execute"
-        >
-          <Icon icon="mdi:play-circle" class="mr-1.5 text-base" />
-          RPC调用
-        </button>
-      </div>
-    </div>
-    <div class="p-8">
-      <div class="border shadow-sm rounded-lg overflow-hidden">
+    </CardHeader>
+    <CardContent>
+      <div class="overflow-hidden rounded-lg border border-border shadow-sm">
         <div class="p-4">
           <div class="tabs">
-            <div class="tab-list flex space-x-2 border-b mb-4">
+            <div class="tab-list mb-4 flex space-x-2 border-b border-border">
               <button
-                :class="[
-                  'py-2 px-4 font-medium transition-colors duration-200',
+                class="rounded-t-md px-4 py-2 font-medium transition-colors duration-200"
+                :class="
                   view === 'table'
-                    ? isDark
-                      ? 'bg-blue-600 text-white rounded-t-md'
-                      : 'bg-blue-500 text-white rounded-t-md'
-                    : 'bg-transparent',
-                ]"
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-transparent hover:bg-accent'
+                "
                 @click="setView('table')"
               >
                 表格视图
               </button>
               <button
-                :class="[
-                  'py-2 px-4 font-medium transition-colors duration-200',
+                class="rounded-t-md px-4 py-2 font-medium transition-colors duration-200"
+                :class="
                   view === 'json'
-                    ? isDark
-                      ? 'bg-blue-600 text-white rounded-t-md'
-                      : 'bg-blue-500 text-white rounded-t-md'
-                    : 'bg-transparent',
-                ]"
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-transparent hover:bg-accent'
+                "
                 @click="setView('json')"
               >
                 JSON视图
               </button>
             </div>
-            <div
-              v-if="view === 'table'"
-              class="overflow-x-auto max-h-96"
-              :class="isDark ? 'bg-gray-800' : 'bg-white'"
-            >
-              <table
-                class="min-w-full divide-y divide-gray-200"
-                :class="isDark ? 'text-gray-200' : 'text-gray-700'"
-              >
-                <thead :class="isDark ? 'bg-gray-700' : 'bg-gray-50'">
+            <div v-if="view === 'table'" class="max-h-96 overflow-x-auto">
+              <table class="min-w-full divide-y divide-border">
+                <thead class="bg-muted">
                   <tr>
                     <th
                       scope="col"
-                      class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
-                      :class="isDark ? 'text-gray-300' : 'text-gray-500'"
+                      class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground"
                     >
                       Time
                     </th>
                     <th
                       scope="col"
-                      class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
-                      :class="isDark ? 'text-gray-300' : 'text-gray-500'"
+                      class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground"
                     >
                       Type
                     </th>
                     <th
                       scope="col"
-                      class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
-                      :class="isDark ? 'text-gray-300' : 'text-gray-500'"
+                      class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground"
                     >
                       Target
                     </th>
                     <th
                       scope="col"
-                      class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
-                      :class="isDark ? 'text-gray-300' : 'text-gray-500'"
+                      class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground"
                     >
                       Status
                     </th>
                     <th
                       scope="col"
-                      class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
-                      :class="isDark ? 'text-gray-300' : 'text-gray-500'"
+                      class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground"
                     >
                       Details
                     </th>
                   </tr>
                 </thead>
-                <tbody
-                  class="divide-y divide-gray-200"
-                  :class="isDark ? 'divide-gray-700' : 'divide-gray-200'"
-                >
+                <tbody class="divide-y divide-border">
                   <tr
                     v-for="(item, index) in filteredData"
                     :key="index"
-                    :class="[
-                      isDark
-                        ? index % 2 === 0
-                          ? 'bg-gray-800'
-                          : 'bg-gray-750'
-                        : index % 2 === 0
-                          ? 'bg-white'
-                          : 'bg-gray-50',
-                      'transition-colors duration-150 hover:bg-opacity-80',
-                      isDark ? 'hover:bg-gray-700' : 'hover:bg-blue-50',
-                    ]"
+                    class="transition-colors duration-150 hover:bg-accent/50"
+                    :class="index % 2 === 0 ? 'bg-background' : 'bg-muted/30'"
                   >
-                    <td class="px-6 py-4 whitespace-nowrap text-sm">{{ item.time }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                    <td class="whitespace-nowrap px-6 py-4 text-sm">{{ item.time }}</td>
+                    <td class="whitespace-nowrap px-6 py-4 text-sm">
                       <span
-                        class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full"
+                        class="inline-flex rounded-full px-2 py-1 text-xs font-semibold leading-5"
                         :class="{
-                          'bg-green-100 text-green-800': item.type === 'PORT',
-                          'bg-blue-100 text-blue-800': item.type === 'SERVICE',
-                          'bg-yellow-100 text-yellow-800': item.type === 'VULNERABILITY',
-                          'bg-red-100 text-red-800': item.type === 'ATTACK',
-                          'bg-gray-100 text-gray-800': ![
+                          'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200':
+                            item.type === 'PORT',
+                          'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200':
+                            item.type === 'SERVICE',
+                          'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200':
+                            item.type === 'VULNERABILITY',
+                          'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200':
+                            item.type === 'ATTACK',
+                          'bg-muted text-muted-foreground': ![
                             'PORT',
                             'SERVICE',
                             'VULNERABILITY',
@@ -188,18 +138,22 @@
                         {{ item.type }}
                       </span>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <td class="whitespace-nowrap px-6 py-4 text-sm font-medium">
                       {{ item.target }}
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                    <td class="whitespace-nowrap px-6 py-4 text-sm">
                       <span
-                        class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full"
+                        class="inline-flex rounded-full px-2 py-1 text-xs font-semibold leading-5"
                         :class="{
-                          'bg-green-100 text-green-800': item.status === 'open',
-                          'bg-blue-100 text-blue-800': item.status === 'identified',
-                          'bg-yellow-100 text-yellow-800': item.status === 'warning',
-                          'bg-red-100 text-red-800': item.status === 'critical',
-                          'bg-gray-100 text-gray-800': ![
+                          'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200':
+                            item.status === 'open',
+                          'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200':
+                            item.status === 'identified',
+                          'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200':
+                            item.status === 'warning',
+                          'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200':
+                            item.status === 'critical',
+                          'bg-muted text-muted-foreground': ![
                             'open',
                             'identified',
                             'warning',
@@ -210,8 +164,8 @@
                         {{ item.status }}
                       </span>
                     </td>
-                    <td class="px-6 py-4 text-sm max-w-xs lg:max-w-md">
-                      <div class="table-json-viewer" :class="isDark ? 'dark-theme' : 'light-theme'">
+                    <td class="max-w-xs px-6 py-4 text-sm lg:max-w-md">
+                      <div class="table-json-viewer">
                         <json-viewer :value="item.detailsJson" :expand-depth="3" copyable sort />
                       </div>
                     </td>
@@ -219,23 +173,21 @@
                 </tbody>
               </table>
             </div>
-            <div
-              v-if="view === 'json'"
-              class="overflow-x-auto max-h-96"
-              :class="isDark ? 'bg-gray-800' : 'bg-white'"
-            >
+            <div v-if="view === 'json'" class="max-h-96 overflow-x-auto">
               <json-viewer :value="filteredData" :expand-depth="5" copyable boxed sort />
             </div>
           </div>
         </div>
       </div>
-    </div>
-  </div>
+    </CardContent>
+  </Card>
 </template>
 
 <script setup>
 import { ref, computed, inject } from 'vue'
 import { Icon } from '@iconify/vue'
+import { Button } from '@/components/ui/button'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import JsonViewer from 'vue-json-viewer' // 导入 vue-json-viewer
 
 // 定义isDark属性，根据环境判断是否为深色模式
@@ -349,30 +301,17 @@ const setView = newView => {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: hsl(var(--muted));
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
+  background: hsl(var(--muted-foreground) / 0.3);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
-}
-
-/* 深色模式下的滚动条 */
-.dark ::-webkit-scrollbar-track {
-  background: #2d3748;
-}
-
-.dark ::-webkit-scrollbar-thumb {
-  background: #4a5568;
-}
-
-.dark ::-webkit-scrollbar-thumb:hover {
-  background: #718096;
+  background: hsl(var(--muted-foreground) / 0.5);
 }
 
 /* 表格动画效果 */
@@ -388,26 +327,17 @@ tr {
 }
 
 /* 修改表格内JsonViewer组件的样式，使其与表格风格一致 */
-.table-json-viewer.light-theme :deep(.jv-container) {
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
+.table-json-viewer :deep(.jv-container) {
+  background: hsl(var(--muted) / 0.5);
+  border: 1px solid hsl(var(--border));
   border-radius: 6px;
   font-size: 0.75rem;
   padding: 8px;
-}
-
-.table-json-viewer.dark-theme :deep(.jv-container) {
-  background: #1f2937;
-  border: 1px solid #374151;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  padding: 8px;
-  color: #e5e7eb;
 }
 
 /* 调整JsonViewer内部样式 */
 .table-json-viewer :deep(.jv-ellipsis) {
-  color: #6b7280;
+  color: hsl(var(--muted-foreground));
   background-color: transparent;
   display: inline-block;
   line-height: 0.9;
@@ -415,19 +345,15 @@ tr {
 }
 
 .table-json-viewer :deep(.jv-key) {
-  color: #2563eb;
+  color: hsl(var(--primary));
   margin-right: 4px;
-}
-
-.table-json-viewer.dark-theme :deep(.jv-key) {
-  color: #60a5fa;
 }
 
 .table-json-viewer :deep(.jv-item.jv-string) {
   color: #059669;
 }
 
-.table-json-viewer.dark-theme :deep(.jv-item.jv-string) {
+.dark .table-json-viewer :deep(.jv-item.jv-string) {
   color: #34d399;
 }
 

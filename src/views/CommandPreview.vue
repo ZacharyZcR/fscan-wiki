@@ -1,135 +1,86 @@
 <template>
   <div class="sticky top-20 z-30 mb-16">
-    <div
-      class="rounded-xl overflow-hidden shadow-xl transition-all duration-300 border"
-      :class="isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'"
-    >
-      <div
-        class="px-8 py-6 border-b flex justify-between items-center"
-        :class="
-          isDark
-            ? 'border-gray-700 bg-gray-800/90 backdrop-blur-sm'
-            : 'border-gray-200 bg-white/90 backdrop-blur-sm'
-        "
-      >
-        <div class="flex items-center">
-          <Icon
-            icon="mdi:console"
-            class="mr-3 text-2xl"
-            :class="isDark ? 'text-blue-400' : 'text-blue-600'"
-          />
-          <span class="font-medium text-xl" :class="isDark ? 'text-gray-200' : 'text-gray-700'"
-            >命令预览</span
-          >
-        </div>
-        <div class="flex items-center space-x-4">
-          <!-- 服务器地址输入 -->
-          <input
-            v-model="serverAddress"
-            type="text"
-            placeholder="服务器地址"
-            class="text-sm px-3 py-2 rounded-lg border outline-none w-40"
-            :class="
-              isDark
-                ? 'bg-gray-700 text-white border-gray-600'
-                : 'bg-white text-gray-800 border-gray-300'
-            "
-          />
-          <!-- 秘钥输入 -->
-          <input
-            v-model="serverKey"
-            type="password"
-            placeholder="服务器秘钥"
-            class="text-sm px-3 py-2 rounded-lg border outline-none w-40"
-            :class="
-              isDark
-                ? 'bg-gray-700 text-white border-gray-600'
-                : 'bg-white text-gray-800 border-gray-300'
-            "
-          />
-
-          <button
-            class="text-sm px-5 py-3 rounded-lg transition-all duration-200 flex items-center hover:scale-105"
-            :class="
-              isDark
-                ? 'bg-gray-700 hover:bg-gray-600 text-gray-300'
-                : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
-            "
-            @click="$emit('reset')"
-          >
-            <Icon icon="mdi:refresh" class="mr-2 text-base" />
-            重置
-          </button>
-          <button
-            :disabled="!hasTargets"
-            class="text-sm px-5 py-3 rounded-lg transition-all duration-200 flex items-center hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-            :class="
-              isDark
-                ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                : 'bg-blue-600 hover:bg-blue-700 text-white'
-            "
-            @click="$emit('copy')"
-          >
-            <Icon icon="mdi:content-copy" class="mr-2 text-base" />
-            复制命令
-          </button>
-        </div>
-      </div>
-      <div class="relative">
-        <!-- 命令预览区域 -->
-        <div
-          class="p-8 overflow-x-auto font-mono text-base whitespace-pre-wrap break-all min-h-[80px]"
-          :class="
-            isDark
-              ? 'text-gray-300 bg-gray-800/95 backdrop-blur-sm'
-              : 'text-gray-800 bg-white/95 backdrop-blur-sm'
-          "
-        >
-          <!-- 无目标时显示提示 -->
-          <div
-            v-if="!hasTargets"
-            class="text-gray-500 italic flex items-center justify-center h-full"
-          >
-            <Icon icon="mdi:information-outline" class="mr-2 text-xl" />
-            添加目标地址后，命令将显示在这里
+    <Card>
+      <CardHeader>
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <Icon icon="mdi:console" class="text-2xl text-primary" />
+            <CardTitle>命令预览</CardTitle>
           </div>
+          <div class="flex items-center gap-4">
+            <!-- 服务器地址输入 -->
+            <input
+              v-model="serverAddress"
+              type="text"
+              placeholder="服务器地址"
+              class="w-40 rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none transition-colors focus:border-ring"
+            />
+            <!-- 秘钥输入 -->
+            <input
+              v-model="serverKey"
+              type="password"
+              placeholder="服务器秘钥"
+              class="w-40 rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none transition-colors focus:border-ring"
+            />
 
-          <!-- 有目标时显示命令 -->
-          <div v-else>
-            <span class="text-green-500 dark:text-green-400">./fscan</span>
-            <span
-              v-for="(part, index) in formattedCommand"
-              :key="index"
-              :class="
-                part.type === 'param'
-                  ? 'text-blue-600 dark:text-blue-400'
-                  : part.type === 'value'
-                    ? 'text-yellow-600 dark:text-yellow-400'
-                    : ''
-              "
+            <Button variant="outline" size="sm" @click="$emit('reset')">
+              <Icon icon="mdi:refresh" class="mr-2 text-base" />
+              重置
+            </Button>
+            <Button :disabled="!hasTargets" size="sm" @click="$emit('copy')">
+              <Icon icon="mdi:content-copy" class="mr-2 text-base" />
+              复制命令
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div class="relative">
+          <!-- 命令预览区域 -->
+          <div
+            class="min-h-[80px] overflow-x-auto whitespace-pre-wrap break-all rounded-lg bg-muted/50 p-6 font-mono text-base"
+          >
+            <!-- 无目标时显示提示 -->
+            <div
+              v-if="!hasTargets"
+              class="flex h-full items-center justify-center text-muted-foreground italic"
             >
-              {{ part.text }}
-            </span>
-          </div>
-        </div>
+              <Icon icon="mdi:information-outline" class="mr-2 text-xl" />
+              添加目标地址后，命令将显示在这里
+            </div>
 
-        <!-- 复制成功提示 -->
-        <Transition name="fade">
-          <div
-            v-if="showCopySuccess"
-            class="absolute bottom-4 right-4 py-2 px-4 rounded-full text-sm font-medium flex items-center shadow-lg"
-            :class="
-              isDark
-                ? 'bg-green-600/90 text-white'
-                : 'bg-green-100 text-green-800 border border-green-200'
-            "
-          >
-            <Icon icon="mdi:check-circle" class="mr-2 text-base" />
-            <span>复制成功!</span>
+            <!-- 有目标时显示命令 -->
+            <div v-else>
+              <span class="text-green-600 dark:text-green-400">./fscan</span>
+              <span
+                v-for="(part, index) in formattedCommand"
+                :key="index"
+                :class="
+                  part.type === 'param'
+                    ? 'text-blue-600 dark:text-blue-400'
+                    : part.type === 'value'
+                      ? 'text-amber-600 dark:text-amber-400'
+                      : ''
+                "
+              >
+                {{ part.text }}
+              </span>
+            </div>
           </div>
-        </Transition>
-      </div>
-    </div>
+
+          <!-- 复制成功提示 -->
+          <Transition name="fade">
+            <div
+              v-if="showCopySuccess"
+              class="absolute bottom-4 right-4 flex items-center rounded-full bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-lg"
+            >
+              <Icon icon="mdi:check-circle" class="mr-2 text-base" />
+              <span>复制成功!</span>
+            </div>
+          </Transition>
+        </div>
+      </CardContent>
+    </Card>
   </div>
   <!-- 仅当服务器地址存在时渲染 ScanResultCard -->
   <ScanResultCard v-if="serverAddress" />
@@ -138,6 +89,8 @@
 <script setup>
 import { computed, inject, ref, onMounted, watch } from 'vue'
 import { Icon } from '@iconify/vue'
+import { Button } from '@/components/ui/button'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import ScanResultCard from './ScanResultCard.vue'
 
 const props = defineProps({
