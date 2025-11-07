@@ -431,6 +431,9 @@ const builtCommand = computed(() => {
     if (key === 'num' && value === 20) continue
     if (key === 'fsh-port' && value === 4444) continue
     if (key === 'keylog-output' && value === 'keylog.txt') continue
+    if (key === 'rate' && value === 0) continue
+    if (key === 'maxpkts' && value === 0) continue
+    if (key === 'start-socks5' && value === 0) continue
 
     // 只添加当前模式允许的参数
     if (!allowedParams.includes(key)) continue
@@ -443,7 +446,7 @@ const builtCommand = computed(() => {
         if (value.length > 0) cmd += ` -${key} ${value.join(',')}`
       } else if (typeof value === 'number') {
         // 数字类型，跳过0值（通常表示未设置）
-        if (value !== 0 || key === 'rate' || key === 'maxpkts' || key === 'start-socks5') {
+        if (value !== 0) {
           cmd += ` -${key} ${value}`
         }
       } else {
