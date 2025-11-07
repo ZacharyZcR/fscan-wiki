@@ -142,7 +142,6 @@ provide('isDark', isDark)
 
 const navItems = [
   { title: '首页', path: '/', icon: 'mdi:home' },
-  { title: '文档', path: '/documents', icon: 'mdi:file-document-multiple' },
   { title: '参数', path: '/parameters', icon: 'mdi:console' },
   { title: '关于', path: '/about', icon: 'mdi:information' },
 ]

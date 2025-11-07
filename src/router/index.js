@@ -10,17 +10,6 @@ const routes = [
     component: Home,
   },
   {
-    path: '/documents',
-    name: 'Documents',
-    // 使用懒加载
-    component: () => import('../views/Documents.vue'),
-  },
-  {
-    path: '/documents/:id',
-    name: 'DocumentDetail',
-    component: () => import('../views/Documents.vue'),
-  },
-  {
     path: '/parameters',
     name: 'Parameters',
     component: () => import('../views/Parameters.vue'),
