@@ -2,46 +2,79 @@
   <div>
     <!-- 文档头部区域 -->
     <div class="flex items-center mb-6">
-      <div class="w-10 h-10 flex-shrink-0 rounded-lg mr-3 flex items-center justify-center"
-           :class="isDark ? 'bg-blue-900/30' : 'bg-blue-100'">
-        <Icon icon="mdi:database" class="text-xl" :class="isDark ? 'text-blue-400' : 'text-blue-600'" />
+      <div
+        class="w-10 h-10 flex-shrink-0 rounded-lg mr-3 flex items-center justify-center"
+        :class="isDark ? 'bg-blue-900/30' : 'bg-blue-100'"
+      >
+        <Icon
+          icon="mdi:database"
+          class="text-xl"
+          :class="isDark ? 'text-blue-400' : 'text-blue-600'"
+        />
       </div>
-      <h1 class="text-2xl font-bold transition-colors duration-300"
-          :class="isDark ? 'text-white' : 'text-gray-900'">
+      <h1
+        class="text-2xl font-bold transition-colors duration-300"
+        :class="isDark ? 'text-white' : 'text-gray-900'"
+      >
         MongoDB 扫描指南
       </h1>
     </div>
 
     <!-- 内容概览 -->
-    <div class="mb-6 rounded-lg p-3 transition-colors duration-300"
-         :class="isDark ? 'bg-gray-800 border border-gray-700' : 'bg-gray-50 border border-gray-200'">
+    <div
+      class="mb-6 rounded-lg p-3 transition-colors duration-300"
+      :class="isDark ? 'bg-gray-800 border border-gray-700' : 'bg-gray-50 border border-gray-200'"
+    >
       <div class="flex items-center mb-2">
-        <Icon icon="mdi:format-list-bulleted" class="mr-2" :class="isDark ? 'text-gray-400' : 'text-gray-500'" />
-        <h3 class="font-medium text-sm transition-colors duration-300"
-            :class="isDark ? 'text-gray-200' : 'text-gray-700'">
+        <Icon
+          icon="mdi:format-list-bulleted"
+          class="mr-2"
+          :class="isDark ? 'text-gray-400' : 'text-gray-500'"
+        />
+        <h3
+          class="font-medium text-sm transition-colors duration-300"
+          :class="isDark ? 'text-gray-200' : 'text-gray-700'"
+        >
           内容概览
         </h3>
       </div>
       <ul class="pl-4 space-y-1">
-        <li v-for="(section, index) in contentSections" :key="index"
-            class="transition-colors duration-200 text-sm font-normal"
-            :class="isDark ? 'text-gray-400 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'">
+        <li
+          v-for="(section, index) in contentSections"
+          :key="index"
+          class="transition-colors duration-200 text-sm font-normal"
+          :class="
+            isDark ? 'text-gray-400 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'
+          "
+        >
           <a :href="`#section-${index}`" class="hover:underline">{{ section }}</a>
         </li>
       </ul>
     </div>
 
     <!-- 主要内容 -->
-    <div class="doc-content transition-colors duration-300"
-         :class="isDark ? 'text-gray-300' : 'text-gray-700'">
-      <p class="mb-4">MongoDB 扫描是 Fscan 的一个重要功能模块，用于发现网络中运行的 MongoDB 数据库服务，并检测常见的未授权访问安全问题。本指南详细介绍 MongoDB 扫描的工作原理、配置选项和最佳实践。</p>
+    <div
+      class="doc-content transition-colors duration-300"
+      :class="isDark ? 'text-gray-300' : 'text-gray-700'"
+    >
+      <p class="mb-4">
+        MongoDB 扫描是 Fscan 的一个重要功能模块，用于发现网络中运行的 MongoDB
+        数据库服务，并检测常见的未授权访问安全问题。本指南详细介绍 MongoDB
+        扫描的工作原理、配置选项和最佳实践。
+      </p>
 
-      <h2 id="section-0" class="text-xl font-bold mt-8 mb-4 pb-2 border-b transition-colors duration-300"
-          :class="isDark ? 'text-white border-gray-700' : 'text-gray-800 border-gray-200'">
+      <h2
+        id="section-0"
+        class="text-xl font-bold mt-8 mb-4 pb-2 border-b transition-colors duration-300"
+        :class="isDark ? 'text-white border-gray-700' : 'text-gray-800 border-gray-200'"
+      >
         MongoDB 扫描简介
       </h2>
 
-      <p class="mb-4">MongoDB 是一种流行的开源文档数据库，由于配置不当，常常面临未授权访问的安全风险。Fscan 的 MongoDB 扫描模块可以：</p>
+      <p class="mb-4">
+        MongoDB 是一种流行的开源文档数据库，由于配置不当，常常面临未授权访问的安全风险。Fscan 的
+        MongoDB 扫描模块可以：
+      </p>
 
       <ul class="pl-5 list-disc space-y-2 mb-6">
         <li>发现内网中开放的 MongoDB 服务（默认端口 27017）</li>
@@ -50,77 +83,121 @@
         <li>生成详细的扫描报告</li>
       </ul>
 
-      <div class="p-3 rounded-lg mb-6 text-sm font-normal"
-           :class="isDark ? 'bg-blue-900/10 border border-blue-900/20' : 'bg-blue-50 border border-blue-100'">
+      <div
+        class="p-3 rounded-lg mb-6 text-sm font-normal"
+        :class="
+          isDark ? 'bg-blue-900/10 border border-blue-900/20' : 'bg-blue-50 border border-blue-100'
+        "
+      >
         <div class="flex">
-          <Icon icon="mdi:shield-alert" class="text-lg flex-shrink-0 mt-0.5 mr-2" :class="isDark ? 'text-blue-400' : 'text-blue-600'" />
+          <Icon
+            icon="mdi:shield-alert"
+            class="text-lg flex-shrink-0 mt-0.5 mr-2"
+            :class="isDark ? 'text-blue-400' : 'text-blue-600'"
+          />
           <div>
             <p class="font-medium" :class="isDark ? 'text-blue-300' : 'text-blue-700'">安全提示</p>
             <p class="mt-1" :class="isDark ? 'text-blue-200' : 'text-blue-800'">
-              MongoDB 扫描功能应当仅用于合法的安全测试和授权的渗透测试。未经授权对系统进行扫描可能违反法律法规。
+              MongoDB
+              扫描功能应当仅用于合法的安全测试和授权的渗透测试。未经授权对系统进行扫描可能违反法律法规。
             </p>
           </div>
         </div>
       </div>
 
-      <h2 id="section-1" class="text-xl font-bold mt-8 mb-4 pb-2 border-b transition-colors duration-300"
-          :class="isDark ? 'text-white border-gray-700' : 'text-gray-800 border-gray-200'">
+      <h2
+        id="section-1"
+        class="text-xl font-bold mt-8 mb-4 pb-2 border-b transition-colors duration-300"
+        :class="isDark ? 'text-white border-gray-700' : 'text-gray-800 border-gray-200'"
+      >
         扫描原理与流程
       </h2>
 
       <p class="mb-4">MongoDB 扫描模块采用多阶段扫描策略，高效识别和测试目标系统：</p>
 
       <div class="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="p-4 rounded-lg border transition-colors duration-300"
-             :class="isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'">
+        <div
+          class="p-4 rounded-lg border transition-colors duration-300"
+          :class="isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'"
+        >
           <div class="flex items-center mb-2">
-            <div class="w-6 h-6 rounded-md flex items-center justify-center mr-2"
-                 :class="isDark ? 'bg-blue-900/20' : 'bg-blue-100'">
-              <span class="text-xs font-bold" :class="isDark ? 'text-blue-400' : 'text-blue-600'">1</span>
+            <div
+              class="w-6 h-6 rounded-md flex items-center justify-center mr-2"
+              :class="isDark ? 'bg-blue-900/20' : 'bg-blue-100'"
+            >
+              <span class="text-xs font-bold" :class="isDark ? 'text-blue-400' : 'text-blue-600'"
+                >1</span
+              >
             </div>
-            <h3 class="font-medium" :class="isDark ? 'text-gray-200' : 'text-gray-800'">服务发现</h3>
+            <h3 class="font-medium" :class="isDark ? 'text-gray-200' : 'text-gray-800'">
+              服务发现
+            </h3>
           </div>
           <p class="text-sm" :class="isDark ? 'text-gray-400' : 'text-gray-600'">
             扫描目标 IP 范围，识别开放 MongoDB 服务（默认端口 27017）的主机
           </p>
         </div>
 
-        <div class="p-4 rounded-lg border transition-colors duration-300"
-             :class="isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'">
+        <div
+          class="p-4 rounded-lg border transition-colors duration-300"
+          :class="isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'"
+        >
           <div class="flex items-center mb-2">
-            <div class="w-6 h-6 rounded-md flex items-center justify-center mr-2"
-                 :class="isDark ? 'bg-blue-900/20' : 'bg-blue-100'">
-              <span class="text-xs font-bold" :class="isDark ? 'text-blue-400' : 'text-blue-600'">2</span>
+            <div
+              class="w-6 h-6 rounded-md flex items-center justify-center mr-2"
+              :class="isDark ? 'bg-blue-900/20' : 'bg-blue-100'"
+            >
+              <span class="text-xs font-bold" :class="isDark ? 'text-blue-400' : 'text-blue-600'"
+                >2</span
+              >
             </div>
-            <h3 class="font-medium" :class="isDark ? 'text-gray-200' : 'text-gray-800'">协议选择</h3>
+            <h3 class="font-medium" :class="isDark ? 'text-gray-200' : 'text-gray-800'">
+              协议选择
+            </h3>
           </div>
           <p class="text-sm" :class="isDark ? 'text-gray-400' : 'text-gray-600'">
             首先尝试新版 OP_MSG 协议，如果失败再尝试传统的 OP_QUERY 协议
           </p>
         </div>
 
-        <div class="p-4 rounded-lg border transition-colors duration-300"
-             :class="isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'">
+        <div
+          class="p-4 rounded-lg border transition-colors duration-300"
+          :class="isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'"
+        >
           <div class="flex items-center mb-2">
-            <div class="w-6 h-6 rounded-md flex items-center justify-center mr-2"
-                 :class="isDark ? 'bg-blue-900/20' : 'bg-blue-100'">
-              <span class="text-xs font-bold" :class="isDark ? 'text-blue-400' : 'text-blue-600'">3</span>
+            <div
+              class="w-6 h-6 rounded-md flex items-center justify-center mr-2"
+              :class="isDark ? 'bg-blue-900/20' : 'bg-blue-100'"
+            >
+              <span class="text-xs font-bold" :class="isDark ? 'text-blue-400' : 'text-blue-600'"
+                >3</span
+              >
             </div>
-            <h3 class="font-medium" :class="isDark ? 'text-gray-200' : 'text-gray-800'">命令执行</h3>
+            <h3 class="font-medium" :class="isDark ? 'text-gray-200' : 'text-gray-800'">
+              命令执行
+            </h3>
           </div>
           <p class="text-sm" :class="isDark ? 'text-gray-400' : 'text-gray-600'">
             发送管理命令 getLog("startupWarnings") 测试是否能够未授权访问管理功能
           </p>
         </div>
 
-        <div class="p-4 rounded-lg border transition-colors duration-300"
-             :class="isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'">
+        <div
+          class="p-4 rounded-lg border transition-colors duration-300"
+          :class="isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'"
+        >
           <div class="flex items-center mb-2">
-            <div class="w-6 h-6 rounded-md flex items-center justify-center mr-2"
-                 :class="isDark ? 'bg-blue-900/20' : 'bg-blue-100'">
-              <span class="text-xs font-bold" :class="isDark ? 'text-blue-400' : 'text-blue-600'">4</span>
+            <div
+              class="w-6 h-6 rounded-md flex items-center justify-center mr-2"
+              :class="isDark ? 'bg-blue-900/20' : 'bg-blue-100'"
+            >
+              <span class="text-xs font-bold" :class="isDark ? 'text-blue-400' : 'text-blue-600'"
+                >4</span
+              >
             </div>
-            <h3 class="font-medium" :class="isDark ? 'text-gray-200' : 'text-gray-800'">结果分析</h3>
+            <h3 class="font-medium" :class="isDark ? 'text-gray-200' : 'text-gray-800'">
+              结果分析
+            </h3>
           </div>
           <p class="text-sm" :class="isDark ? 'text-gray-400' : 'text-gray-600'">
             通过响应分析判断是否存在未授权访问，生成详细报告
@@ -128,63 +205,81 @@
         </div>
       </div>
 
-      <p class="mb-4">扫描实现采用上下文管理和并发控制，确保扫描效率和稳定性。同时会考虑全局超时和单个连接超时，避免资源浪费。</p>
+      <p class="mb-4">
+        扫描实现采用上下文管理和并发控制，确保扫描效率和稳定性。同时会考虑全局超时和单个连接超时，避免资源浪费。
+      </p>
 
-      <h2 id="section-2" class="text-xl font-bold mt-8 mb-4 pb-2 border-b transition-colors duration-300"
-          :class="isDark ? 'text-white border-gray-700' : 'text-gray-800 border-gray-200'">
+      <h2
+        id="section-2"
+        class="text-xl font-bold mt-8 mb-4 pb-2 border-b transition-colors duration-300"
+        :class="isDark ? 'text-white border-gray-700' : 'text-gray-800 border-gray-200'"
+      >
         配置参数与选项
       </h2>
 
       <p class="mb-4">MongoDB 扫描提供多种配置选项，以适应不同的扫描需求：</p>
 
       <div class="overflow-x-auto mb-6">
-        <table class="min-w-full rounded-lg overflow-hidden text-sm font-normal"
-               :class="isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'">
+        <table
+          class="min-w-full rounded-lg overflow-hidden text-sm font-normal"
+          :class="isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'"
+        >
           <thead :class="isDark ? 'bg-gray-850' : 'bg-gray-50'">
-          <tr>
-            <th class="py-3 px-4 text-left font-medium border-b"
-                :class="isDark ? 'text-gray-300 border-gray-700' : 'text-gray-700 border-gray-200'">
-              参数
-            </th>
-            <th class="py-3 px-4 text-left font-medium border-b"
-                :class="isDark ? 'text-gray-300 border-gray-700' : 'text-gray-700 border-gray-200'">
-              说明
-            </th>
-            <th class="py-3 px-4 text-left font-medium border-b"
-                :class="isDark ? 'text-gray-300 border-gray-700' : 'text-gray-700 border-gray-200'">
-              示例
-            </th>
-          </tr>
+            <tr>
+              <th
+                class="py-3 px-4 text-left font-medium border-b"
+                :class="isDark ? 'text-gray-300 border-gray-700' : 'text-gray-700 border-gray-200'"
+              >
+                参数
+              </th>
+              <th
+                class="py-3 px-4 text-left font-medium border-b"
+                :class="isDark ? 'text-gray-300 border-gray-700' : 'text-gray-700 border-gray-200'"
+              >
+                说明
+              </th>
+              <th
+                class="py-3 px-4 text-left font-medium border-b"
+                :class="isDark ? 'text-gray-300 border-gray-700' : 'text-gray-700 border-gray-200'"
+              >
+                示例
+              </th>
+            </tr>
           </thead>
           <tbody class="divide-y" :class="isDark ? 'divide-gray-700' : 'divide-gray-200'">
-          <tr v-for="param in mongodbParameters" :key="param.name"
-              :class="isDark ? 'hover:bg-gray-750' : 'hover:bg-gray-50'">
-            <td class="py-2 px-4 font-mono"
-                :class="isDark ? 'text-blue-400' : 'text-blue-600'">
-              {{ param.name }}
-            </td>
-            <td class="py-2 px-4"
-                :class="isDark ? 'text-gray-300' : 'text-gray-700'">
-              {{ param.description }}
-            </td>
-            <td class="py-2 px-4 font-mono"
-                :class="isDark ? 'text-gray-400' : 'text-gray-500'">
-              {{ param.example }}
-            </td>
-          </tr>
+            <tr
+              v-for="param in mongodbParameters"
+              :key="param.name"
+              :class="isDark ? 'hover:bg-gray-750' : 'hover:bg-gray-50'"
+            >
+              <td class="py-2 px-4 font-mono" :class="isDark ? 'text-blue-400' : 'text-blue-600'">
+                {{ param.name }}
+              </td>
+              <td class="py-2 px-4" :class="isDark ? 'text-gray-300' : 'text-gray-700'">
+                {{ param.description }}
+              </td>
+              <td class="py-2 px-4 font-mono" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
+                {{ param.example }}
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>
 
-      <h2 id="section-3" class="text-xl font-bold mt-8 mb-4 pb-2 border-b transition-colors duration-300"
-          :class="isDark ? 'text-white border-gray-700' : 'text-gray-800 border-gray-200'">
+      <h2
+        id="section-3"
+        class="text-xl font-bold mt-8 mb-4 pb-2 border-b transition-colors duration-300"
+        :class="isDark ? 'text-white border-gray-700' : 'text-gray-800 border-gray-200'"
+      >
         MongoDB 协议详解
       </h2>
 
       <p class="mb-4">MongoDB 使用基于二进制的网络协议，Fscan 支持两种主要的通信方式：</p>
 
-      <h3 class="text-lg font-semibold mt-5 mb-3 transition-colors duration-300"
-          :class="isDark ? 'text-white' : 'text-gray-800'">
+      <h3
+        class="text-lg font-semibold mt-5 mb-3 transition-colors duration-300"
+        :class="isDark ? 'text-white' : 'text-gray-800'"
+      >
         OP_MSG 协议
       </h3>
 
@@ -192,9 +287,12 @@
 
       <!-- 优化后的代码块，移除灰色背景 -->
       <div class="mb-4">
-        <div class="rounded-lg overflow-hidden border transition-colors duration-300"
-             :class="isDark ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50'">
-          <pre class="p-3 text-sm font-mono overflow-x-auto"><code class="transition-colors duration-300"
+        <div
+          class="rounded-lg overflow-hidden border transition-colors duration-300"
+          :class="isDark ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50'"
+        >
+          <pre class="p-3 text-sm font-mono overflow-x-auto"><code
+class="transition-colors duration-300"
                                                                    :class="isDark ? 'text-gray-100' : 'text-gray-800'">// createOpMsgPacket 创建OP_MSG查询包
 func createOpMsgPacket() []byte {
     return []byte{
@@ -224,8 +322,10 @@ func createOpMsgPacket() []byte {
         <li><code>sections</code>：包含 BSON 格式命令</li>
       </ul>
 
-      <h3 class="text-lg font-semibold mt-5 mb-3 transition-colors duration-300"
-          :class="isDark ? 'text-white' : 'text-gray-800'">
+      <h3
+        class="text-lg font-semibold mt-5 mb-3 transition-colors duration-300"
+        :class="isDark ? 'text-white' : 'text-gray-800'"
+      >
         OP_QUERY 协议
       </h3>
 
@@ -233,9 +333,12 @@ func createOpMsgPacket() []byte {
 
       <!-- 优化后的代码块，移除灰色背景 -->
       <div class="mb-4">
-        <div class="rounded-lg overflow-hidden border transition-colors duration-300"
-             :class="isDark ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50'">
-          <pre class="p-3 text-sm font-mono overflow-x-auto"><code class="transition-colors duration-300"
+        <div
+          class="rounded-lg overflow-hidden border transition-colors duration-300"
+          :class="isDark ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50'"
+        >
+          <pre class="p-3 text-sm font-mono overflow-x-auto"><code
+class="transition-colors duration-300"
                                                                    :class="isDark ? 'text-gray-100' : 'text-gray-800'">// createOpQueryPacket 创建OP_QUERY查询包
 func createOpQueryPacket() []byte {
     return []byte{
@@ -268,31 +371,52 @@ func createOpQueryPacket() []byte {
         <li><code>query</code>：BSON 格式的查询文档</li>
       </ul>
 
-      <div class="p-3 rounded-lg mb-6 text-sm font-normal"
-           :class="isDark ? 'bg-amber-900/10 border border-amber-900/20' : 'bg-amber-50 border border-amber-100'">
+      <div
+        class="p-3 rounded-lg mb-6 text-sm font-normal"
+        :class="
+          isDark
+            ? 'bg-amber-900/10 border border-amber-900/20'
+            : 'bg-amber-50 border border-amber-100'
+        "
+      >
         <div class="flex">
-          <Icon icon="mdi:lightbulb" class="text-lg flex-shrink-0 mt-0.5 mr-2" :class="isDark ? 'text-amber-400' : 'text-amber-600'" />
+          <Icon
+            icon="mdi:lightbulb"
+            class="text-lg flex-shrink-0 mt-0.5 mr-2"
+            :class="isDark ? 'text-amber-400' : 'text-amber-600'"
+          />
           <div>
-            <p class="font-medium" :class="isDark ? 'text-amber-300' : 'text-amber-700'">协议兼容性提示</p>
+            <p class="font-medium" :class="isDark ? 'text-amber-300' : 'text-amber-700'">
+              协议兼容性提示
+            </p>
             <p class="mt-1" :class="isDark ? 'text-amber-200' : 'text-amber-800'">
-              Fscan 首先尝试较新的 OP_MSG 协议，如果失败则回退到 OP_QUERY 协议，确保与不同版本的 MongoDB 服务器兼容。
+              Fscan 首先尝试较新的 OP_MSG 协议，如果失败则回退到 OP_QUERY 协议，确保与不同版本的
+              MongoDB 服务器兼容。
             </p>
           </div>
         </div>
       </div>
 
-      <h2 id="section-4" class="text-xl font-bold mt-8 mb-4 pb-2 border-b transition-colors duration-300"
-          :class="isDark ? 'text-white border-gray-700' : 'text-gray-800 border-gray-200'">
+      <h2
+        id="section-4"
+        class="text-xl font-bold mt-8 mb-4 pb-2 border-b transition-colors duration-300"
+        :class="isDark ? 'text-white border-gray-700' : 'text-gray-800 border-gray-200'"
+      >
         未授权访问检测原理
       </h2>
 
-      <p class="mb-4">MongoDB 未授权访问检测的核心是尝试执行需要管理员权限的命令，并分析响应结果：</p>
+      <p class="mb-4">
+        MongoDB 未授权访问检测的核心是尝试执行需要管理员权限的命令，并分析响应结果：
+      </p>
 
       <!-- 优化后的代码块，移除灰色背景 -->
       <div class="mb-4">
-        <div class="rounded-lg overflow-hidden border transition-colors duration-300"
-             :class="isDark ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50'">
-          <pre class="p-3 text-sm font-mono overflow-x-auto"><code class="transition-colors duration-300"
+        <div
+          class="rounded-lg overflow-hidden border transition-colors duration-300"
+          :class="isDark ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50'"
+        >
+          <pre class="p-3 text-sm font-mono overflow-x-auto"><code
+class="transition-colors duration-300"
                                                                    :class="isDark ? 'text-gray-100' : 'text-gray-800'">// MongodbUnauth 检测MongoDB未授权访问
 func MongodbUnauth(ctx context.Context, info *Common.HostInfo) (bool, error) {
     msgPacket := createOpMsgPacket()
@@ -336,21 +460,35 @@ func MongodbUnauth(ctx context.Context, info *Common.HostInfo) (bool, error) {
         <li>成功执行管理命令意味着存在未授权访问漏洞</li>
       </ol>
 
-      <div class="p-3 rounded-lg mb-6 text-sm font-normal"
-           :class="isDark ? 'bg-blue-900/10 border border-blue-900/20' : 'bg-blue-50 border border-blue-100'">
+      <div
+        class="p-3 rounded-lg mb-6 text-sm font-normal"
+        :class="
+          isDark ? 'bg-blue-900/10 border border-blue-900/20' : 'bg-blue-50 border border-blue-100'
+        "
+      >
         <div class="flex">
-          <Icon icon="mdi:information-outline" class="text-lg flex-shrink-0 mt-0.5 mr-2" :class="isDark ? 'text-blue-400' : 'text-blue-600'" />
+          <Icon
+            icon="mdi:information-outline"
+            class="text-lg flex-shrink-0 mt-0.5 mr-2"
+            :class="isDark ? 'text-blue-400' : 'text-blue-600'"
+          />
           <div>
             <p class="font-medium" :class="isDark ? 'text-blue-300' : 'text-blue-700'">检测背景</p>
             <p class="mt-1" :class="isDark ? 'text-blue-200' : 'text-blue-800'">
-              <code>getLog("startupWarnings")</code> 是一个读取 MongoDB 启动警告日志的管理命令。在配置了认证的 MongoDB 中，这个命令只有经过认证的管理员才能执行。如果未配置认证的 MongoDB 实例会允许任何连接执行此命令。
+              <code>getLog("startupWarnings")</code> 是一个读取 MongoDB
+              启动警告日志的管理命令。在配置了认证的 MongoDB
+              中，这个命令只有经过认证的管理员才能执行。如果未配置认证的 MongoDB
+              实例会允许任何连接执行此命令。
             </p>
           </div>
         </div>
       </div>
 
-      <h2 id="section-5" class="text-xl font-bold mt-8 mb-4 pb-2 border-b transition-colors duration-300"
-          :class="isDark ? 'text-white border-gray-700' : 'text-gray-800 border-gray-200'">
+      <h2
+        id="section-5"
+        class="text-xl font-bold mt-8 mb-4 pb-2 border-b transition-colors duration-300"
+        :class="isDark ? 'text-white border-gray-700' : 'text-gray-800 border-gray-200'"
+      >
         连接与检查流程
       </h2>
 
@@ -358,9 +496,12 @@ func MongodbUnauth(ctx context.Context, info *Common.HostInfo) (bool, error) {
 
       <!-- 优化后的代码块，移除灰色背景 -->
       <div class="mb-4">
-        <div class="rounded-lg overflow-hidden border transition-colors duration-300"
-             :class="isDark ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50'">
-          <pre class="p-3 text-sm font-mono overflow-x-auto"><code class="transition-colors duration-300"
+        <div
+          class="rounded-lg overflow-hidden border transition-colors duration-300"
+          :class="isDark ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50'"
+        >
+          <pre class="p-3 text-sm font-mono overflow-x-auto"><code
+class="transition-colors duration-300"
                                                                    :class="isDark ? 'text-gray-100' : 'text-gray-800'">// checkMongoAuth 检查MongoDB认证状态
 func checkMongoAuth(ctx context.Context, address string, packet []byte) (string, error) {
     Common.LogDebug(fmt.Sprintf("建立MongoDB连接: %s", address))
@@ -423,28 +564,42 @@ func checkMongoAuth(ctx context.Context, address string, packet []byte) (string,
         <li>读取并解析服务器响应</li>
       </ul>
 
-      <h2 id="section-6" class="text-xl font-bold mt-8 mb-4 pb-2 border-b transition-colors duration-300"
-          :class="isDark ? 'text-white border-gray-700' : 'text-gray-800 border-gray-200'">
+      <h2
+        id="section-6"
+        class="text-xl font-bold mt-8 mb-4 pb-2 border-b transition-colors duration-300"
+        :class="isDark ? 'text-white border-gray-700' : 'text-gray-800 border-gray-200'"
+      >
         高级设置
       </h2>
 
-      <h3 class="text-lg font-semibold mt-5 mb-3 transition-colors duration-300"
-          :class="isDark ? 'text-white' : 'text-gray-800'">
+      <h3
+        class="text-lg font-semibold mt-5 mb-3 transition-colors duration-300"
+        :class="isDark ? 'text-white' : 'text-gray-800'"
+      >
         超时设置
       </h3>
 
       <p class="mb-4">MongoDB 扫描支持两层超时控制：</p>
 
       <ul class="pl-5 list-disc space-y-2 mb-6">
-        <li><strong>单个连接超时</strong>：通过 <code>-time</code> 参数设置每个 MongoDB 连接尝试的最大时间（秒）</li>
-        <li><strong>全局超时</strong>：通过 <code>-timeout</code> 参数设置整个扫描任务的最大执行时间（秒）</li>
+        <li>
+          <strong>单个连接超时</strong>：通过 <code>-time</code> 参数设置每个 MongoDB
+          连接尝试的最大时间（秒）
+        </li>
+        <li>
+          <strong>全局超时</strong>：通过
+          <code>-timeout</code> 参数设置整个扫描任务的最大执行时间（秒）
+        </li>
       </ul>
 
       <!-- 优化后的代码块，移除灰色背景 -->
       <div class="mb-4">
-        <div class="rounded-lg overflow-hidden border transition-colors duration-300"
-             :class="isDark ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50'">
-          <pre class="p-3 text-sm font-mono overflow-x-auto"><code class="transition-colors duration-300"
+        <div
+          class="rounded-lg overflow-hidden border transition-colors duration-300"
+          :class="isDark ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50'"
+        >
+          <pre class="p-3 text-sm font-mono overflow-x-auto"><code
+class="transition-colors duration-300"
                                                                    :class="isDark ? 'text-gray-100' : 'text-gray-800'">// 设置全局超时上下文
 ctx, cancel := context.WithTimeout(context.Background(), time.Duration(Common.GlobalTimeout)*time.Second)
 defer cancel()
@@ -455,10 +610,20 @@ defer cancel()</code></pre>
         </div>
       </div>
 
-      <div class="p-3 rounded-lg mb-6 text-sm font-normal"
-           :class="isDark ? 'bg-amber-900/10 border border-amber-900/20' : 'bg-amber-50 border border-amber-100'">
+      <div
+        class="p-3 rounded-lg mb-6 text-sm font-normal"
+        :class="
+          isDark
+            ? 'bg-amber-900/10 border border-amber-900/20'
+            : 'bg-amber-50 border border-amber-100'
+        "
+      >
         <div class="flex">
-          <Icon icon="mdi:lightbulb" class="text-lg flex-shrink-0 mt-0.5 mr-2" :class="isDark ? 'text-amber-400' : 'text-amber-600'" />
+          <Icon
+            icon="mdi:lightbulb"
+            class="text-lg flex-shrink-0 mt-0.5 mr-2"
+            :class="isDark ? 'text-amber-400' : 'text-amber-600'"
+          />
           <div>
             <p class="font-medium" :class="isDark ? 'text-amber-300' : 'text-amber-700'">提示</p>
             <p class="mt-1" :class="isDark ? 'text-amber-200' : 'text-amber-800'">
@@ -468,8 +633,10 @@ defer cancel()</code></pre>
         </div>
       </div>
 
-      <h3 class="text-lg font-semibold mt-5 mb-3 transition-colors duration-300"
-          :class="isDark ? 'text-white' : 'text-gray-800'">
+      <h3
+        class="text-lg font-semibold mt-5 mb-3 transition-colors duration-300"
+        :class="isDark ? 'text-white' : 'text-gray-800'"
+      >
         并发控制
       </h3>
 
@@ -477,9 +644,12 @@ defer cancel()</code></pre>
 
       <!-- 优化后的代码块，移除灰色背景 -->
       <div class="mb-4">
-        <div class="rounded-lg overflow-hidden border transition-colors duration-300"
-             :class="isDark ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50'">
-          <pre class="p-3 text-sm font-mono overflow-x-auto"><code class="transition-colors duration-300"
+        <div
+          class="rounded-lg overflow-hidden border transition-colors duration-300"
+          :class="isDark ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50'"
+        >
+          <pre class="p-3 text-sm font-mono overflow-x-auto"><code
+class="transition-colors duration-300"
                                                                    :class="isDark ? 'text-gray-100' : 'text-gray-800'">// 创建结果通道
 resultChan := make(chan struct {
     isUnauth bool
@@ -508,79 +678,114 @@ case <-ctx.Done():
         </div>
       </div>
 
-      <h2 id="section-7" class="text-xl font-bold mt-8 mb-4 pb-2 border-b transition-colors duration-300"
-          :class="isDark ? 'text-white border-gray-700' : 'text-gray-800 border-gray-200'">
+      <h2
+        id="section-7"
+        class="text-xl font-bold mt-8 mb-4 pb-2 border-b transition-colors duration-300"
+        :class="isDark ? 'text-white border-gray-700' : 'text-gray-800 border-gray-200'"
+      >
         应用场景与示例
       </h2>
 
-      <h3 class="text-lg font-semibold mt-5 mb-3 transition-colors duration-300"
-          :class="isDark ? 'text-white' : 'text-gray-800'">
+      <h3
+        class="text-lg font-semibold mt-5 mb-3 transition-colors duration-300"
+        :class="isDark ? 'text-white' : 'text-gray-800'"
+      >
         快速扫描整个网段
       </h3>
 
       <!-- 优化后的代码块，移除灰色背景 -->
       <div class="mb-4">
-        <div class="rounded-lg overflow-hidden border transition-colors duration-300"
-             :class="isDark ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50'">
-          <pre class="p-3 text-sm font-mono overflow-x-auto"><code class="transition-colors duration-300"
+        <div
+          class="rounded-lg overflow-hidden border transition-colors duration-300"
+          :class="isDark ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50'"
+        >
+          <pre class="p-3 text-sm font-mono overflow-x-auto"><code
+class="transition-colors duration-300"
                                                                    :class="isDark ? 'text-gray-100' : 'text-gray-800'">./fscan -h 192.168.1.0/24 -p 27017 -m mongodb</code></pre>
         </div>
       </div>
 
-      <h3 class="text-lg font-semibold mt-5 mb-3 transition-colors duration-300"
-          :class="isDark ? 'text-white' : 'text-gray-800'">
+      <h3
+        class="text-lg font-semibold mt-5 mb-3 transition-colors duration-300"
+        :class="isDark ? 'text-white' : 'text-gray-800'"
+      >
         扫描非标准端口
       </h3>
 
       <!-- 优化后的代码块，移除灰色背景 -->
       <div class="mb-4">
-        <div class="rounded-lg overflow-hidden border transition-colors duration-300"
-             :class="isDark ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50'">
-          <pre class="p-3 text-sm font-mono overflow-x-auto"><code class="transition-colors duration-300"
+        <div
+          class="rounded-lg overflow-hidden border transition-colors duration-300"
+          :class="isDark ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50'"
+        >
+          <pre class="p-3 text-sm font-mono overflow-x-auto"><code
+class="transition-colors duration-300"
                                                                    :class="isDark ? 'text-gray-100' : 'text-gray-800'">./fscan -h 192.168.1.10 -p 27000-28000 -m mongodb</code></pre>
         </div>
       </div>
 
-      <h3 class="text-lg font-semibold mt-5 mb-3 transition-colors duration-300"
-          :class="isDark ? 'text-white' : 'text-gray-800'">
+      <h3
+        class="text-lg font-semibold mt-5 mb-3 transition-colors duration-300"
+        :class="isDark ? 'text-white' : 'text-gray-800'"
+      >
         调整超时参数
       </h3>
 
       <!-- 优化后的代码块，移除灰色背景 -->
       <div class="mb-4">
-        <div class="rounded-lg overflow-hidden border transition-colors duration-300"
-             :class="isDark ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50'">
-          <pre class="p-3 text-sm font-mono overflow-x-auto"><code class="transition-colors duration-300"
+        <div
+          class="rounded-lg overflow-hidden border transition-colors duration-300"
+          :class="isDark ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50'"
+        >
+          <pre class="p-3 text-sm font-mono overflow-x-auto"><code
+class="transition-colors duration-300"
                                                                    :class="isDark ? 'text-gray-100' : 'text-gray-800'">./fscan -h 192.168.1.0/24 -p 27017 -m mongodb -time 3 -timeout 300</code></pre>
         </div>
       </div>
 
-      <h3 class="text-lg font-semibold mt-5 mb-3 transition-colors duration-300"
-          :class="isDark ? 'text-white' : 'text-gray-800'">
+      <h3
+        class="text-lg font-semibold mt-5 mb-3 transition-colors duration-300"
+        :class="isDark ? 'text-white' : 'text-gray-800'"
+      >
         保存扫描结果
       </h3>
 
       <!-- 优化后的代码块，移除灰色背景 -->
       <div class="mb-4">
-        <div class="rounded-lg overflow-hidden border transition-colors duration-300"
-             :class="isDark ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50'">
-          <pre class="p-3 text-sm font-mono overflow-x-auto"><code class="transition-colors duration-300"
+        <div
+          class="rounded-lg overflow-hidden border transition-colors duration-300"
+          :class="isDark ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50'"
+        >
+          <pre class="p-3 text-sm font-mono overflow-x-auto"><code
+class="transition-colors duration-300"
                                                                    :class="isDark ? 'text-gray-100' : 'text-gray-800'">./fscan -h 192.168.1.0/24 -p 27017 -m mongodb -o mongodb_scan.txt</code></pre>
         </div>
       </div>
 
-      <div class="p-3 rounded-lg mb-6 text-sm font-normal"
-           :class="isDark ? 'bg-green-900/10 border border-green-900/20' : 'bg-green-50 border border-green-100'">
+      <div
+        class="p-3 rounded-lg mb-6 text-sm font-normal"
+        :class="
+          isDark
+            ? 'bg-green-900/10 border border-green-900/20'
+            : 'bg-green-50 border border-green-100'
+        "
+      >
         <div class="flex">
-          <Icon icon="mdi:shield-check" class="text-lg flex-shrink-0 mt-0.5 mr-2" :class="isDark ? 'text-green-400' : 'text-green-600'" />
+          <Icon
+            icon="mdi:shield-check"
+            class="text-lg flex-shrink-0 mt-0.5 mr-2"
+            :class="isDark ? 'text-green-400' : 'text-green-600'"
+          />
           <div>
-            <p class="font-medium" :class="isDark ? 'text-green-300' : 'text-green-700'">安全防护措施</p>
+            <p class="font-medium" :class="isDark ? 'text-green-300' : 'text-green-700'">
+              安全防护措施
+            </p>
             <p class="mt-1" :class="isDark ? 'text-green-200' : 'text-green-800'">
               保护 MongoDB 服务器免受未授权访问的最佳实践：
-              <br>1. 总是启用身份验证（参数 <code>--auth</code> 或配置文件中的 <code>security.authorization: enabled</code>）
-              <br>2. 将 MongoDB 绑定到非公开 IP（如 127.0.0.1）
-              <br>3. 使用防火墙限制对 MongoDB 端口的访问
-              <br>4. 为数据库创建具有最小权限的专用账户
+              <br />1. 总是启用身份验证（参数 <code>--auth</code> 或配置文件中的
+              <code>security.authorization: enabled</code>） <br />2. 将 MongoDB 绑定到非公开 IP（如
+              127.0.0.1） <br />3. 使用防火墙限制对 MongoDB 端口的访问 <br />4.
+              为数据库创建具有最小权限的专用账户
             </p>
           </div>
         </div>
@@ -588,11 +793,16 @@ case <-ctx.Done():
     </div>
 
     <!-- 简化的文档反馈 -->
-    <div class="mt-8 pt-4 border-t transition-colors duration-300 text-sm"
-         :class="isDark ? 'border-gray-700' : 'border-gray-200'">
-      <a href="https://github.com/shadow1ng/fscan/issues" target="_blank"
-         class="inline-flex items-center transition-colors duration-200"
-         :class="isDark ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'">
+    <div
+      class="mt-8 pt-4 border-t transition-colors duration-300 text-sm"
+      :class="isDark ? 'border-gray-700' : 'border-gray-200'"
+    >
+      <a
+        href="https://github.com/shadow1ng/fscan/issues"
+        target="_blank"
+        class="inline-flex items-center transition-colors duration-200"
+        :class="isDark ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'"
+      >
         <Icon icon="mdi:github" class="mr-1.5" />
         <span>在 GitHub 上反馈问题</span>
       </a>
@@ -601,11 +811,11 @@ case <-ctx.Done():
 </template>
 
 <script setup>
-import { inject, ref } from 'vue';
-import { Icon } from '@iconify/vue';
+import { inject, ref } from 'vue'
+import { Icon } from '@iconify/vue'
 
 // 从父组件获取暗黑模式状态
-const isDark = inject('isDark', ref(false));
+const isDark = inject('isDark', ref(false))
 
 // 内容章节标题（用于目录）
 const contentSections = [
@@ -616,8 +826,8 @@ const contentSections = [
   '未授权访问检测原理',
   '连接与检查流程',
   '高级设置',
-  '应用场景与示例'
-];
+  '应用场景与示例',
+]
 
 // MongoDB参数表格数据
 const mongodbParameters = [
@@ -627,8 +837,8 @@ const mongodbParameters = [
   { name: '-timeout', description: '设置全局扫描超时时间（秒）', example: '-timeout 300' },
   { name: '-o', description: '将扫描结果输出到指定文件', example: '-o result.txt' },
   { name: '-nocolor', description: '禁用彩色输出', example: '-nocolor' },
-  { name: '-debug', description: '启用调试模式，显示详细日志', example: '-debug' }
-];
+  { name: '-debug', description: '启用调试模式，显示详细日志', example: '-debug' },
+]
 </script>
 
 <style scoped>
@@ -647,7 +857,9 @@ const mongodbParameters = [
 
 /* 代码样式优化 */
 .doc-content code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
+    monospace;
   font-size: 0.875rem;
   padding: 0.1rem 0.3rem;
   border-radius: 0.2rem;
@@ -666,17 +878,41 @@ pre code {
 }
 
 /* 代码高亮优化 */
-.code-keyword { color: #4299e1; }
-.code-string { color: #68d391; }
-.code-comment { color: #a0aec0; font-style: italic; }
-
-/* 字体优化 */
-h1, h2, h3, h4, h5, h6, p, li, a, span, div, td, th {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+.code-keyword {
+  color: #4299e1;
+}
+.code-string {
+  color: #68d391;
+}
+.code-comment {
+  color: #a0aec0;
+  font-style: italic;
 }
 
-pre, code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+/* 字体优化 */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+li,
+a,
+span,
+div,
+td,
+th {
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans',
+    'Droid Sans', 'Helvetica Neue', sans-serif;
+}
+
+pre,
+code {
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
+    monospace;
 }
 
 /* 代码块左侧边框指示器 */
@@ -692,7 +928,7 @@ pre {
 
 /* 代码块复制按钮 */
 pre::after {
-  content: "复制";
+  content: '复制';
   position: absolute;
   top: 0.5rem;
   right: 0.5rem;
