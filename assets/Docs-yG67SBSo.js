@@ -1,4 +1,4 @@
-import{_ as P,p as x,c as S,a as d,e,b as t,w as o,u as i,k as p,o as a,d as _,f as m,g as u,h,F as v,r as b,n as w,I as y,t as r,s as k,A}from"./index-DdskuzB7.js";const I={class:"flex gap-6"},C={class:"hidden w-64 shrink-0 lg:block"},M={class:"sticky top-20"},T={class:"space-y-1"},R=["onClick"],Q={class:"mb-4 w-full lg:hidden"},H=["value"],B={class:"min-w-0 flex-1"},D={class:"flex items-start justify-between"},L={class:"text-sm text-muted-foreground"},N={class:"flex items-center gap-2"},O={class:"prose prose-slate max-w-none dark:prose-invert"},j=["innerHTML"],q={__name:"Docs",setup(E){const n=x("getting-started"),g=[{id:"getting-started",title:"快速开始",icon:"mdi:rocket-launch",description:"快速了解 fscan 的基本使用方法"},{id:"build-constraints",title:"构建约束",icon:"mdi:hammer-wrench",description:"了解如何使用构建约束定制编译"},{id:"plugins",title:"插件系统",icon:"mdi:puzzle",description:"插件架构和开发指南"},{id:"configuration",title:"配置说明",icon:"mdi:cog",description:"参数配置和使用技巧"},{id:"api",title:"API 文档",icon:"mdi:api",description:"RPC API 接口说明"},{id:"faq",title:"常见问题",icon:"mdi:help-circle",description:"常见问题解答"}],f={"getting-started":{title:"快速开始",description:"快速了解 fscan 的基本使用方法",icon:"mdi:rocket-launch",content:`
+import{_ as y,p as w,c as S,a as d,e,b as s,w as n,u as i,k as a,o as p,d as _,f as m,g as u,h,F as v,r as b,n as k,I as x,t as r,s as M,A as P}from"./index-fNRHFKBu.js";const Q={class:"flex gap-6"},B={class:"hidden w-64 shrink-0 lg:block"},C={class:"sticky top-20"},D={class:"space-y-1"},A=["onClick"],L={class:"mb-4 w-full lg:hidden"},N=["value"],H={class:"min-w-0 flex-1"},I={class:"flex items-start justify-between"},q={class:"text-sm text-muted-foreground"},R={class:"flex items-center gap-2"},W={class:"prose prose-slate max-w-none dark:prose-invert"},j=["innerHTML"],T={__name:"Docs",setup(z){const o=w("getting-started"),g=[{id:"getting-started",title:"快速开始",icon:"mdi:rocket-launch",description:"快速了解 fscan 的基本使用方法"},{id:"build-constraints",title:"构建约束",icon:"mdi:hammer-wrench",description:"了解如何使用构建约束定制编译"},{id:"plugins",title:"插件系统",icon:"mdi:puzzle",description:"插件架构和开发指南"},{id:"configuration",title:"配置说明",icon:"mdi:cog",description:"参数配置和使用技巧"},{id:"faq",title:"常见问题",icon:"mdi:help-circle",description:"常见问题解答"}],f={"getting-started":{title:"快速开始",description:"快速了解 fscan 的基本使用方法",icon:"mdi:rocket-launch",content:`
       <h2>简介</h2>
       <p>fscan 是一款功能强大的内网综合扫描工具，支持主机存活探测、端口扫描、服务识别、Web指纹识别、漏洞扫描、密码爆破等功能。</p>
 
@@ -223,67 +223,6 @@ fscan -h 192.168.1.1 -nopoc
 
 # 指定扫描模块
 fscan -h 192.168.1.1 -m ssh,mysql,redis</code></pre>
-    `},api:{title:"API 文档",description:"RPC API 接口说明",icon:"mdi:api",content:`
-      <h2>RPC 服务</h2>
-      <p>fscan 支持通过 RPC 接口进行远程调用。</p>
-
-      <h2>启动 RPC 服务</h2>
-      <pre><code>fscan -api 0.0.0.0:8888 -api-key your-secret-key</code></pre>
-
-      <h2>API 端点</h2>
-      <h3>POST /v1/startscan</h3>
-      <p>启动扫描任务</p>
-      <pre><code>curl -X POST http://localhost:8888/v1/startscan \\
-  -H "Fscan-API-SECRET: your-secret-key" \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "arg": ["-h", "192.168.1.0/24", "-np"]
-  }'</code></pre>
-
-      <h4>响应</h4>
-      <pre><code>{
-  "taskId": "uuid-string",
-  "status": "running"
-}</code></pre>
-
-      <h3>POST /v1/getresults</h3>
-      <p>获取扫描结果</p>
-      <pre><code>curl -X POST http://localhost:8888/v1/getresults \\
-  -H "Fscan-API-SECRET: your-secret-key" \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "taskId": "uuid-string"
-  }'</code></pre>
-
-      <h4>响应</h4>
-      <pre><code>{
-  "taskId": "uuid-string",
-  "finished": false,
-  "total": 256,
-  "end": 128,
-  "results": [
-    {
-      "time": "2024-11-07 18:00:00",
-      "type": "PORT",
-      "target": "192.168.1.1:22",
-      "status": "open",
-      "details": {...}
-    }
-  ]
-}</code></pre>
-
-      <h2>认证</h2>
-      <p>所有 API 请求都需要在 Header 中包含 API 密钥：</p>
-      <pre><code>Fscan-API-SECRET: your-secret-key</code></pre>
-
-      <h2>错误处理</h2>
-      <p>API 使用标准 HTTP 状态码：</p>
-      <ul>
-        <li><strong>200</strong>: 成功</li>
-        <li><strong>400</strong>: 请求参数错误</li>
-        <li><strong>401</strong>: 认证失败</li>
-        <li><strong>500</strong>: 服务器错误</li>
-      </ul>
     `},faq:{title:"常见问题",description:"常见问题解答",icon:"mdi:help-circle",content:`
       <h2>编译相关</h2>
       <h3>Q: 如何减小可执行文件体积？</h3>
@@ -314,20 +253,6 @@ fscan -h 192.168.1.1 -m ssh,mysql,redis</code></pre>
         <li>使用代理: <code>-proxy socks5://127.0.0.1:1080</code></li>
       </ul>
 
-      <h2>API 相关</h2>
-      <h3>Q: RPC 服务如何保证安全？</h3>
-      <p>A: 建议：</p>
-      <ul>
-        <li>设置强 API 密钥</li>
-        <li>只监听内网地址</li>
-        <li>配合防火墙规则</li>
-        <li>使用反向代理加 HTTPS</li>
-      </ul>
-
-      <h3>Q: 如何查看 API 调用日志？</h3>
-      <p>A: 启动时设置日志级别：</p>
-      <pre><code>fscan -api 0.0.0.0:8888 -api-key key -log-level debug</code></pre>
-
       <h2>插件开发</h2>
       <h3>Q: 如何添加自定义插件？</h3>
       <p>A: 参考<strong>插件系统</strong>文档，按照标准结构创建插件文件。</p>
@@ -337,4 +262,4 @@ fscan -h 192.168.1.1 -m ssh,mysql,redis</code></pre>
 
       <h2>更多问题？</h2>
       <p>访问 <a href="https://github.com/shadow1ng/fscan/issues" target="_blank">GitHub Issues</a> 提交问题或查看已有讨论。</p>
-    `}},l=S(()=>f[n.value]||f["getting-started"]);return(W,c)=>(a(),d("div",I,[e("aside",C,[e("div",M,[t(i(p),null,{default:o(()=>[t(i(_),null,{default:o(()=>[t(i(m),{class:"text-base"},{default:o(()=>c[1]||(c[1]=[u("文档导航")])),_:1})]),_:1}),t(i(h),{class:"p-0"},{default:o(()=>[e("nav",T,[(a(),d(v,null,b(g,s=>e("button",{key:s.id,class:w(["flex w-full items-center gap-2 rounded-lg px-4 py-2 text-left text-sm transition-colors",n.value===s.id?"bg-primary/10 font-medium text-primary":"text-muted-foreground hover:bg-accent hover:text-accent-foreground"]),onClick:F=>n.value=s.id},[t(i(y),{icon:s.icon,class:"text-lg"},null,8,["icon"]),u(" "+r(s.title),1)],10,R)),64))])]),_:1})]),_:1})])]),e("div",Q,[t(i(p),null,{default:o(()=>[t(i(h),{class:"p-4"},{default:o(()=>[k(e("select",{"onUpdate:modelValue":c[0]||(c[0]=s=>n.value=s),class:"w-full rounded-lg border border-input bg-background px-3 py-2"},[(a(),d(v,null,b(g,s=>e("option",{key:s.id,value:s.id},r(s.title),9,H)),64))],512),[[A,n.value]])]),_:1})]),_:1})]),e("main",B,[t(i(p),null,{default:o(()=>[t(i(_),null,{default:o(()=>[e("div",D,[e("div",null,[t(i(m),{class:"mb-2 text-2xl"},{default:o(()=>[u(r(l.value.title),1)]),_:1}),e("p",L,r(l.value.description),1)]),e("div",N,[t(i(y),{icon:l.value.icon,class:"text-3xl text-primary"},null,8,["icon"])])])]),_:1}),t(i(h),null,{default:o(()=>[e("article",O,[e("div",{innerHTML:l.value.content},null,8,j)])]),_:1})]),_:1})])]))}},V=P(q,[["__scopeId","data-v-d03c229b"]]);export{V as default};
+    `}},l=S(()=>f[o.value]||f["getting-started"]);return(V,c)=>(p(),d("div",Q,[e("aside",B,[e("div",C,[s(i(a),null,{default:n(()=>[s(i(_),null,{default:n(()=>[s(i(m),{class:"text-base"},{default:n(()=>c[1]||(c[1]=[u("文档导航")])),_:1})]),_:1}),s(i(h),{class:"p-0"},{default:n(()=>[e("nav",D,[(p(),d(v,null,b(g,t=>e("button",{key:t.id,class:k(["flex w-full items-center gap-2 rounded-lg px-4 py-2 text-left text-sm transition-colors",o.value===t.id?"bg-primary/10 font-medium text-primary":"text-muted-foreground hover:bg-accent hover:text-accent-foreground"]),onClick:$=>o.value=t.id},[s(i(x),{icon:t.icon,class:"text-lg"},null,8,["icon"]),u(" "+r(t.title),1)],10,A)),64))])]),_:1})]),_:1})])]),e("div",L,[s(i(a),null,{default:n(()=>[s(i(h),{class:"p-4"},{default:n(()=>[M(e("select",{"onUpdate:modelValue":c[0]||(c[0]=t=>o.value=t),class:"w-full rounded-lg border border-input bg-background px-3 py-2"},[(p(),d(v,null,b(g,t=>e("option",{key:t.id,value:t.id},r(t.title),9,N)),64))],512),[[P,o.value]])]),_:1})]),_:1})]),e("main",H,[s(i(a),null,{default:n(()=>[s(i(_),null,{default:n(()=>[e("div",I,[e("div",null,[s(i(m),{class:"mb-2 text-2xl"},{default:n(()=>[u(r(l.value.title),1)]),_:1}),e("p",q,r(l.value.description),1)]),e("div",R,[s(i(x),{icon:l.value.icon,class:"text-3xl text-primary"},null,8,["icon"])])])]),_:1}),s(i(h),null,{default:n(()=>[e("article",W,[e("div",{innerHTML:l.value.content},null,8,j)])]),_:1})]),_:1})])]))}},F=y(T,[["__scopeId","data-v-6282c1dd"]]);export{F as default};
