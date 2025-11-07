@@ -124,7 +124,7 @@
     <AuthParams v-if="scanMode !== 'local'" v-model:params="params" />
 
     <!-- POC测试组件 -->
-    <PocParams v-model:params="params" :poc-options="pocOptions" @toggle-option="toggleOption" />
+    <PocParams v-if="scanMode === 'web'" v-model:params="params" :poc-options="pocOptions" @toggle-option="toggleOption" />
 
     <!-- 输出控制组件 -->
     <OutputParams
