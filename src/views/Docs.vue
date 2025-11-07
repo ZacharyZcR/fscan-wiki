@@ -96,10 +96,16 @@ const docCategories = [
     description: '插件架构和开发指南',
   },
   {
-    id: 'configuration',
-    title: '配置说明',
-    icon: 'mdi:cog',
-    description: '参数配置和使用技巧',
+    id: 'logging',
+    title: '日志系统',
+    icon: 'mdi:text-box-outline',
+    description: '日志架构和设计理念',
+  },
+  {
+    id: 'output',
+    title: '输出系统',
+    icon: 'mdi:export',
+    description: '输出格式和存储设计',
   },
   {
     id: 'faq',
@@ -434,73 +440,381 @@ fscan -h 192.168.1.0/24 -json output.json</code></pre>
       <p>如果多个插件需要共享功能，应该提取到 <code>common</code> 包中。</p>
     `,
   },
-  configuration: {
-    title: '配置说明',
-    description: '参数配置和使用技巧',
-    icon: 'mdi:cog',
+  logging: {
+    title: '日志系统',
+    description: '日志架构和设计理念',
+    icon: 'mdi:text-box-outline',
     content: `
-      <h2>命令行参数</h2>
-      <p>访问 <strong>参数</strong> 页面使用可视化参数配置器。</p>
+      <h2>设计目标</h2>
+      <p>fscan 的日志系统设计围绕渗透测试的实际需求：</p>
+      <ul>
+        <li><strong>实时反馈</strong>：扫描过程中即时显示发现的漏洞和凭据</li>
+        <li><strong>分级输出</strong>：根据信息重要性分级，支持过滤</li>
+        <li><strong>并发安全</strong>：多线程环境下不会出现日志混乱</li>
+        <li><strong>最小噪音</strong>：默认只显示关键信息，避免刷屏</li>
+      </ul>
 
-      <h2>目标配置</h2>
-      <pre><code># 单个 IP
-fscan -h 192.168.1.1
+      <h2>日志分级</h2>
 
-# CIDR 网段
-fscan -h 192.168.1.0/24
+      <h3>DEBUG（调试级别）</h3>
+      <p><strong>用途</strong>：开发调试和问题诊断</p>
+      <ul>
+        <li>网络连接详细信息</li>
+        <li>协议交互的原始数据</li>
+        <li>插件执行的内部状态</li>
+      </ul>
+      <p><strong>特点</strong>：信息量极大，通常只在调试时启用</p>
 
-# IP 范围
-fscan -h 192.168.1.1-192.168.1.254
+      <h3>INFO（信息级别，默认）</h3>
+      <p><strong>用途</strong>：正常扫描过程的关键事件</p>
+      <ul>
+        <li>发现的开放端口</li>
+        <li>识别的服务版本</li>
+        <li>扫描进度提示</li>
+      </ul>
+      <p><strong>特点</strong>：平衡信息量和可读性，适合大多数场景</p>
 
-# 从文件读取
-fscan -hf targets.txt</code></pre>
+      <h3>SUCCESS（成功级别）</h3>
+      <p><strong>用途</strong>：标记扫描成功的关键发现</p>
+      <ul>
+        <li>爆破成功的凭据</li>
+        <li>发现的漏洞</li>
+        <li>可利用的弱点</li>
+      </ul>
+      <p><strong>特点</strong>：绿色高亮显示，最关注的信息</p>
 
-      <h2>端口配置</h2>
-      <pre><code># 指定端口
-fscan -h 192.168.1.1 -p 80,443,3306
+      <h3>ERROR（错误级别）</h3>
+      <p><strong>用途</strong>：扫描过程中的异常</p>
+      <ul>
+        <li>网络连接失败</li>
+        <li>插件执行错误</li>
+        <li>配置参数问题</li>
+      </ul>
+      <p><strong>特点</strong>：红色显示，需要人工介入</p>
 
-# 端口范围
-fscan -h 192.168.1.1 -p 1-65535
+      <h2>并发日志设计</h2>
 
-# 跳过端口扫描
-fscan -h 192.168.1.1 -np</code></pre>
+      <h3>问题：多线程日志混乱</h3>
+      <p>fscan 使用多线程并发扫描，如果直接 <code>fmt.Println()</code>，会出现：</p>
+      <ul>
+        <li>多个线程的输出交错混杂</li>
+        <li>一行日志被另一个线程的输出打断</li>
+        <li>无法保证日志的完整性</li>
+      </ul>
 
-      <h2>认证配置</h2>
-      <pre><code># 指定用户名和密码
-fscan -h 192.168.1.1 -user admin -pwd password
+      <h3>解决方案：日志队列</h3>
+      <p>fscan 使用带缓冲的 channel 作为日志队列：</p>
+      <ul>
+        <li>所有插件将日志消息发送到 channel</li>
+        <li>单独的日志线程从 channel 读取并输出</li>
+        <li>保证每条日志原子性输出，不会被打断</li>
+      </ul>
+      <p><strong>关键设计</strong>：生产者-消费者模式，channel 是天然的线程安全队列</p>
 
-# 使用字典文件
-fscan -h 192.168.1.1 -userf users.txt -pwdf passwords.txt
+      <h3>缓冲区大小权衡</h3>
+      <ul>
+        <li><strong>缓冲区太小</strong>：插件发送日志时会阻塞，影响扫描性能</li>
+        <li><strong>缓冲区太大</strong>：内存占用高，日志延迟显示</li>
+      </ul>
+      <p>fscan 默认使用 1000 容量的缓冲 channel，在性能和实时性之间取得平衡</p>
 
-# 用户名:密码对
-fscan -h 192.168.1.1 -upf credentials.txt</code></pre>
+      <h2>日志格式设计</h2>
 
-      <h2>输出配置</h2>
-      <pre><code># 保存到文本文件
-fscan -h 192.168.1.1 -o result.txt
+      <h3>简洁优先</h3>
+      <p>渗透测试场景下，用户关注的是<strong>结果</strong>而不是过程：</p>
+      <ul>
+        <li>✅ <code>[+] 192.168.1.1:22 ssh root:password</code>（直接显示结果）</li>
+        <li>❌ <code>[2025-01-07 10:23:45] [INFO] SSH Plugin: Authentication succeeded for host 192.168.1.1:22 with username root and password password</code>（冗长）</li>
+      </ul>
 
-# JSON 格式
-fscan -h 192.168.1.1 -json output.json
+      <h3>颜色编码</h3>
+      <p>不同级别的日志使用不同颜色：</p>
+      <ul>
+        <li><strong style="color: green;">[+] SUCCESS</strong>：绿色，成功的关键发现</li>
+        <li><strong style="color: blue;">[*] INFO</strong>：蓝色，一般信息</li>
+        <li><strong style="color: red;">[-] ERROR</strong>：红色，错误信息</li>
+        <li><strong style="color: gray;">[DEBUG]</strong>：灰色，调试信息</li>
+      </ul>
+      <p><strong>注意</strong>：支持 <code>-no-color</code> 参数禁用颜色，适配不支持 ANSI 颜色的终端</p>
 
-# 设置日志级别
-fscan -h 192.168.1.1 -log-level info</code></pre>
+      <h3>时间戳可选</h3>
+      <ul>
+        <li>默认不显示时间戳，保持输出简洁</li>
+        <li>提供 <code>-timestamp</code> 参数启用时间戳（用于审计和回溯）</li>
+      </ul>
 
-      <h2>性能优化</h2>
-      <pre><code># 调整线程数
-fscan -h 192.168.1.0/24 -t 100
+      <h2>日志去重</h2>
 
-# 调整超时时间
-fscan -h 192.168.1.1 -time 3</code></pre>
+      <h3>问题：重复信息刷屏</h3>
+      <p>扫描大量主机时，某些信息会重复出现：</p>
+      <ul>
+        <li>"端口 22 开放" 可能出现数百次</li>
+        <li>"SSH 服务" 识别结果重复</li>
+      </ul>
 
-      <h2>扫描控制</h2>
-      <pre><code># 禁用 Ping 探测
-fscan -h 192.168.1.0/24 -np
+      <h3>解决方案：智能去重</h3>
+      <ul>
+        <li><strong>成功信息</strong>：永不去重（每个漏洞都重要）</li>
+        <li><strong>一般信息</strong>：同类信息只显示首次（如 "开放端口"）</li>
+        <li><strong>错误信息</strong>：同类错误只显示前 N 次</li>
+      </ul>
+      <p><strong>实现</strong>：使用 <code>map[string]bool</code> 记录已显示的消息指纹</p>
 
-# 禁用端口扫描
-fscan -h 192.168.1.1 -nopoc
+      <h2>日志性能优化</h2>
 
-# 指定扫描模块
-fscan -h 192.168.1.1 -m ssh,mysql,redis</code></pre>
+      <h3>避免字符串拼接</h3>
+      <p>日志消息的构造会影响性能：</p>
+      <ul>
+        <li>❌ <code>log.Info("Host: " + host + " Port: " + port)</code>（多次内存分配）</li>
+        <li>✅ <code>log.Infof("Host: %s Port: %d", host, port)</code>（单次格式化）</li>
+      </ul>
+
+      <h3>懒惰求值</h3>
+      <p>DEBUG 级别的日志不应该在关闭时仍然消耗资源：</p>
+      <ul>
+        <li>❌ <code>log.Debug("Data: " + expensiveOperation())</code>（总是执行）</li>
+        <li>✅ <code>if log.IsDebug() { log.Debug(...) }</code>（条件执行）</li>
+      </ul>
+
+      <h2>日志与输出的分离</h2>
+
+      <h3>设计原则</h3>
+      <p>日志和输出是两个独立的概念：</p>
+      <ul>
+        <li><strong>日志</strong>：给人看的，显示扫描过程和状态</li>
+        <li><strong>输出</strong>：给程序看的，保存扫描结果供后续处理</li>
+      </ul>
+
+      <h3>独立控制</h3>
+      <ul>
+        <li>日志级别：控制显示什么日志（<code>-log-level</code>）</li>
+        <li>输出格式：控制结果存储格式（<code>-o</code>、<code>-json</code>）</li>
+        <li>两者互不影响：可以关闭日志但仍然保存输出</li>
+      </ul>
+
+      <h2>设计权衡</h2>
+
+      <h3>为什么不用 logrus/zap 等日志库？</h3>
+      <ul>
+        <li>✅ 减少依赖，降低编译体积</li>
+        <li>✅ 自定义格式更灵活，符合渗透测试习惯</li>
+        <li>✅ 避免引入不需要的功能（如日志轮转、远程发送）</li>
+        <li>❌ 缺点：需要自己实现并发安全和分级控制</li>
+      </ul>
+      <p>fscan 的日志需求简单明确，自己实现 200 行代码即可满足，引入第三方库反而增加复杂度。</p>
+    `,
+  },
+  output: {
+    title: '输出系统',
+    description: '输出格式和存储设计',
+    icon: 'mdi:export',
+    content: `
+      <h2>设计目标</h2>
+      <p>输出系统设计要满足不同场景的需求：</p>
+      <ul>
+        <li><strong>人类可读</strong>：文本格式，直接查看扫描结果</li>
+        <li><strong>机器可解析</strong>：JSON 格式，供其他工具处理</li>
+        <li><strong>结构化存储</strong>：分类存储不同类型的结果</li>
+        <li><strong>增量写入</strong>：边扫描边保存，避免数据丢失</li>
+      </ul>
+
+      <h2>输出格式</h2>
+
+      <h3>文本格式（默认）</h3>
+      <p><strong>特点</strong>：面向人类，方便快速查看</p>
+      <ul>
+        <li>每行一个结果</li>
+        <li>使用固定格式便于 grep 过滤</li>
+        <li>包含关键信息：IP、端口、服务、凭据、漏洞</li>
+      </ul>
+      <p><strong>示例</strong>：</p>
+      <pre><code>[+] 192.168.1.1:22 ssh root:password
+[+] 192.168.1.2:3306 mysql admin:123456
+[+] 192.168.1.3:80 WebTitle: Apache Tomcat 8.5.0
+[+] 192.168.1.4:8080 [CVE-2021-44228] Log4j RCE</code></pre>
+
+      <h3>JSON 格式</h3>
+      <p><strong>特点</strong>：面向机器，便于自动化处理</p>
+      <ul>
+        <li>完整的结构化数据</li>
+        <li>包含时间戳、插件名称、原始响应等元信息</li>
+        <li>支持多层嵌套，表达复杂结果</li>
+      </ul>
+      <p><strong>结构设计</strong>：</p>
+      <pre><code>{
+  "host": "192.168.1.1",
+  "port": 22,
+  "protocol": "ssh",
+  "timestamp": "2025-01-07T10:23:45Z",
+  "result": {
+    "type": "credential",
+    "username": "root",
+    "password": "password",
+    "success": true
+  },
+  "plugin": "ssh",
+  "raw_banner": "SSH-2.0-OpenSSH_7.4"
+}</code></pre>
+
+      <h2>分类存储设计</h2>
+
+      <h3>问题：混合存储难以处理</h3>
+      <p>如果所有结果都混在一个文件：</p>
+      <ul>
+        <li>提取所有凭据需要复杂的正则表达式</li>
+        <li>统计漏洞数量需要遍历全文</li>
+        <li>无法快速定位特定类型的结果</li>
+      </ul>
+
+      <h3>解决方案：分类输出</h3>
+      <p>fscan 根据结果类型自动创建不同文件：</p>
+      <ul>
+        <li><code>result.txt</code>：所有结果的汇总</li>
+        <li><code>credentials.txt</code>：爆破成功的凭据</li>
+        <li><code>vulnerabilities.txt</code>：发现的漏洞</li>
+        <li><code>webinfo.txt</code>：Web 指纹和标题</li>
+      </ul>
+      <p><strong>优势</strong>：需要凭据时直接打开 <code>credentials.txt</code>，无需处理其他信息</p>
+
+      <h2>增量写入机制</h2>
+
+      <h3>问题：批量写入的风险</h3>
+      <p>如果将所有结果缓存在内存，最后一次性写入：</p>
+      <ul>
+        <li>程序崩溃会丢失所有数据</li>
+        <li>大规模扫描时内存占用过高</li>
+        <li>无法实时查看中间结果</li>
+      </ul>
+
+      <h3>解决方案：实时追加写入</h3>
+      <p>每发现一个结果立即写入文件：</p>
+      <ul>
+        <li>使用 <code>os.O_APPEND</code> 模式打开文件</li>
+        <li>每次写入后立即 <code>Flush()</code> 刷盘</li>
+        <li>程序中断时已写入的数据不会丢失</li>
+      </ul>
+
+      <h3>并发写入安全</h3>
+      <p>多个插件同时写入同一个文件会导致数据混乱，解决方案：</p>
+      <ul>
+        <li>使用 <code>sync.Mutex</code> 保护文件句柄</li>
+        <li>写入操作原子化：获取锁 → 写入 → 刷盘 → 释放锁</li>
+      </ul>
+
+      <h2>输出去重</h2>
+
+      <h3>问题：重复结果</h3>
+      <p>某些情况下同一个结果可能被多次发现：</p>
+      <ul>
+        <li>端口扫描和服务识别都会记录开放端口</li>
+        <li>多个插件可能报告同一个漏洞</li>
+      </ul>
+
+      <h3>解决方案：内存去重表</h3>
+      <p>维护一个 <code>map[string]bool</code> 记录已输出的结果：</p>
+      <ul>
+        <li>结果指纹：<code>host:port:type:key</code></li>
+        <li>写入前检查指纹是否存在</li>
+        <li>存在则跳过，不存在则写入并记录指纹</li>
+      </ul>
+      <p><strong>权衡</strong>：内存占用 vs 重复数据，fscan 选择消耗内存来保证输出清洁</p>
+
+      <h2>输出缓冲设计</h2>
+
+      <h3>问题：频繁磁盘 I/O</h3>
+      <p>每发现一个结果就写入磁盘会导致：</p>
+      <ul>
+        <li>大量系统调用，性能开销高</li>
+        <li>SSD 写入放大，影响硬盘寿命</li>
+      </ul>
+
+      <h3>解决方案：批量缓冲写入</h3>
+      <p>使用 <code>bufio.Writer</code> 缓冲：</p>
+      <ul>
+        <li>结果先写入内存缓冲区</li>
+        <li>缓冲区满或定时（如 1 秒）时统一刷盘</li>
+        <li>程序结束时强制 Flush 保证数据完整</li>
+      </ul>
+      <p><strong>平衡</strong>：实时性 vs 性能，fscan 选择 1 秒延迟换取 10 倍性能提升</p>
+
+      <h2>文件命名策略</h2>
+
+      <h3>时间戳命名</h3>
+      <p>默认输出文件名包含时间戳，避免覆盖：</p>
+      <ul>
+        <li><code>fscan_20250107_102345.txt</code></li>
+        <li>多次扫描的结果自动隔离</li>
+        <li>便于追溯历史扫描记录</li>
+      </ul>
+
+      <h3>自定义命名</h3>
+      <ul>
+        <li><code>-o result.txt</code>：指定文件名，覆盖模式</li>
+        <li><code>-o-append result.txt</code>：追加模式，不覆盖</li>
+      </ul>
+
+      <h2>数据完整性保证</h2>
+
+      <h3>信号处理</h3>
+      <p>用户中断（Ctrl+C）时：</p>
+      <ul>
+        <li>捕获 <code>SIGINT</code> 信号</li>
+        <li>停止所有扫描线程</li>
+        <li>Flush 所有缓冲区</li>
+        <li>关闭文件句柄</li>
+      </ul>
+      <p><strong>关键</strong>：确保优雅关闭，不丢失已扫描的数据</p>
+
+      <h3>错误处理</h3>
+      <p>磁盘空间不足或权限不足时：</p>
+      <ul>
+        <li>立即停止写入，避免部分数据损坏</li>
+        <li>显示明确的错误信息</li>
+        <li>保留已成功写入的数据</li>
+      </ul>
+
+      <h2>输出格式扩展性</h2>
+
+      <h3>接口抽象</h3>
+      <p>输出系统使用接口设计：</p>
+      <pre><code>type OutputWriter interface {
+    Write(result *ScanResult) error
+    Flush() error
+    Close() error
+}</code></pre>
+      <p>不同格式实现相同接口：</p>
+      <ul>
+        <li><code>TextWriter</code>：文本格式</li>
+        <li><code>JSONWriter</code>：JSON 格式</li>
+        <li><code>CSVWriter</code>：CSV 格式（未来扩展）</li>
+      </ul>
+
+      <h3>多输出支持</h3>
+      <p>同时输出到多个格式：</p>
+      <ul>
+        <li><code>-o result.txt -json result.json</code></li>
+        <li>使用 <code>MultiWriter</code> 包装多个 Writer</li>
+        <li>一次扫描，多种格式，无需重复扫描</li>
+      </ul>
+
+      <h2>设计权衡</h2>
+
+      <h3>为什么不用数据库存储？</h3>
+      <ul>
+        <li>✅ 文件更简单，无需依赖 SQLite 等库</li>
+        <li>✅ 便于传输和备份（直接复制文件）</li>
+        <li>✅ 减少编译体积</li>
+        <li>❌ 缺点：复杂查询需要手动处理</li>
+      </ul>
+      <p>fscan 是一次性扫描工具，不需要持久化存储和复杂查询，文件存储足够。</p>
+
+      <h3>为什么默认不输出所有信息？</h3>
+      <ul>
+        <li>大规模扫描时文件会变得巨大（GB 级别）</li>
+        <li>大多数信息是无用的（如关闭的端口）</li>
+        <li>用户只关心成功的发现</li>
+      </ul>
+      <p>提供 <code>-verbose</code> 参数输出完整信息，但默认保持精简。</p>
     `,
   },
   faq: {
