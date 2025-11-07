@@ -895,169 +895,179 @@ fscan -h 192.168.1.0/24 -json output.json</code></pre>
     icon: 'mdi:engine',
     content: `
       <h2>设计目标</h2>
-      <p>扫描引擎是 fscan 的核心调度系统，负责协调所有扫描组件：</p>
+      <p>扫描引擎是 fscan 的核心调度系统，负责根据不同场景选择扫描策略：</p>
       <ul>
-        <li><strong>流程编排</strong>：按正确顺序执行扫描阶段</li>
-        <li><strong>并发控制</strong>：管理线程池和资源分配</li>
-        <li><strong>状态管理</strong>：跟踪扫描进度和结果</li>
-        <li><strong>异常处理</strong>：优雅处理错误和中断</li>
+        <li><strong>策略选择</strong>：根据命令行参数自动选择扫描模式</li>
+        <li><strong>并发控制</strong>：使用 goroutine 池限制并发数</li>
+        <li><strong>插件调度</strong>：流式执行插件任务，避免内存膨胀</li>
+        <li><strong>异常处理</strong>：单个任务失败不影响整体扫描</li>
       </ul>
 
-      <h2>扫描流水线设计</h2>
+      <h2>策略模式：核心架构</h2>
 
-      <h3>扫描阶段</h3>
-      <p>fscan 采用五阶段流水线架构：</p>
+      <h3>问题：一个工具，四种用法</h3>
+      <p>fscan 支持四种不同的扫描场景：</p>
+      <table>
+        <tr><th>参数</th><th>策略</th><th>用途</th></tr>
+        <tr><td>-h IP</td><td>ServiceScanStrategy</td><td>网络服务扫描（默认）</td></tr>
+        <tr><td>-u URL</td><td>WebScanStrategy</td><td>Web 应用扫描</td></tr>
+        <tr><td>-local</td><td>LocalScanStrategy</td><td>本地信息收集</td></tr>
+        <tr><td>-alive</td><td>AliveScanStrategy</td><td>存活探测</td></tr>
+      </table>
+
+      <h3>策略接口设计</h3>
+      <p>所有策略实现统一接口（简化版）：</p>
+      <pre><code>type ScanStrategy interface {
+    Execute(info HostInfo, ch chan struct{}, wg *WaitGroup)
+    GetPlugins() ([]string, bool)
+    IsPluginApplicableByName(plugin, host string, port int, isCustom bool) bool
+}</code></pre>
+
+      <h3>策略选择逻辑</h3>
+      <p>引擎根据参数自动选择策略（<code>core/scanner.go:30</code>）：</p>
+      <pre><code>func selectStrategy(info HostInfo) ScanStrategy {
+    switch {
+    case AliveOnly || ScanMode == "icmp":
+        return NewAliveScanStrategy()  // 存活探测
+    case LocalMode:
+        return NewLocalScanStrategy()  // 本地扫描
+    case len(URLs) > 0:
+        return NewWebScanStrategy()    // Web扫描
+    default:
+        return NewServiceScanStrategy() // 服务扫描
+    }
+}</code></pre>
+      <p><strong>为什么用策略模式？</strong> 不同场景的扫描流程完全不同，用 if/else 会导致代码混乱</p>
+
+      <h2>ServiceScanStrategy：三阶段流程</h2>
+
+      <h3>阶段划分</h3>
+      <p>服务扫描（最复杂的策略）分三阶段：</p>
       <ol>
-        <li><strong>目标解析</strong>：将输入转换为 IP 列表</li>
-        <li><strong>存活探测</strong>：过滤不可达主机</li>
-        <li><strong>端口扫描</strong>：发现开放端口</li>
-        <li><strong>服务识别</strong>：识别服务类型和版本</li>
-        <li><strong>深度扫描</strong>：执行插件扫描（爆破/漏洞检测）</li>
+        <li><strong>目标发现</strong>：解析 IP → 存活探测 → 端口扫描</li>
+        <li><strong>目标准备</strong>：构造 <code>[]HostInfo</code> 列表（host:port对）</li>
+        <li><strong>插件执行</strong>：流式调度所有插件任务</li>
       </ol>
-      <p><strong>设计原则</strong>：每个阶段的输出是下一阶段的输入，形成数据流</p>
 
       <h3>为什么分阶段？</h3>
+      <table>
+        <tr><th>阶段</th><th>输入</th><th>输出</th><th>过滤率</th></tr>
+        <tr><td>IP 解析</td><td>192.168.1.0/24</td><td>256 个 IP</td><td>-</td></tr>
+        <tr><td>存活探测</td><td>256 个 IP</td><td>42 个存活主机</td><td>83%</td></tr>
+        <tr><td>端口扫描</td><td>42 个主机</td><td>125 个开放端口</td><td>-</td></tr>
+        <tr><td>插件扫描</td><td>125 个端口</td><td>执行 2000+ 任务</td><td>-</td></tr>
+      </table>
+      <p><strong>关键优化</strong>：存活探测淘汰 80%+ 主机，避免对死主机做端口扫描</p>
+
+      <h2>并发模型：Goroutine 池</h2>
+
+      <h3>问题：无限制并发的灾难</h3>
+      <p>扫描 10 万个端口 × 20 个插件 = 200 万个任务，如果每个任务创建一个 goroutine：</p>
       <ul>
-        <li><strong>减少无效工作</strong>：不对死主机做端口扫描</li>
-        <li><strong>优化资源使用</strong>：只对开放端口做服务识别</li>
-        <li><strong>提升效率</strong>：存活探测淘汰 80% 主机，节省大量时间</li>
+        <li>200 万个 goroutine × 8KB 栈 = 16GB 内存</li>
+        <li>操作系统线程数爆炸</li>
+        <li>调度器开销巨大</li>
       </ul>
 
-      <h2>并发模型</h2>
+      <h3>解决方案：Channel Semaphore</h3>
+      <p>使用带缓冲 channel 限制并发数（<code>core/scanner.go:59</code>）：</p>
+      <pre><code>ch := make(chan struct{}, ThreadNum)  // 默认 600
+wg := sync.WaitGroup{}
 
-      <h3>三层并发</h3>
-      <p>fscan 使用分层并发模型：</p>
-      <ul>
-        <li><strong>主机级并发</strong>：同时扫描多个主机</li>
-        <li><strong>端口级并发</strong>：同时扫描单个主机的多个端口</li>
-        <li><strong>插件级并发</strong>：同时执行多个插件</li>
-      </ul>
+for _, task := range tasks {
+    wg.Add(1)
+    ch <- struct{}{}  // 获取槽位，满了会阻塞
 
-      <h3>线程池设计</h3>
-      <p>使用 goroutine 池而不是无限制创建：</p>
-      <ul>
-        <li><strong>问题</strong>：扫描 100 万主机时创建 100 万 goroutine 会导致内存耗尽</li>
-        <li><strong>解决</strong>：使用固定大小的 worker 池（默认 600）</li>
-        <li><strong>实现</strong>：带缓冲的 channel 作为任务队列</li>
-      </ul>
-      <pre><code>// 伪代码
-taskQueue := make(chan Task, 1000)
-for i := 0; i < workerCount; i++ {
-    go worker(taskQueue)
+    go func(t Task) {
+        defer func() {
+            wg.Done()
+            <-ch  // 释放槽位
+        }()
+        t.Run()
+    }(task)
 }
-for _, host := range hosts {
-    taskQueue <- host
-}</code></pre>
+wg.Wait()</code></pre>
+      <p><strong>核心思想</strong>：channel 的缓冲区大小决定最大并发数</p>
 
-      <h2>Context 传播机制</h2>
+      <h2>流式任务调度：零内存膨胀</h2>
 
-      <h3>设计目标</h3>
-      <p>所有扫描操作支持超时和取消：</p>
-      <ul>
-        <li>用户按 Ctrl+C 时立即停止所有扫描</li>
-        <li>单个主机扫描超时不影响其他主机</li>
-        <li>插件超时不影响其他插件</li>
-      </ul>
+      <h3>问题：预构建任务列表的内存开销</h3>
+      <p>10 万端口 × 20 插件 = 200 万任务对象，每个对象 200 字节 = 400MB 内存</p>
 
-      <h3>Context 树结构</h3>
-      <p>Context 按层级传播：</p>
-      <ul>
-        <li><strong>根 Context</strong>：全局超时，监听信号</li>
-        <li><strong>主机 Context</strong>：单个主机的超时</li>
-        <li><strong>插件 Context</strong>：单个插件的超时</li>
-      </ul>
-      <p><strong>级联取消</strong>：父 Context 取消时，所有子 Context 自动取消</p>
-
-      <h2>扫描策略模式</h2>
-
-      <h3>问题：不同场景的扫描需求</h3>
-      <ul>
-        <li><strong>快速扫描</strong>：只探测存活，跳过端口扫描</li>
-        <li><strong>端口扫描</strong>：只扫描端口，不做深度检测</li>
-        <li><strong>完整扫描</strong>：执行所有阶段</li>
-      </ul>
-
-      <h3>解决方案：策略接口</h3>
-      <p>定义扫描策略接口：</p>
-      <pre><code>type ScanStrategy interface {
-    ShouldRunAliveDetection() bool
-    ShouldRunPortScan() bool
-    ShouldRunServiceIdentification() bool
-    ShouldRunPlugins() bool
-}</code></pre>
-      <p>不同策略实现不同的阶段组合，引擎根据策略动态调整流程</p>
-
-      <h2>进度追踪设计</h2>
-
-      <h3>问题：用户需要实时进度</h3>
-      <p>扫描大量目标时，用户希望知道：</p>
-      <ul>
-        <li>已完成多少主机</li>
-        <li>预计还需多长时间</li>
-        <li>当前在扫描哪个主机</li>
-      </ul>
-
-      <h3>解决方案：进度通道</h3>
-      <ul>
-        <li>引擎维护一个进度 channel</li>
-        <li>每完成一个主机发送进度事件</li>
-        <li>前端监听 channel 并更新进度条</li>
-      </ul>
-
-      <h2>错误处理策略</h2>
-
-      <h3>失败不中断</h3>
-      <p>单个主机或插件失败不应影响整体扫描：</p>
-      <ul>
-        <li>主机 A 超时，继续扫描主机 B</li>
-        <li>SSH 插件崩溃，继续运行 MySQL 插件</li>
-        <li>记录错误但不停止扫描</li>
-      </ul>
-
-      <h3>错误分类</h3>
-      <ul>
-        <li><strong>致命错误</strong>：配置错误、权限不足 → 停止扫描</li>
-        <li><strong>可恢复错误</strong>：网络超时、目标不可达 → 记录并继续</li>
-      </ul>
-
-      <h2>资源清理机制</h2>
-
-      <h3>问题：长时间扫描的资源泄漏</h3>
-      <ul>
-        <li>网络连接未关闭</li>
-        <li>文件句柄泄漏</li>
-        <li>goroutine 泄漏</li>
-      </ul>
-
-      <h3>解决方案：defer + Context</h3>
-      <pre><code>func scan(ctx context.Context, host string) {
-    defer cleanup()  // 保证资源释放
-
-    conn, err := dial(ctx, host)
-    if err != nil {
-        return
+      <h3>解决方案：流式生成任务</h3>
+      <p>不预先构建任务列表，边生成边执行（<code>core/scanner.go:140</code>）：</p>
+      <pre><code>// 流式执行，不预构建任务列表
+for _, target := range targets {
+    for _, pluginName := range pluginsToRun {
+        if plugins.Exists(pluginName) {
+            if strategy.IsPluginApplicableByName(pluginName, target.Host, target.Port, isCustomMode) {
+                executeScanTask(pluginName, target, ch, wg)  // 立即执行
+            }
+        }
     }
-    defer conn.Close()  // 保证连接关闭
-
-    // 扫描逻辑
 }</code></pre>
+      <p><strong>内存优化</strong>：同时只有 ThreadNum 个任务对象存在</p>
+
+      <h2>插件系统集成</h2>
+
+      <h3>统一注册表</h3>
+      <p>所有插件自注册到全局注册表（<code>plugins/init.go:90</code>）：</p>
+      <pre><code>var plugins = make(map[string]*PluginInfo)
+
+func Register(name string, factory func() Plugin) {
+    plugins[name] = &PluginInfo{
+        factory: factory,
+        ports:   []int{},
+        types:   []string{"service"},
+    }
+}</code></pre>
+
+      <h3>过滤器系统</h3>
+      <p>策略通过过滤器类型选择插件：</p>
+      <table>
+        <tr><th>策略</th><th>过滤器</th><th>插件范围</th></tr>
+        <tr><td>ServiceScanStrategy</td><td>FilterService</td><td>排除本地插件</td></tr>
+        <tr><td>WebScanStrategy</td><td>FilterWeb</td><td>仅 Web 插件</td></tr>
+        <tr><td>LocalScanStrategy</td><td>FilterLocal</td><td>仅本地插件</td></tr>
+        <tr><td>AliveScanStrategy</td><td>FilterNone</td><td>无插件</td></tr>
+      </table>
+
+      <h2>错误处理：失败不中断</h2>
+
+      <h3>Panic 捕获</h3>
+      <p>每个任务都有 recover 保护（<code>core/scanner.go:186</code>）：</p>
+      <pre><code>defer func() {
+    if r := recover(); r != nil {
+        LogError("插件 %s 扫描 %s:%d 时panic: %v", plugin, host, port, r)
+    }
+    wg.Done()
+    <-ch
+}()</code></pre>
+      <p><strong>设计原则</strong>：单个插件崩溃不影响其他 199 万个任务</p>
 
       <h2>设计权衡</h2>
 
-      <h3>为什么不用工作流引擎？</h3>
+      <h3>为什么不是流水线架构？</h3>
       <ul>
-        <li>✅ 扫描流程固定，不需要动态编排</li>
-        <li>✅ 简单的流水线足够，不需要 DAG</li>
-        <li>✅ 减少依赖和复杂度</li>
-        <li>❌ 缺点：添加新阶段需要修改引擎代码</li>
+        <li>✅ 策略模式更灵活：不同场景差异太大，统一流水线会充满 if/else</li>
+        <li>✅ Web 扫描不需要端口扫描，本地扫描不需要网络通信</li>
+        <li>✅ 代码更清晰：每个策略独立实现自己的逻辑</li>
+        <li>❌ 缺点：策略间无法复用流水线代码</li>
       </ul>
 
-      <h3>为什么使用 goroutine 池而不是无限制并发？</h3>
+      <h3>为什么用 Channel 而不是 Worker 池？</h3>
       <ul>
-        <li>✅ 防止内存耗尽</li>
-        <li>✅ 避免创建过多系统线程</li>
-        <li>✅ 可控的资源消耗</li>
-        <li>❌ 缺点：需要调优池大小</li>
+        <li>✅ Channel 是 Go 的原生并发原语，无需第三方库</li>
+        <li>✅ 代码简洁：10 行实现并发控制</li>
+        <li>✅ 性能足够：channel 的开销可以忽略</li>
+        <li>❌ 缺点：无法动态调整并发数</li>
+      </ul>
+
+      <h3>为什么流式调度而不是预构建？</h3>
+      <ul>
+        <li>✅ 内存占用从 O(n*m) 降到 O(ThreadNum)</li>
+        <li>✅ 大规模扫描不会 OOM</li>
+        <li>❌ 缺点：无法预先知道总任务数（进度条需要预计算）</li>
       </ul>
     `,
   },
@@ -1067,169 +1077,242 @@ for _, host := range hosts {
     icon: 'mdi:pulse',
     content: `
       <h2>设计目标</h2>
-      <p>存活探测的目标是快速过滤不可达主机：</p>
+      <p>存活探测通过ICMP快速过滤不可达主机，减少无效扫描：</p>
       <ul>
-        <li><strong>快速</strong>：1 秒内完成 254 个 IP 的探测</li>
-        <li><strong>准确</strong>：减少漏报和误报</li>
-        <li><strong>隐蔽</strong>：避免触发安全设备告警</li>
-        <li><strong>适应性</strong>：兼容不同网络环境</li>
+        <li><strong>快速</strong>：3-6秒内完成256个IP探测</li>
+        <li><strong>自适应</strong>：根据权限自动选择最佳方式</li>
+        <li><strong>零配置</strong>：无需用户手动选择探测方法</li>
+        <li><strong>降级机制</strong>：权限不足时自动切换</li>
       </ul>
 
-      <h2>探测方法</h2>
+      <h2>三层降级架构</h2>
 
-      <h3>1. ICMP Ping（优先）</h3>
-      <p><strong>原理</strong>：发送 ICMP Echo Request，等待 Echo Reply</p>
-      <ul>
-        <li><strong>优势</strong>：速度快，开销小</li>
-        <li><strong>劣势</strong>：需要 root 权限，可能被防火墙拦截</li>
-      </ul>
+      <h3>自动降级链</h3>
+      <p>fscan按优先级尝试三种ICMP实现（<code>core/icmp.go:102</code>）：</p>
+      <table>
+        <tr><th>方式</th><th>函数</th><th>权限需求</th><th>性能</th></tr>
+        <tr><td>监听模式ICMP</td><td>RunIcmp1</td><td>监听ICMP套接字</td><td>最快</td></tr>
+        <tr><td>无监听ICMP</td><td>RunIcmp2</td><td>发送ICMP包</td><td>中等</td></tr>
+        <tr><td>系统ping命令</td><td>RunPing</td><td>无需权限</td><td>最慢</td></tr>
+      </table>
 
-      <h3>2. TCP Ping（备用）</h3>
-      <p><strong>原理</strong>：向常用端口发送 SYN 包，检测响应</p>
-      <ul>
-        <li>探测端口：80, 443, 22, 445, 3389（覆盖 90% 场景）</li>
-        <li><strong>优势</strong>：不需要特权，绕过 ICMP 过滤</li>
-        <li><strong>劣势</strong>：比 ICMP 慢</li>
-      </ul>
-
-      <h3>3. ARP Ping（局域网）</h3>
-      <p><strong>原理</strong>：发送 ARP 请求，检测 MAC 地址</p>
-      <ul>
-        <li><strong>优势</strong>：局域网最准确，无法被过滤</li>
-        <li><strong>劣势</strong>：仅限同一子网</li>
-      </ul>
-
-      <h2>探测策略</h2>
-
-      <h3>自适应探测</h3>
-      <p>fscan 根据网络环境自动选择探测方法：</p>
-      <ol>
-        <li>检测当前用户权限</li>
-        <li>如果有 root/管理员权限 → 使用 ICMP</li>
-        <li>如果无特权 → 使用 TCP Ping</li>
-        <li>如果是局域网（/24, /16） → 优先使用 ARP</li>
-      </ol>
-
-      <h3>多方法组合</h3>
-      <p>某些主机可能只响应特定方法：</p>
-      <ul>
-        <li>Windows 服务器通常禁用 ICMP，但响应 445/3389</li>
-        <li>Linux 服务器通常响应 ICMP 和 22</li>
-      </ul>
-      <p><strong>策略</strong>：ICMP + TCP 端口组合探测，提高准确率</p>
-
-      <h2>ICMP 实现细节</h2>
-
-      <h3>问题：Go 标准库不支持原始 ICMP</h3>
-      <p>Go 的 <code>net</code> 包不提供原始 ICMP 支持，需要自己实现</p>
-
-      <h3>解决方案：使用 syscall</h3>
-      <ul>
-        <li>创建原始套接字：<code>syscall.Socket(AF_INET, SOCK_RAW, IPPROTO_ICMP)</code></li>
-        <li>构造 ICMP Echo Request 包</li>
-        <li>设置超时：<code>SetReadDeadline()</code></li>
-        <li>接收并解析 Echo Reply</li>
-      </ul>
-
-      <h3>ICMP 包结构</h3>
-      <pre><code>type ICMPHeader struct {
-    Type     uint8  // 8 = Echo Request, 0 = Echo Reply
-    Code     uint8  // 0
-    Checksum uint16
-    ID       uint16
-    Sequence uint16
-}</code></pre>
-      <p><strong>校验和计算</strong>：必须正确，否则被系统丢弃</p>
-
-      <h2>并发探测设计</h2>
-
-      <h3>问题：顺序探测太慢</h3>
-      <p>顺序探测 254 个 IP，每个超时 1 秒 = 254 秒</p>
-
-      <h3>解决方案：批量并发</h3>
-      <ul>
-        <li>创建 N 个 goroutine 并发发送 ICMP</li>
-        <li>所有 goroutine 共享一个接收 goroutine</li>
-        <li>使用 ID/Sequence 区分不同的请求</li>
-      </ul>
-      <p><strong>性能</strong>：254 个 IP 的探测在 1 秒内完成</p>
-
-      <h3>接收器设计</h3>
-      <p>单个接收 goroutine 监听所有响应：</p>
-      <pre><code>recvChan := make(chan string, 1000)
-go func() {
-    for {
-        reply := receiveICMP()
-        recvChan <- reply.SourceIP
+      <h3>降级逻辑</h3>
+      <pre><code>func probeWithICMP(hosts []string, ch chan string) {
+    // 1. 尝试监听ICMP
+    conn, err := icmp.ListenPacket("ip4:icmp", "0.0.0.0")
+    if err == nil {
+        RunIcmp1(hosts, conn, ch)  // 最优方案
+        return
     }
-}()
 
-// 发送器
-for _, ip := range ips {
-    go sendICMP(ip)
-}</code></pre>
-
-      <h2>超时和重试</h2>
-
-      <h3>超时设置</h3>
-      <ul>
-        <li><strong>ICMP</strong>：1 秒超时（网络延迟通常 < 100ms）</li>
-        <li><strong>TCP Ping</strong>：2 秒超时（需要 TCP 握手）</li>
-      </ul>
-
-      <h3>重试策略</h3>
-      <ul>
-        <li>默认不重试（速度优先）</li>
-        <li>提供 <code>-ping-retry</code> 参数启用重试</li>
-        <li>重试间隔：500ms</li>
-      </ul>
-
-      <h2>误报和漏报处理</h2>
-
-      <h3>误报：主机实际不存在</h3>
-      <ul>
-        <li><strong>原因</strong>：网关响应 ICMP Redirect</li>
-        <li><strong>解决</strong>：验证 ICMP 响应的源 IP 是否匹配</li>
-      </ul>
-
-      <h3>漏报：主机存在但探测失败</h3>
-      <ul>
-        <li><strong>原因</strong>：防火墙过滤 ICMP 和常用端口</li>
-        <li><strong>解决</strong>：提供 <code>-no-ping</code> 参数跳过存活探测，直接扫描所有主机</li>
-      </ul>
-
-      <h2>权限处理</h2>
-
-      <h3>问题：普通用户无法使用 ICMP</h3>
-      <p>原始套接字需要 CAP_NET_RAW 权限</p>
-
-      <h3>解决方案：自动降级</h3>
-      <pre><code>func detectAlive() {
-    if hasPrivilege() {
-        return icmpPing()
+    // 2. 尝试无监听ICMP
+    conn2, err := net.DialTimeout("ip4:icmp", "127.0.0.1", 3*time.Second)
+    if err == nil {
+        RunIcmp2(hosts, ch)  // 降级方案
+        return
     }
-    return tcpPing()
+
+    // 3. 降级到系统ping
+    RunPing(hosts, ch)  // 最终方案
 }</code></pre>
-      <p>无权限时自动切换到 TCP Ping，对用户透明</p>
+      <p><strong>设计理念</strong>：尽力使用高性能ICMP，实在不行就用ping兜底</p>
+
+      <h2>方式1：监听模式ICMP（最优）</h2>
+
+      <h3>核心优势</h3>
+      <p>单一接收器 + 批量发送器，性能最佳：</p>
+      <ul>
+        <li>一次监听所有响应，避免重复创建连接</li>
+        <li>批量发送ICMP，无等待</li>
+        <li>256个IP仅需3秒（包含超时等待）</li>
+      </ul>
+
+      <h3>架构设计（<code>core/icmp.go:169</code>）</h3>
+      <pre><code>func RunIcmp1(hosts []string, conn *icmp.PacketConn, ch chan string) {
+    // 启动单一接收器协程
+    go func() {
+        for {
+            msg := make([]byte, 100)
+            _, sourceIP, _ := conn.ReadFrom(msg)  // 阻塞等待
+            ch <- sourceIP.String()  // 发送到结果channel
+        }
+    }()
+
+    // 批量发送ICMP Echo Request
+    for _, host := range hosts {
+        dst, _ := net.ResolveIPAddr("ip", host)
+        icmpPacket := makeICMPEchoRequest(host)
+        conn.WriteTo(icmpPacket, dst)  // 立即发送，不等待响应
+    }
+
+    // 等待3-6秒收集响应
+    time.Sleep(wait)
+}</code></pre>
+
+      <h3>超时设置（智能）</h3>
+      <p>根据主机数量动态调整（<code>core/icmp.go:236</code>）：</p>
+      <ul>
+        <li>≤ 256 主机：3秒超时</li>
+        <li>> 256 主机：6秒超时</li>
+      </ul>
+
+      <h2>方式2：无监听ICMP（降级）</h2>
+
+      <h3>使用场景</h3>
+      <p>无法监听ICMP套接字，但可以发送ICMP包：</p>
+      <ul>
+        <li>Linux非root用户（无CAP_NET_RAW）</li>
+        <li>容器环境受限</li>
+      </ul>
+
+      <h3>实现方式（<code>core/icmp.go:254</code>）</h3>
+      <pre><code>func RunIcmp2(hosts []string, ch chan string) {
+    limiter := make(chan struct{}, 1000)  // 并发限制
+
+    for _, host := range hosts {
+        go func(h string) {
+            limiter <- struct{}{}
+            defer func() { <-limiter }()
+
+            // 每个主机单独连接
+            conn, err := net.DialTimeout("ip4:icmp", h, 3*time.Second)
+            if err == nil {
+                ch <- h  // 连接成功即为存活
+                conn.Close()
+            }
+        }(host)
+    }
+}</code></pre>
+      <p><strong>权衡</strong>：为每个主机创建连接，比RunIcmp1慢，但比ping快</p>
+
+      <h2>方式3：系统ping命令（兜底）</h2>
+
+      <h3>使用场景</h3>
+      <p>前两种方式都失败时的最后选择：</p>
+      <ul>
+        <li>Windows非管理员用户</li>
+        <li>严格的SELinux/AppArmor策略</li>
+      </ul>
+
+      <h3>跨平台实现（<code>core/icmp.go:322</code>）</h3>
+      <pre><code>func RunPing(hosts []string, ch chan string) {
+    var pingCmd string
+    if runtime.GOOS == "windows" {
+        pingCmd = "ping -n 1 -w 1000 %s"
+    } else {
+        pingCmd = "ping -c 1 -W 1 %s"
+    }
+
+    for _, host := range hosts {
+        go func(h string) {
+            cmd := exec.Command("sh", "-c", fmt.Sprintf(pingCmd, h))
+            err := cmd.Run()
+            if err == nil {
+                ch <- h
+            }
+        }(host)
+    }
+}</code></pre>
+      <p><strong>劣势</strong>：依赖外部命令，无法提取RTT/TTL信息</p>
+
+      <h2>ICMP包构造</h2>
+
+      <h3>使用golang.org/x/net/icmp</h3>
+      <p>不直接用syscall，而是用官方扩展库：</p>
+      <pre><code>import "golang.org/x/net/icmp"
+
+func makeICMPEchoRequest(host string) []byte {
+    msg := icmp.Message{
+        Type: ipv4.ICMPTypeEcho,  // Echo Request
+        Code: 0,
+        Body: &icmp.Echo{
+            ID:   os.Getpid() & 0xffff,
+            Seq:  1,
+            Data: []byte("FSCAN"),
+        },
+    }
+    msgBytes, _ := msg.Marshal(nil)
+    return msgBytes
+}</code></pre>
+
+      <h2>并发与去重</h2>
+
+      <h3>结果收集器（<code>core/icmp.go:65</code>）</h3>
+      <p>单一协程处理所有存活主机：</p>
+      <pre><code>func handleAliveHosts(ch chan string, hosts []string, aliveHosts *[]string) {
+    existHosts := make(map[string]struct{})  // 去重
+
+    for ip := range ch {
+        if _, ok := existHosts[ip]; !ok && IsContain(hosts, ip) {
+            existHosts[ip] = struct{}{}
+            *aliveHosts = append(*aliveHosts, ip)
+
+            // 输出到控制台和文件
+            if !Silent {
+                LogInfo("%s 存活", ip)
+            }
+        }
+    }
+}</code></pre>
+
+      <h3>为什么用map去重？</h3>
+      <ul>
+        <li>ICMP响应可能重复（网络重传）</li>
+        <li>防止同一IP被多次添加到结果列表</li>
+      </ul>
+
+      <h2>统计与输出</h2>
+
+      <h3>AliveScanStrategy统计（<code>core/alive_scanner.go:28</code>）</h3>
+      <p>存活探测策略提供详细统计：</p>
+      <pre><code>type AliveStats struct {
+    TotalHosts    int           // 总主机数
+    AliveHosts    int           // 存活数
+    DeadHosts     int           // 死亡数
+    ScanDuration  time.Duration // 耗时
+    SuccessRate   float64       // 成功率
+    AliveHostList []string      // 存活列表
+}</code></pre>
+
+      <h3>输出示例</h3>
+      <pre><code>=============================================================
+存活探测结果摘要
+总主机数: 256
+存活主机: 42
+死亡主机: 214
+成功率: 16.41%
+扫描耗时: 3.2s
+
+存活主机列表:
+  [1] 192.168.1.1
+  [2] 192.168.1.10
+  ...
+=============================================================</code></pre>
 
       <h2>设计权衡</h2>
 
-      <h3>为什么不使用 ping 命令？</h3>
+      <h3>为什么不直接用ping命令？</h3>
       <ul>
-        <li>✅ 自己实现可以精确控制超时和并发</li>
-        <li>✅ 不依赖外部命令，跨平台兼容</li>
-        <li>✅ 可以提取更多信息（RTT、TTL）</li>
-        <li>❌ 缺点：需要处理原始套接字的复杂性</li>
+        <li>✅ 自实现ICMP比调用ping快5-10倍</li>
+        <li>✅ 精确控制超时和并发数</li>
+        <li>✅ 跨平台一致性（ping参数各异）</li>
+        <li>❌ 缺点：需要处理权限降级逻辑</li>
       </ul>
 
-      <h3>为什么默认探测而不是直接扫描？</h3>
+      <h3>为什么没有TCP Ping？</h3>
       <ul>
-        <li>✅ 存活探测淘汰 80% 不可达主机</li>
-        <li>✅ 节省大量端口扫描时间</li>
-        <li>✅ 减少无效流量</li>
-        <li>❌ 缺点：可能漏掉防火墙严格的主机</li>
+        <li>❌ TCP三次握手比ICMP慢10倍+</li>
+        <li>❌ 增加代码复杂度</li>
+        <li>✅ 存活探测失败时，后续端口扫描会自然发现存活主机</li>
       </ul>
-      <p>提供 <code>-no-ping</code> 参数禁用存活探测，适配特殊场景</p>
+
+      <h3>为什么默认启用存活探测？</h3>
+      <ul>
+        <li>✅ 过滤80%+不可达主机，节省大量时间</li>
+        <li>✅ /16网段（65536 IP）无存活探测几乎不可用</li>
+        <li>❌ 缺点：漏掉ICMP被过滤的主机</li>
+        <li>✅ 提供<code>-noping</code>禁用，适配特殊场景</li>
+      </ul>
     `,
   },
   'port-scan': {
