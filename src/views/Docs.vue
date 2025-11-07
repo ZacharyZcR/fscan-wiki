@@ -2469,143 +2469,120 @@ func (fr *FileReader) ReadLines(path string) ([]string, error) {
     description: '代理支持和流量转发',
     icon: 'mdi:swap-horizontal',
     content: `
-      <h2>设计目标</h2>
-      <p>代理系统支持通过代理服务器进行扫描：</p>
+      <h2>核心设计：ProxyManager</h2>
+      <p>独立的代理管理包（<code>common/proxy/</code>），提供统一的代理抽象：</p>
       <ul>
-        <li><strong>隐藏源 IP</strong>：通过代理隐藏真实 IP</li>
-        <li><strong>绕过限制</strong>：突破网络限制</li>
-        <li><strong>链式代理</strong>：支持多级代理</li>
-        <li><strong>协议支持</strong>：HTTP、HTTPS、SOCKS5</li>
+        <li><strong>manager.go</strong> - 代理管理器</li>
+        <li><strong>httpdialer.go</strong> - HTTP代理拨号器</li>
+        <li><strong>tlsdialer.go</strong> - TLS代理拨号器</li>
+        <li><strong>types.go</strong> - 类型定义</li>
       </ul>
+
+      <h2>ProxyManager接口（<code>proxy/manager.go:28</code>）</h2>
+
+      <pre><code>type ProxyManager interface {
+    GetDialer() (Dialer, error)
+    GetTLSDialer() (TLSDialer, error)
+    UpdateConfig(config *ProxyConfig) error
+    Close() error
+}
+
+func NewProxyManager(config *ProxyConfig) ProxyManager {
+    return &manager{
+        config: config,
+        dialerCache: make(map[string]Dialer),
+    }
+}</code></pre>
 
       <h2>支持的代理类型</h2>
 
-      <h3>1. HTTP/HTTPS 代理</h3>
-      <p><strong>用途</strong>：主要用于 Web 扫描</p>
+      <table>
+        <tr><th>类型</th><th>用途</th><th>实现</th></tr>
+        <tr><td>None</td><td>直连</td><td>net.Dialer</td></tr>
+        <tr><td>HTTP/HTTPS</td><td>Web扫描</td><td>HTTP CONNECT</td></tr>
+        <tr><td>SOCKS5</td><td>TCP代理</td><td>golang.org/x/net/proxy</td></tr>
+      </table>
+
+      <h3>为什么使用golang.org/x/net/proxy？</h3>
       <ul>
-        <li>HTTP CONNECT 隧道</li>
-        <li>支持代理认证</li>
-        <li>适用于 HTTP/HTTPS 流量</li>
+        <li>✅ Go官方维护的SOCKS5实现</li>
+        <li>✅ 无需自己实现SOCKS5协议</li>
+        <li>✅ 支持认证和代理链</li>
       </ul>
 
-      <h3>2. SOCKS5 代理</h3>
-      <p><strong>用途</strong>：通用 TCP 代理</p>
-      <ul>
-        <li>支持所有 TCP 流量</li>
-        <li>支持用户名密码认证</li>
-        <li>适用于端口扫描、服务识别</li>
-      </ul>
+      <h2>代理配置（<code>proxy/types.go</code>）</h2>
 
-      <h2>代理链设计</h2>
-
-      <h3>多级代理</h3>
-      <p>支持代理链：Client → Proxy1 → Proxy2 → Target</p>
-      <pre><code>--proxy socks5://proxy1:1080 \\
-        --proxy socks5://proxy2:1080</code></pre>
-
-      <h3>代理池</h3>
-      <ul>
-        <li>支持多个代理地址</li>
-        <li>随机选择或轮询</li>
-        <li>失败自动切换</li>
-      </ul>
-
-      <h2>代理拨号器</h2>
-
-      <h3>自定义 Dialer</h3>
-      <p>封装代理连接逻辑：</p>
-      <pre><code>type ProxyDialer interface {
-    Dial(network, addr string) (net.Conn, error)
+      <pre><code>type ProxyConfig struct {
+    Type    ProxyType  // None, HTTP, HTTPS, SOCKS5
+    Address string     // proxy:port
+    Auth    *ProxyAuth // 可选认证
 }
 
-// SOCKS5 Dialer
-type SOCKS5Dialer struct {
-    proxy string
-    auth  *Auth
-}
-
-func (d *SOCKS5Dialer) Dial(network, addr string) (net.Conn, error) {
-    // 1. 连接到代理服务器
-    conn, _ := net.Dial("tcp", d.proxy)
-
-    // 2. SOCKS5 握手
-    _ = d.handshake(conn)
-
-    // 3. 请求连接目标
-    _ = d.connect(conn, addr)
-
-    return conn, nil
+type ProxyAuth struct {
+    Username string
+    Password string
 }</code></pre>
 
-      <h2>代理认证</h2>
+      <h3>从命令行到配置</h3>
+      <pre><code>// -proxy http://user:pass@proxy:8080
+config := &ProxyConfig{
+    Type: ProxyTypeHTTP,
+    Address: "proxy:8080",
+    Auth: &ProxyAuth{
+        Username: "user",
+        Password: "pass",
+    },
+}</code></pre>
 
-      <h3>支持的认证方式</h3>
-      <ul>
-        <li><strong>无认证</strong>：直接连接</li>
-        <li><strong>用户名密码</strong>：SOCKS5 用户名密码认证</li>
-        <li><strong>HTTP Basic Auth</strong>：HTTP 代理认证</li>
-      </ul>
+      <h2>HTTP代理实现（<code>proxy/httpdialer.go</code>）</h2>
 
-      <h3>认证信息格式</h3>
-      <pre><code>socks5://username:password@proxy:1080
-http://username:password@proxy:8080</code></pre>
+      <pre><code>func (m *manager) createHTTPDialer() (Dialer, error) {
+    proxyURL, _ := url.Parse("http://" + m.config.Address)
 
-      <h2>代理健康检查</h2>
+    if m.config.Auth != nil {
+        proxyURL.User = url.UserPassword(
+            m.config.Auth.Username,
+            m.config.Auth.Password,
+        )
+    }
 
-      <h3>连接测试</h3>
-      <p>扫描前测试代理可用性：</p>
-      <ul>
-        <li>尝试连接测试目标（如 8.8.8.8:53）</li>
-        <li>测试超时 5 秒</li>
-        <li>不可用的代理自动移除</li>
-      </ul>
+    return &httpDialerWrapper{
+        transport: &http.Transport{
+            Proxy: http.ProxyURL(proxyURL),
+        },
+    }, nil
+}</code></pre>
 
-      <h3>运行时监控</h3>
-      <ul>
-        <li>记录代理失败次数</li>
-        <li>失败率超过 50% 时标记为不可用</li>
-        <li>定期重试不可用的代理</li>
-      </ul>
+      <h2>SOCKS5代理实现</h2>
 
-      <h2>性能优化</h2>
+      <pre><code>func (m *manager) createSOCKS5Dialer() (Dialer, error) {
+    var auth *proxy.Auth
+    if m.config.Auth != nil {
+        auth = &proxy.Auth{
+            User:     m.config.Auth.Username,
+            Password: m.config.Auth.Password,
+        }
+    }
 
-      <h3>连接复用</h3>
-      <p>HTTP/HTTPS 支持 Keep-Alive：</p>
-      <ul>
-        <li>复用代理连接</li>
-        <li>减少握手开销</li>
-        <li>提升扫描速度</li>
-      </ul>
-
-      <h3>超时设置</h3>
-      <ul>
-        <li><strong>连接超时</strong>：5 秒</li>
-        <li><strong>读写超时</strong>：10 秒</li>
-        <li>代理连接比直连超时更长</li>
-      </ul>
-
-      <h2>错误处理</h2>
-
-      <h3>常见错误</h3>
-      <ul>
-        <li><strong>代理不可达</strong>：连接超时</li>
-        <li><strong>认证失败</strong>：用户名密码错误</li>
-        <li><strong>目标不可达</strong>：代理无法访问目标</li>
-      </ul>
-
-      <h3>降级策略</h3>
-      <ul>
-        <li>代理失败后尝试直连</li>
-        <li>提供 --proxy-only 参数强制使用代理</li>
-      </ul>
+    // 使用golang.org/x/net/proxy的SOCKS5实现
+    dialer, err := proxy.SOCKS5("tcp", m.config.Address, auth, proxy.Direct)
+    return dialer, err
+}</code></pre>
 
       <h2>设计权衡</h2>
 
-      <h3>为什么不用系统代理设置？</h3>
+      <h3>为什么不支持代理链？</h3>
       <ul>
-        <li>✅ 明确指定更可控</li>
-        <li>✅ 避免影响其他程序</li>
-        <li>✅ 支持代理链</li>
+        <li>fscan是单次扫描工具，不需要复杂的代理链</li>
+        <li>如需代理链，用proxychains等专用工具包装fscan</li>
+        <li>减少复杂性，保持简单</li>
+      </ul>
+
+      <h3>为什么没有代理池？</h3>
+      <ul>
+        <li>单个代理已经满足大多数需求</li>
+        <li>代理池需要健康检查、失败重试等复杂逻辑</li>
+        <li>增加不必要的复杂性</li>
       </ul>
     `,
   },
@@ -2614,87 +2591,118 @@ http://username:password@proxy:8080</code></pre>
     description: '多语言支持',
     icon: 'mdi:translate',
     content: `
-      <h2>设计目标</h2>
-      <p>国际化系统提供多语言支持：</p>
+      <h2>核心设计：Manager单例</h2>
+      <p>独立的i18n包（<code>common/i18n/</code>），提供运行时语言切换：</p>
       <ul>
-        <li><strong>多语言</strong>：中文、英文</li>
-        <li><strong>动态切换</strong>：运行时切换语言</li>
-        <li><strong>易扩展</strong>：添加新语言简单</li>
-        <li><strong>零开销</strong>：不使用时零性能影响</li>
+        <li><strong>manager.go</strong> - 国际化管理器</li>
+        <li><strong>init.go</strong> - 初始化和语言数据</li>
       </ul>
 
-      <h2>i18n 架构</h2>
+      <h2>Manager结构（<code>i18n/manager.go:36</code>）</h2>
 
-      <h3>翻译键值对</h3>
-      <pre><code>// zh-CN
-{
-  "scan.start": "开始扫描",
-  "scan.complete": "扫描完成",
-  "error.network": "网络错误"
+      <pre><code>type Manager struct {
+    mu               sync.RWMutex
+    currentLanguage  string
+    fallbackLanguage string
+    messages         map[string]map[string]string  // lang -> key -> text
+    enabled          bool
 }
 
-// en-US
-{
-  "scan.start": "Start scanning",
-  "scan.complete": "Scan complete",
-  "error.network": "Network error"
+var globalManager = NewManager()
+
+func GetText(key string) string {
+    return globalManager.GetText(key)
+}
+
+func GetTextF(key string, args ...interface{}) string {
+    text := globalManager.GetText(key)
+    return fmt.Sprintf(text, args...)
 }</code></pre>
 
-      <h3>翻译函数</h3>
-      <pre><code>func T(key string, args ...interface{}) string {
-    text := i18n.Get(key)
-    return fmt.Sprintf(text, args...)
+      <h2>语言数据：Go代码硬编码</h2>
+
+      <h3>为什么不用JSON文件？</h3>
+      <pre><code>// init.go 中直接定义
+func init() {
+    globalManager.RegisterMessages("zh", map[string]string{
+        "scan_start": "开始扫描",
+        "scan_complete": "扫描完成 %d/%d",
+        "error_network": "网络错误: %v",
+    })
+
+    globalManager.RegisterMessages("en", map[string]string{
+        "scan_start": "Start scanning",
+        "scan_complete": "Scan complete %d/%d",
+        "error_network": "Network error: %v",
+    })
+}</code></pre>
+
+      <h3>优势</h3>
+      <ul>
+        <li>✅ 无需运行时读取文件</li>
+        <li>✅ 编译期检查翻译键</li>
+        <li>✅ 无embed开销</li>
+        <li>✅ 单文件部署</li>
+      </ul>
+
+      <h2>语言切换（<code>i18n/manager.go:62</code>）</h2>
+
+      <pre><code>func SetLanguage(lang string) {
+    globalManager.SetLanguage(lang)
 }
 
-// 使用
-log.Info(T("scan.start"))
-log.Info(T("scan.progress", completed, total))</code></pre>
+// 从命令行参数
+if common.Language == "zh" {
+    i18n.SetLanguage("zh")
+} else {
+    i18n.SetLanguage("en")
+}</code></pre>
 
-      <h2>语言检测</h2>
+      <h3>回退机制</h3>
+      <pre><code>func (m *Manager) GetText(key string) string {
+    // 1. 尝试当前语言
+    if text, ok := m.messages[m.currentLanguage][key]; ok {
+        return text
+    }
 
-      <h3>自动检测</h3>
-      <ol>
-        <li>检查 <code>--lang</code> 参数</li>
-        <li>检查环境变量 <code>LANG</code></li>
-        <li>检查系统语言</li>
-        <li>默认使用英文</li>
-      </ol>
+    // 2. 回退到fallback语言（英文）
+    if text, ok := m.messages[m.fallbackLanguage][key]; ok {
+        return text
+    }
 
-      <h3>手动指定</h3>
-      <pre><code>fscan --lang zh-CN
-fscan --lang en-US</code></pre>
+    // 3. 返回key本身
+    return key
+}</code></pre>
 
-      <h2>翻译文件组织</h2>
+      <h2>使用示例</h2>
 
-      <h3>文件结构</h3>
-      <pre><code>i18n/
-├── zh-CN.json
-├── en-US.json
-└── ja-JP.json  // 未来扩展</code></pre>
+      <pre><code>// 简单文本
+common.LogBase(i18n.GetText("scan_start"))
 
-      <h3>分模块翻译</h3>
-      <ul>
-        <li><strong>通用</strong>：common.*</li>
-        <li><strong>扫描</strong>：scan.*</li>
-        <li><strong>错误</strong>：error.*</li>
-        <li><strong>插件</strong>：plugin.*</li>
-      </ul>
+// 带参数的文本
+common.LogInfo(i18n.GetTextF("scan_complete", completed, total))
+
+// 错误信息
+common.LogError(i18n.GetTextF("error_network", err))</code></pre>
 
       <h2>设计权衡</h2>
 
-      <h3>为什么不用 i18n 库？</h3>
+      <h3>为什么默认中文？</h3>
+      <pre><code>const (
+    DefaultLanguage  = "zh"  // 默认中文
+    FallbackLanguage = "en"  // 回退英文
+)</code></pre>
       <ul>
-        <li>✅ 翻译需求简单</li>
-        <li>✅ 减少依赖</li>
-        <li>✅ 100 行代码实现</li>
-        <li>❌ 缺点：不支持复数、日期格式化</li>
+        <li>fscan主要面向中文用户</li>
+        <li>减少中文用户的配置成本</li>
+        <li>英文用户可以通过<code>-lang en</code>切换</li>
       </ul>
 
-      <h3>为什么默认英文？</h3>
+      <h3>为什么不支持复数和时间格式化？</h3>
       <ul>
-        <li>✅ 国际化标准</li>
-        <li>✅ 便于全球用户使用</li>
-        <li>✅ 英文更简洁</li>
+        <li>fscan的文本很简单，不需要复杂的i18n特性</li>
+        <li>fmt.Sprintf已经足够</li>
+        <li>保持简单，避免引入复杂库</li>
       </ul>
     `,
   },
@@ -2703,129 +2711,121 @@ fscan --lang en-US</code></pre>
     description: 'Web 和端口指纹识别',
     icon: 'mdi:fingerprint',
     content: `
-      <h2>设计目标</h2>
-      <p>指纹识别系统通过特征匹配识别服务和应用：</p>
+      <h2>核心实现：正则+MD5</h2>
+      <p>Web指纹识别（<code>webscan/fingerprint_scanner.go</code>），使用简单直接的规则匹配：</p>
       <ul>
-        <li><strong>准确性</strong>：减少误报和漏报</li>
-        <li><strong>覆盖面</strong>：支持主流服务和应用</li>
-        <li><strong>可扩展</strong>：易于添加新指纹</li>
-        <li><strong>性能</strong>：快速匹配</li>
+        <li><strong>正则匹配</strong> - 匹配Header和Body内容</li>
+        <li><strong>MD5指纹</strong> - 匹配响应体MD5哈希</li>
       </ul>
 
-      <h2>指纹类型</h2>
+      <h2>InfoCheck函数（<code>fingerprint_scanner.go:19</code>）</h2>
 
-      <h3>1. 端口指纹</h3>
-      <p>基于端口号的快速识别：</p>
-      <ul>
-        <li>80, 8080 → HTTP</li>
-        <li>443, 8443 → HTTPS</li>
-        <li>22 → SSH</li>
-        <li>3306 → MySQL</li>
-      </ul>
+      <pre><code>func InfoCheck(Url string, CheckData *[]CheckDatas) []string {
+    var matchedInfos []string
 
-      <h3>2. Banner 指纹</h3>
-      <p>基于服务 Banner 的识别：</p>
-      <pre><code>SSH-2.0-OpenSSH_7.4 → OpenSSH 7.4
-220 FTP Server → FTP
-MySQL Handshake → MySQL</code></pre>
+    for _, data := range *CheckData {
+        // 正则规则匹配
+        matchedInfos = append(matchedInfos, matchByRegex(data)...)
 
-      <h3>3. HTTP 指纹</h3>
-      <p>基于 HTTP 特征的识别：</p>
-      <ul>
-        <li><strong>响应头</strong>：Server、X-Powered-By</li>
-        <li><strong>HTML 内容</strong>：特定标签、关键字</li>
-        <li><strong>Favicon</strong>：图标哈希</li>
-        <li><strong>URL 路径</strong>：特征路径</li>
-      </ul>
+        // MD5指纹匹配
+        if md5Name := matchByMd5(data.Body); md5Name != "" {
+            matchedInfos = append(matchedInfos, md5Name)
+        }
+    }
 
-      <h2>指纹匹配引擎</h2>
+    // 去重
+    matchedInfos = removeDuplicateElement(matchedInfos)
 
-      <h3>匹配规则</h3>
-      <pre><code>type Fingerprint struct {
-    Name      string
-    Category  string
-    Match     []MatchRule
+    return matchedInfos
+}</code></pre>
+
+      <h2>正则匹配（<code>fingerprint_scanner.go:46</code>）</h2>
+
+      <h3>指纹规则结构</h3>
+      <pre><code>type RuleData struct {
+    Name  string  // 指纹名称
+    Type  string  // "code"（Body）或 "header"
+    Rule  string  // 正则表达式
 }
 
-type MatchRule struct {
-    Type    string  // header, body, favicon
-    Pattern string  // 正则或字符串
-    Weight  int     // 权重
+// 示例指纹规则
+{
+    Name: "WordPress",
+    Type: "code",
+    Rule: "wp-content"
 }</code></pre>
 
-      <h3>加权匹配</h3>
-      <p>多个规则匹配，累计权重：</p>
-      <pre><code>Server: Apache → +50
-Body contains "WordPress" → +30
-/wp-admin/ exists → +20
-Total: 100 → WordPress</code></pre>
+      <h3>匹配逻辑</h3>
+      <pre><code>func matchByRegex(data CheckDatas) []string {
+    var matched []string
 
-      <h2>Favicon 哈希</h2>
+    for _, rule := range fingerprint.RuleDatas {
+        var isMatch bool
+        switch rule.Type {
+        case "code":
+            isMatch, _ = regexp.MatchString(rule.Rule, string(data.Body))
+        default:
+            isMatch, _ = regexp.MatchString(rule.Rule, data.Headers)
+        }
 
-      <h3>原理</h3>
-      <ol>
-        <li>下载 /favicon.ico</li>
-        <li>计算 MD5/MurmurHash</li>
-        <li>与指纹库比对</li>
-      </ol>
-
-      <h3>优势</h3>
-      <ul>
-        <li>唯一性高</li>
-        <li>难以伪造</li>
-        <li>快速匹配</li>
-      </ul>
-
-      <h2>指纹库管理</h2>
-
-      <h3>指纹格式</h3>
-      <pre><code>{
-  "name": "WordPress",
-  "category": "CMS",
-  "matches": [
-    {
-      "type": "body",
-      "pattern": "wp-content",
-      "weight": 30
-    },
-    {
-      "type": "header",
-      "pattern": "X-Powered-By: PHP",
-      "weight": 20
+        if isMatch {
+            matched = append(matched, rule.Name)
+        }
     }
-  ]
+    return matched
 }</code></pre>
 
-      <h3>指纹更新</h3>
+      <h2>MD5指纹（<code>fingerprint_scanner.go:75</code>）</h2>
+
+      <h3>为什么用MD5？</h3>
+      <pre><code>func matchByMd5(body []byte) string {
+    contentMd5 := fmt.Sprintf("%x", md5.Sum(body))
+
+    for _, md5Info := range fingerprint.Md5Datas {
+        if contentMd5 == md5Info.Md5Str {
+            return md5Info.Name
+        }
+    }
+    return ""
+}</code></pre>
+
       <ul>
-        <li>在线更新指纹库</li>
-        <li>本地缓存</li>
-        <li>支持自定义指纹</li>
+        <li>✅ 快速匹配（哈希查表）</li>
+        <li>✅ 唯一性高（整个Body的哈希）</li>
+        <li>✅ 常用于静态资源指纹（如favicon）</li>
+        <li>⚠️ MD5仅用于指纹识别，非加密用途</li>
       </ul>
 
-      <h2>性能优化</h2>
+      <h2>指纹库（<code>webscan/fingerprint/</code>）</h2>
 
-      <h3>1. 快速路径</h3>
-      <p>端口指纹优先：</p>
-      <pre><code>80 → 快速识别为 HTTP
-→ 跳过大部分其他指纹</code></pre>
+      <pre><code>// RuleDatas - 正则规则数据库
+var RuleDatas = []RuleData{
+    {Name: "WordPress", Type: "code", Rule: "wp-content"},
+    {Name: "Joomla", Type: "code", Rule: "/components/com_"},
+    {Name: "Drupal", Type: "header", Rule: "X-Drupal-Cache"},
+    // ...
+}
 
-      <h3>2. 惰性匹配</h3>
-      <p>高权重规则优先：</p>
-      <pre><code>匹配 Server 头 → 权重 50
-权重已达阈值 → 停止匹配</code></pre>
-
-      <h3>3. 缓存结果</h3>
-      <p>相同目标不重复识别</p>
+// Md5Datas - MD5指纹数据库
+var Md5Datas = []Md5Data{
+    {Name: "Apache Tomcat", Md5Str: "4644f2d45601037b8423d45e13194c93"},
+    // ...
+}</code></pre>
 
       <h2>设计权衡</h2>
 
-      <h3>为什么不用机器学习？</h3>
+      <h3>为什么不用加权匹配？</h3>
       <ul>
-        <li>✅ 规则匹配可解释性强</li>
-        <li>✅ 不需要训练数据</li>
-        <li>✅ 实时性好</li>
-        <li>❌ 缺点：需要手动维护指纹库</li>
+        <li>简单的规则匹配已经足够准确</li>
+        <li>加权匹配增加复杂性但收益有限</li>
+        <li>去重处理避免重复指纹</li>
+      </ul>
+
+      <h3>为什么不用MurmurHash？</h3>
+      <ul>
+        <li>MD5已经满足指纹识别需求</li>
+        <li>Go标准库自带MD5（crypto/md5）</li>
+        <li>指纹库使用MD5，保持兼容</li>
       </ul>
     `,
   },
@@ -2834,148 +2834,90 @@ Total: 100 → WordPress</code></pre>
     description: 'POC 漏洞检测引擎',
     icon: 'mdi:bug-check',
     content: `
-      <h2>设计目标</h2>
-      <p>POC 检测系统自动化验证已知漏洞：</p>
+      <h2>POC系统已在Web扫描中实现</h2>
+      <p>POC检测功能是Web扫描模块的一部分（<code>webscan/</code>），详见"Web扫描"文档：</p>
       <ul>
-        <li><strong>准确性</strong>：低误报率</li>
-        <li><strong>安全性</strong>：不破坏目标系统</li>
-        <li><strong>可扩展</strong>：易于添加新 POC</li>
-        <li><strong>可控性</strong>：支持选择性执行</li>
+        <li><strong>POC嵌入</strong>：embed.FS编译期嵌入YAML POC</li>
+        <li><strong>指纹触发</strong>：基于服务指纹自动选择POC</li>
+        <li><strong>并发执行</strong>：common.PocNum控制并发数</li>
       </ul>
 
-      <h2>POC 定义</h2>
+      <h2>核心流程（<code>webscan/web_scan.go:74</code>）</h2>
 
-      <h3>POC 结构</h3>
-      <pre><code>type POC struct {
-    ID          string
-    Name        string
-    Severity    string  // critical, high, medium, low
-    Target      string  // 适用目标
-    Request     Request
-    Verify      VerifyFunc
-}</code></pre>
+      <pre><code>func WebScan(info *common.HostInfo) {
+    // 初始化POC
+    once.Do(initPocs)
 
-      <h3>POC 示例</h3>
-      <pre><code>{
-  "id": "CVE-2021-44228",
-  "name": "Log4j RCE",
-  "severity": "critical",
-  "target": "java",
-  "request": {
-    "method": "GET",
-    "path": "/",
-    "headers": {
-      "User-Agent": "\${jndi:ldap://...}"
+    // 构建目标URL
+    target, _ := buildTargetURL(info)
+
+    // 根据扫描策略执行POC
+    if len(info.Info) > 0 {
+        // 基于指纹信息执行POC
+        scanByFingerprints(ctx, target, info.Info)
+    } else if common.Pocinfo.PocName != "" {
+        // 基于指定POC名称执行
+        executePOCs(ctx, config.PocInfo{Target: target, PocName: "shiro"})
+    } else {
+        // 执行所有POC
+        executePOCs(ctx, config.PocInfo{Target: target})
     }
-  },
-  "verify": {
-    "type": "dnslog",
-    "contains": "request received"
-  }
 }</code></pre>
 
-      <h2>POC 执行引擎</h2>
+      <h2>POC加载（<code>webscan/web_scan.go:182</code>）</h2>
 
-      <h3>执行流程</h3>
-      <ol>
-        <li>指纹识别（如 Struts2）</li>
-        <li>筛选对应 POC</li>
-        <li>按严重性排序</li>
-        <li>依次执行 POC</li>
-        <li>验证漏洞存在</li>
-      </ol>
+      <pre><code>//go:embed pocs
+var pocsFS embed.FS
 
-      <h3>执行控制</h3>
-      <ul>
-        <li><strong>严重性过滤</strong>：只执行高危 POC</li>
-        <li><strong>POC 选择</strong>：<code>--poc CVE-2021-44228</code></li>
-        <li><strong>POC 排除</strong>：<code>--exclude-poc SQL</code></li>
-      </ul>
+func initPocs() {
+    allPocs = make([]*lib.Poc, 0, 256)
 
-      <h2>验证方法</h2>
+    if common.PocPath == "" {
+        loadEmbeddedPocs()  // 内置POC
+    } else {
+        loadExternalPocs(common.PocPath)  // 外部POC目录
+    }
+}</code></pre>
 
-      <h3>1. 响应验证</h3>
-      <ul>
-        <li><strong>关键字</strong>：响应包含特定字符串</li>
-        <li><strong>状态码</strong>：200 vs 500</li>
-        <li><strong>响应长度</strong>：长度差异</li>
-      </ul>
+      <h2>YAML POC格式</h2>
 
-      <h3>2. DNSLog 验证</h3>
-      <p>利用 DNSLog 平台验证：</p>
-      <ol>
-        <li>生成唯一域名：<code>xxx.dnslog.cn</code></li>
-        <li>Payload 包含该域名</li>
-        <li>检查是否收到 DNS 请求</li>
-      </ol>
+      <pre><code>name: Apache Shiro反序列化
+rules:
+  - method: GET
+    path: /
+    headers:
+      Cookie: rememberMe=\${jndi:ldap://...}
+    expression: response.status == 200</code></pre>
 
-      <h3>3. 时间盲注验证</h3>
-      <pre><code>sleep(5) → 响应时间 > 5s → 漏洞存在</code></pre>
+      <h2>POC执行（<code>webscan/web_scan.go:160</code>）</h2>
 
-      <h2>安全措施</h2>
+      <pre><code>func executePOCs(ctx context.Context, pocInfo config.PocInfo) {
+    // 创建HTTP请求
+    req, _ := createBaseRequest(ctx, pocInfo.Target)
 
-      <h3>只读 POC</h3>
-      <ul>
-        <li>不执行写操作</li>
-        <li>不上传 Shell</li>
-        <li>不修改数据</li>
-      </ul>
+    // 筛选POC
+    matchedPocs := filterPocs(pocInfo.PocName)
 
-      <h3>限速和超时</h3>
-      <ul>
-        <li><strong>单个 POC 超时</strong>：10 秒</li>
-        <li><strong>POC 间隔</strong>：1 秒</li>
-        <li>避免触发 WAF</li>
-      </ul>
-
-      <h2>POC 库管理</h2>
-
-      <h3>POC 来源</h3>
-      <ul>
-        <li>内置 POC（高质量）</li>
-        <li>在线 POC 库</li>
-        <li>用户自定义 POC</li>
-      </ul>
-
-      <h3>POC 更新</h3>
-      <pre><code>fscan --update-poc</code></pre>
-
-      <h2>并发控制</h2>
-
-      <h3>POC 并发</h3>
-      <p>不同目标的 POC 可并发：</p>
-      <ul>
-        <li>目标 A 的 POC 和目标 B 的 POC 并发</li>
-        <li>同一目标的 POC 串行（避免干扰）</li>
-      </ul>
-
-      <h2>结果输出</h2>
-
-      <h3>漏洞信息</h3>
-      <pre><code>[+] Vulnerability Found
-Host: 192.168.1.1:8080
-POC: CVE-2021-44228
-Severity: Critical
-Payload: \${jndi:ldap://...}
-Verify: DNSLog received</code></pre>
+    // 并发执行POC检测
+    lib.CheckMultiPoc(req, matchedPocs, common.PocNum)
+}</code></pre>
 
       <h2>设计权衡</h2>
 
-      <h3>为什么不集成 Xray/Nuclei？</h3>
+      <h3>为什么POC不是独立模块？</h3>
       <ul>
-        <li>✅ 内置 POC 更快</li>
-        <li>✅ 可以精确控制</li>
-        <li>✅ 减少依赖</li>
-        <li>❌ 缺点：POC 数量少</li>
+        <li>POC检测依赖HTTP客户端和指纹识别</li>
+        <li>集成到Web扫描模块更自然</li>
+        <li>避免模块间复杂依赖</li>
       </ul>
 
-      <h3>为什么默认不执行 POC？</h3>
+      <h3>为什么用YAML不用Go代码？</h3>
       <ul>
-        <li>✅ POC 有风险</li>
-        <li>✅ 增加扫描时间</li>
-        <li>✅ 用户主动选择更安全</li>
+        <li>✅ 非开发人员也能编写POC</li>
+        <li>✅ 无需重新编译即可添加POC</li>
+        <li>✅ 支持外部POC目录（-pocpath）</li>
+        <li>✅ 社区共享POC更方便</li>
       </ul>
-      <p>提供 <code>--poc</code> 参数启用 POC 检测</p>
     `,
   },
   faq: {
