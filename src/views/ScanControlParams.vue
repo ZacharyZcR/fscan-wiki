@@ -7,8 +7,8 @@
       </div>
     </CardHeader>
     <CardContent>
-      <!-- 扫描插件选择器 -->
-      <div class="mb-10">
+      <!-- 扫描插件选择器 - 仅在主机扫描模式显示 -->
+      <div v-if="scanMode === 'host'" class="mb-10">
         <div class="mb-4 flex items-center justify-between">
           <label class="text-lg font-medium">扫描插件选择 (-m)</label>
           <div class="flex space-x-2">
@@ -156,7 +156,8 @@
       </div>
 
       <!-- 线程和超时设置 -->
-      <div class="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2">
+      <!-- 扫描控制参数 - 仅在主机扫描模式显示 -->
+      <div v-if="scanMode === 'host'" class="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2">
         <!-- 线程数量 -->
         <div>
           <label class="mb-3 flex justify-between text-lg font-medium">
@@ -205,7 +206,7 @@
         </div>
       </div>
 
-      <div class="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2">
+      <div v-if="scanMode === 'host'" class="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2">
         <!-- 模块线程数 -->
         <div>
           <label class="mb-3 flex justify-between text-lg font-medium">
@@ -285,8 +286,8 @@
         </div>
       </div>
 
-      <!-- 本地插件和发包控制 -->
-      <div class="mb-8 grid grid-cols-1 gap-6">
+      <!-- 本地插件配置 - 仅在本地扫描模式显示 -->
+      <div v-if="scanMode === 'local'" class="mb-8">
         <!-- 本地插件名称 -->
         <div>
           <label class="mb-3 block text-lg font-medium">本地插件 (-local)</label>
@@ -301,7 +302,7 @@
           </div>
 
           <!-- 本地插件快速选择 -->
-          <div v-if="scanMode === 'local'" class="mt-4">
+          <div class="mt-4">
             <label class="mb-2 block text-sm font-medium text-muted-foreground">可用本地插件（点击选择）</label>
             <div class="grid grid-cols-2 gap-2 md:grid-cols-4 lg:grid-cols-6">
               <button
@@ -324,7 +325,7 @@
           </div>
 
           <!-- 本地插件配置参数 -->
-          <div v-if="scanMode === 'local' && params.local" class="mt-6">
+          <div v-if="params.local" class="mt-6">
             <div class="rounded-lg border border-primary/20 bg-primary/5 p-4">
               <h3 class="mb-4 flex items-center text-lg font-medium">
                 <Icon icon="mdi:cog" class="mr-2 text-xl text-primary" />
@@ -441,43 +442,43 @@
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- 发包控制 -->
-        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-          <!-- 发包速率限制 -->
-          <div>
-            <label class="mb-3 block text-lg font-medium">发包速率 (-rate)</label>
-            <input
-              v-model.number="params.rate"
-              type="number"
-              min="0"
-              placeholder="每分钟最大发包数"
-              class="w-full rounded-lg border border-input bg-background px-4 py-3 text-base outline-none transition-colors focus:border-ring"
-            />
-            <div class="mt-2 text-sm text-muted-foreground">
-              0 表示无限制
-            </div>
+      <!-- 发包控制 - 仅在主机扫描模式显示 -->
+      <div v-if="scanMode === 'host'" class="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2">
+        <!-- 发包速率限制 -->
+        <div>
+          <label class="mb-3 block text-lg font-medium">发包速率 (-rate)</label>
+          <input
+            v-model.number="params.rate"
+            type="number"
+            min="0"
+            placeholder="每分钟最大发包数"
+            class="w-full rounded-lg border border-input bg-background px-4 py-3 text-base outline-none transition-colors focus:border-ring"
+          />
+          <div class="mt-2 text-sm text-muted-foreground">
+            0 表示无限制
           </div>
+        </div>
 
-          <!-- 最大发包总数 -->
-          <div>
-            <label class="mb-3 block text-lg font-medium">最大发包数 (-maxpkts)</label>
-            <input
-              v-model.number="params.maxpkts"
-              type="number"
-              min="0"
-              placeholder="整个程序最大发包总数"
-              class="w-full rounded-lg border border-input bg-background px-4 py-3 text-base outline-none transition-colors focus:border-ring"
-            />
-            <div class="mt-2 text-sm text-muted-foreground">
-              0 表示无限制
-            </div>
+        <!-- 最大发包总数 -->
+        <div>
+          <label class="mb-3 block text-lg font-medium">最大发包数 (-maxpkts)</label>
+          <input
+            v-model.number="params.maxpkts"
+            type="number"
+            min="0"
+            placeholder="整个程序最大发包总数"
+            class="w-full rounded-lg border border-input bg-background px-4 py-3 text-base outline-none transition-colors focus:border-ring"
+          />
+          <div class="mt-2 text-sm text-muted-foreground">
+            0 表示无限制
           </div>
         </div>
       </div>
 
-      <!-- 扫描控制选项 -->
-      <div class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+      <!-- 扫描控制选项 - 仅在主机扫描模式显示 -->
+      <div v-if="scanMode === 'host'" class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
         <div
           v-for="(option, key) in scanControlOptions"
           :key="key"
