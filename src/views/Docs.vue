@@ -2151,87 +2151,111 @@ func NewAVDetectPlugin() *AVDetectPlugin {
     description: '全局配置管理',
     icon: 'mdi:cog-outline',
     content: `
-      <h2>设计目标</h2>
-      <p>配置系统管理 fscan 的运行参数和全局状态：</p>
+      <h2>核心设计：全局变量</h2>
+      <p>fscan使用最简单的配置方式：直接的全局变量（<code>common/globals.go</code>）：</p>
       <ul>
-        <li><strong>集中管理</strong>：所有配置项在一个地方</li>
-        <li><strong>类型安全</strong>：编译时检查配置项类型</li>
-        <li><strong>默认值</strong>：提供合理的默认配置</li>
-        <li><strong>验证</strong>：配置项合法性检查</li>
+        <li><strong>无Config结构体</strong>：没有统一的配置对象</li>
+        <li><strong>直接全局变量</strong>：每个配置项独立的var声明</li>
+        <li><strong>flag包解析</strong>：使用Go标准库flag解析命令行</li>
+        <li><strong>无配置文件</strong>：不支持YAML/JSON配置文件</li>
       </ul>
 
-      <h2>配置结构设计</h2>
+      <h2>配置变量分组（<code>common/globals.go</code>）</h2>
 
-      <h3>分组管理</h3>
-      <pre><code>type Config struct {
-    Target    TargetConfig
-    Scan      ScanConfig
-    Auth      AuthConfig
-    Output    OutputConfig
-    Proxy     ProxyConfig
+      <h3>核心扫描配置</h3>
+      <pre><code>var (
+    ScanMode        string = "all"     // 扫描模式
+    ThreadNum       int    = 600       // 主线程数
+    ModuleThreadNum int    = 10        // 模块线程数
+    Timeout         int64  = 3         // 超时时间
+    DisablePing     bool   = false     // 禁用ping
+    LocalMode       bool   = false     // 本地模式
+    LocalPlugin     string             // 本地插件选择
+    AliveOnly       bool               // 仅存活检测
+    DisableBrute    bool               // 禁用暴力破解
+    MaxRetries      int    = 3         // 最大重试次数
+)</code></pre>
+
+      <h3>认证相关配置</h3>
+      <pre><code>var (
+    Username      string                  // 用户名
+    Password      string                  // 密码
+    Domain        string                  // 域
+    Userdict      map[string][]string     // 用户字典
+    Passwords     []string                // 密码列表
+    UserPassPairs []config.CredentialPair // 用户密码对
+)</code></pre>
+
+      <h3>网络配置</h3>
+      <pre><code>var (
+    HttpProxy       string      // HTTP代理
+    Socks5Proxy     string      // SOCKS5代理
+    WebTimeout      int64  = 5  // Web超时时间
+    MaxRedirects    int    = 10 // HTTP最大重定向次数
+)</code></pre>
+
+      <h2>命令行解析（<code>common/flag.go</code>）</h2>
+
+      <h3>使用Go标准库flag</h3>
+      <pre><code>func Flag(Info *HostInfo) {
+    // 目标配置
+    flag.StringVar(&Info.Host, "h", "", "目标IP")
+    flag.StringVar(&HostsFile, "hf", "", "主机文件")
+
+    // 扫描配置
+    flag.IntVar(&ThreadNum, "t", 600, "线程数")
+    flag.Int64Var(&Timeout, "timeout", 3, "超时时间")
+
+    // 认证配置
+    flag.StringVar(&Username, "user", "", "用户名")
+    flag.StringVar(&Password, "pwd", "", "密码")
+
+    flag.Parse()
 }</code></pre>
 
-      <h3>配置来源优先级</h3>
-      <ol>
-        <li><strong>命令行参数</strong>：最高优先级</li>
-        <li><strong>配置文件</strong>：次优先级</li>
-        <li><strong>默认值</strong>：最低优先级</li>
-      </ol>
-
-      <h2>配置验证</h2>
-
-      <h3>合法性检查</h3>
+      <h3>为什么用flag而不是cobra？</h3>
       <ul>
-        <li><strong>范围检查</strong>：线程数 1-1000</li>
-        <li><strong>格式检查</strong>：IP、端口格式</li>
-        <li><strong>依赖检查</strong>：某些选项相互依赖</li>
-        <li><strong>冲突检查</strong>：某些选项互斥</li>
+        <li>✅ Go标准库，零依赖</li>
+        <li>✅ 足够简单，满足需求</li>
+        <li>✅ 减小二进制体积</li>
+        <li>❌ 缺点：不支持子命令</li>
       </ul>
 
-      <h3>错误提示</h3>
-      <p>配置错误时给出明确提示：</p>
-      <pre><code>Error: invalid thread count: 0
-Valid range: 1-1000
-Default value: 600</code></pre>
+      <h2>默认值常量</h2>
 
-      <h2>配置持久化</h2>
+      <h3>编译期常量（<code>common/globals.go:36</code>）</h3>
+      <pre><code>const (
+    DefaultThreadNum = 600    // 默认线程数
+    DefaultTimeout   = 3      // 默认超时时间(秒)
+    DefaultScanMode  = "all"  // 默认扫描模式
+    DefaultLanguage  = "zh"   // 默认语言
+    DefaultLogLevel  = "base" // 默认日志级别
+)</code></pre>
 
-      <h3>配置文件格式</h3>
-      <p>使用 YAML 格式：</p>
-      <pre><code>scan:
-  threads: 600
-  timeout: 3
-auth:
-  username: admin
-  password: password123
-output:
-  file: result.txt
-  format: text</code></pre>
-
-      <h3>配置文件位置</h3>
-      <ul>
-        <li><code>./fscan.yaml</code>：当前目录</li>
-        <li><code>~/.fscan/config.yaml</code>：用户目录</li>
-        <li><code>--config</code>：自定义路径</li>
-      </ul>
-
-      <h2>全局访问</h2>
-
-      <h3>单例模式</h3>
-      <p>配置对象全局唯一：</p>
-      <pre><code>var GlobalConfig *Config
-
-func GetConfig() *Config {
-    return GlobalConfig
-}</code></pre>
+      <h3>变量初始化</h3>
+      <pre><code>var (
+    ThreadNum int = DefaultThreadNum
+    Timeout   int64 = DefaultTimeout
+    ScanMode  string = DefaultScanMode
+)</code></pre>
 
       <h2>设计权衡</h2>
 
-      <h3>为什么不用 Viper？</h3>
+      <h3>为什么不用Config结构体？</h3>
       <ul>
-        <li>✅ 减少依赖</li>
-        <li>✅ 配置结构简单，不需要复杂功能</li>
-        <li>❌ 缺点：需要自己实现配置合并</li>
+        <li>✅ 更简单：直接访问全局变量 <code>common.ThreadNum</code></li>
+        <li>✅ 无需传递：避免到处传Config指针</li>
+        <li>✅ 更直接：flag直接绑定到变量</li>
+        <li>❌ 缺点：难以单元测试（全局状态）</li>
+        <li>❌ 缺点：无法运行时切换配置</li>
+      </ul>
+
+      <h3>为什么不支持配置文件？</h3>
+      <ul>
+        <li>fscan是单次扫描工具，不是守护进程</li>
+        <li>命令行参数已经足够灵活</li>
+        <li>减少依赖（不需要yaml/toml解析库）</li>
+        <li>如果需要保存配置，用shell alias或脚本</li>
       </ul>
     `,
   },
@@ -2240,115 +2264,203 @@ func GetConfig() *Config {
     description: '输入解析和验证',
     icon: 'mdi:code-braces',
     content: `
-      <h2>设计目标</h2>
-      <p>解析系统负责将用户输入转换为内部数据结构：</p>
+      <h2>核心设计：独立parsers包</h2>
+      <p>完整的解析系统（<code>common/parsers/</code>），负责所有输入解析和验证：</p>
       <ul>
-        <li><strong>灵活性</strong>：支持多种输入格式</li>
-        <li><strong>容错性</strong>：处理格式错误</li>
-        <li><strong>效率</strong>：快速解析大文件</li>
-        <li><strong>验证</strong>：输入合法性检查</li>
+        <li><strong>target.go</strong> - 目标解析（IP/CIDR/域名）</li>
+        <li><strong>network.go</strong> - 端口解析</li>
+        <li><strong>credential.go</strong> - 凭据解析</li>
+        <li><strong>file.go</strong> - 文件读取</li>
+        <li><strong>validation.go</strong> - 输入验证</li>
       </ul>
 
-      <h2>目标解析</h2>
+      <h2>目标解析（<code>parsers/target.go</code>）</h2>
 
-      <h3>支持的格式</h3>
-      <ul>
-        <li><strong>单个 IP</strong>：192.168.1.1</li>
-        <li><strong>CIDR</strong>：192.168.1.0/24</li>
-        <li><strong>IP 范围</strong>：192.168.1.1-192.168.1.254</li>
-        <li><strong>域名</strong>：example.com</li>
-        <li><strong>文件</strong>：targets.txt（每行一个目标）</li>
-      </ul>
+      <h3>TargetParser结构</h3>
+      <pre><code>type TargetParser struct {
+    fileReader *FileReader
+    ipRegex    *regexp.Regexp
+    portRegex  *regexp.Regexp
+    urlRegex   *regexp.Regexp
+    options    *TargetParserOptions
+}
 
-      <h3>CIDR 展开</h3>
-      <p>将 CIDR 转换为 IP 列表：</p>
-      <pre><code>192.168.1.0/24 → 192.168.1.1 - 192.168.1.254
-10.0.0.0/8     → 10.0.0.1 - 10.255.255.254</code></pre>
-
-      <h3>域名解析</h3>
-      <ul>
-        <li>DNS 查询 A 记录</li>
-        <li>支持多个 IP（CDN）</li>
-        <li>DNS 超时处理</li>
-      </ul>
-
-      <h2>端口解析</h2>
-
-      <h3>支持的格式</h3>
-      <ul>
-        <li><strong>单个端口</strong>：80</li>
-        <li><strong>端口列表</strong>：80,443,3306</li>
-        <li><strong>端口范围</strong>：8080-8090</li>
-        <li><strong>混合</strong>：80,443,8000-9000</li>
-        <li><strong>全端口</strong>：- 或 1-65535</li>
-      </ul>
-
-      <h3>端口去重和排序</h3>
-      <pre><code>输入: 80,443,80,8080-8082,443
-输出: [80, 443, 8080, 8081, 8082]</code></pre>
-
-      <h2>凭据解析</h2>
-
-      <h3>用户名密码对</h3>
-      <p>支持多种格式：</p>
-      <ul>
-        <li><strong>单个</strong>：<code>-user admin -pwd password</code></li>
-        <li><strong>文件</strong>：<code>-userf users.txt -pwdf passwords.txt</code></li>
-        <li><strong>组合</strong>：<code>-upf combo.txt</code>（user:pass 格式）</li>
-      </ul>
-
-      <h3>组合生成</h3>
-      <p>用户名和密码笛卡尔积：</p>
-      <pre><code>users: [admin, root]
-passwords: [123456, password]
-→ [admin:123456, admin:password, root:123456, root:password]</code></pre>
-
-      <h2>文件解析</h2>
-
-      <h3>行处理</h3>
-      <ul>
-        <li>跳过空行</li>
-        <li>跳过注释（# 开头）</li>
-        <li>去除首尾空白</li>
-        <li>自动检测编码（UTF-8、GBK）</li>
-      </ul>
-
-      <h3>大文件优化</h3>
-      <p>流式读取，避免内存耗尽：</p>
-      <pre><code>scanner := bufio.NewScanner(file)
-for scanner.Scan() {
-    process(scanner.Text())
+type TargetParserOptions struct {
+    MaxTargets      int  // 最大目标数
+    MaxPortRange    int  // 最大端口范围
+    AllowPrivateIPs bool // 允许私网IP
+    AllowLoopback   bool // 允许回环地址
+    ValidateURLs    bool // 验证URL格式
+    ResolveDomains  bool // 是否解析域名
 }</code></pre>
 
-      <h2>输入验证</h2>
+      <h3>支持的输入格式</h3>
+      <table>
+        <tr><th>格式</th><th>示例</th><th>说明</th></tr>
+        <tr><td>单个IP</td><td>192.168.1.1</td><td>单个IPv4地址</td></tr>
+        <tr><td>CIDR</td><td>192.168.1.0/24</td><td>自动展开为IP列表</td></tr>
+        <tr><td>IP范围</td><td>192.168.1.1-254</td><td>简写范围</td></tr>
+        <tr><td>域名</td><td>example.com</td><td>DNS解析A记录</td></tr>
+        <tr><td>文件</td><td>-hf targets.txt</td><td>每行一个目标</td></tr>
+      </table>
 
-      <h3>IP 地址验证</h3>
+      <h3>CIDR展开逻辑</h3>
+      <pre><code>func (tp *TargetParser) expandCIDR(cidr string) ([]string, error) {
+    ip, ipnet, err := net.ParseCIDR(cidr)
+    if err != nil {
+        return nil, err
+    }
+
+    var ips []string
+    for ip := ip.Mask(ipnet.Mask); ipnet.Contains(ip); inc(ip) {
+        ips = append(ips, ip.String())
+    }
+
+    // 排除网络地址和广播地址
+    return ips[1:len(ips)-1], nil
+}</code></pre>
+
+      <h2>端口解析（<code>parsers/network.go</code>）</h2>
+
+      <h3>ParsePort函数</h3>
+      <pre><code>func ParsePort(ports string) []int {
+    var portList []int
+
+    for _, part := range strings.Split(ports, ",") {
+        if strings.Contains(part, "-") {
+            // 端口范围：8080-8090
+            portList = append(portList, expandRange(part)...)
+        } else {
+            // 单个端口：80
+            port, _ := strconv.Atoi(strings.TrimSpace(part))
+            portList = append(portList, port)
+        }
+    }
+
+    // 去重并排序
+    return dedupAndSort(portList)
+}</code></pre>
+
+      <h3>端口范围限制</h3>
       <ul>
-        <li>格式检查：四段，每段 0-255</li>
-        <li>排除保留地址（0.0.0.0、255.255.255.255）</li>
-        <li>排除组播地址（224-239）</li>
+        <li>单个端口：1-65535</li>
+        <li>范围展开：最多10000个端口（防止OOM）</li>
+        <li>特殊值：<code>-</code>或<code>all</code>表示全端口扫描</li>
       </ul>
 
-      <h3>端口验证</h3>
+      <h2>凭据解析（<code>parsers/credential.go</code>）</h2>
+
+      <h3>CredentialPair结构</h3>
+      <pre><code>type CredentialPair struct {
+    Username string
+    Password string
+}
+
+func ParseCredentials(userFile, passFile, comboFile string) ([]CredentialPair, error) {
+    if comboFile != "" {
+        // 组合文件：user:pass格式
+        return parseComboFile(comboFile)
+    }
+
+    // 笛卡尔积：users × passwords
+    users := readLines(userFile)
+    passwords := readLines(passFile)
+
+    var pairs []CredentialPair
+    for _, user := range users {
+        for _, pass := range passwords {
+            pairs = append(pairs, CredentialPair{user, pass})
+        }
+    }
+    return pairs, nil
+}</code></pre>
+
+      <h3>为什么分离精确对和笛卡尔积？</h3>
       <ul>
-        <li>范围：1-65535</li>
-        <li>数量限制：最多 10000 个端口</li>
+        <li>精确对（-upf）：用于已知凭据，避免无效尝试</li>
+        <li>笛卡尔积（-userf + -pwdf）：用于暴力破解</li>
+        <li>性能差异巨大：10用户×10密码 = 100次 vs 10次</li>
       </ul>
 
-      <h2>错误处理</h2>
+      <h2>文件解析（<code>parsers/file.go</code>）</h2>
 
-      <h3>友好的错误提示</h3>
-      <pre><code>Error: invalid IP address "192.168.1.256"
-Line 10 in targets.txt
-Hint: each part of IP should be 0-255</code></pre>
+      <h3>FileReader实现</h3>
+      <pre><code>type FileReader struct {
+    mu sync.RWMutex
+}
+
+func (fr *FileReader) ReadLines(path string) ([]string, error) {
+    file, err := os.Open(path)
+    if err != nil {
+        return nil, err
+    }
+    defer file.Close()
+
+    var lines []string
+    scanner := bufio.NewScanner(file)
+
+    for scanner.Scan() {
+        line := strings.TrimSpace(scanner.Text())
+
+        // 跳过空行和注释
+        if line == "" || strings.HasPrefix(line, "#") {
+            continue
+        }
+
+        lines = append(lines, line)
+    }
+
+    return lines, scanner.Err()
+}</code></pre>
+
+      <h3>流式读取的优势</h3>
+      <ul>
+        <li>内存占用固定（bufio.Scanner默认64KB缓冲）</li>
+        <li>支持超大文件（百万行目标文件）</li>
+        <li>逐行处理，边读边解析</li>
+      </ul>
+
+      <h2>输入验证（<code>parsers/validation.go</code>）</h2>
+
+      <h3>ValidateIP函数</h3>
+      <pre><code>func ValidateIP(ipStr string) error {
+    ip := net.ParseIP(ipStr)
+    if ip == nil {
+        return errors.New("invalid IP format")
+    }
+
+    // 排除保留地址
+    if ip.IsUnspecified() || ip.IsMulticast() {
+        return errors.New("reserved IP address")
+    }
+
+    // 可选：排除私网IP
+    if !AllowPrivateIPs && ip.IsPrivate() {
+        return errors.New("private IP not allowed")
+    }
+
+    return nil
+}</code></pre>
 
       <h2>设计权衡</h2>
 
-      <h3>为什么不用正则表达式解析所有格式？</h3>
+      <h3>为什么单独的parsers包？</h3>
       <ul>
-        <li>✅ 正则难以维护和调试</li>
-        <li>✅ 手动解析性能更好</li>
-        <li>✅ 错误提示更友好</li>
+        <li>✅ 解析逻辑复杂，独立包便于测试</li>
+        <li>✅ 可被其他模块复用（如Web界面）</li>
+        <li>✅ 便于添加新格式支持</li>
+      </ul>
+
+      <h3>为什么用预编译正则？</h3>
+      <pre><code>var (
+    CompiledIPv4Regex = regexp.MustCompile(\`^(\d{1,3}\.){3}\d{1,3}$\`)
+    CompiledPortRegex = regexp.MustCompile(\`^\d+(-\d+)?$\`)
+    CompiledURLRegex  = regexp.MustCompile(\`^https?://\`)
+)
+</code></pre>
+      <ul>
+        <li>避免每次调用重新编译（性能提升10倍以上）</li>
+        <li>编译失败在启动时发现（不在运行时）</li>
       </ul>
     `,
   },
