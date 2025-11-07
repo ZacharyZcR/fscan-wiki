@@ -105,3 +105,42 @@
 3. 可以指定多个插件，用逗号分隔
 4. **没有** `webtitle`, `webpoc` 这样的独立插件
 5. **没有** `localinfo`, `dcinfo`, `minidump` 这些本地插件（在 `local/` 目录中，不是扫描插件）
+
+## 本地插件列表（Plugins/local/）
+
+基于 `ls -la Plugins/local/` 的输出，共 23 个本地插件：
+
+### 信息收集类
+1. **avdetect** - AV/EDR 检测
+2. **dcinfo** - 域控信息收集
+3. **envinfo** - 环境信息收集
+4. **fileinfo** - 文件信息收集
+5. **systeminfo** - 系统信息收集
+
+### 后渗透工具类
+6. **cleaner** - 清理痕迹
+7. **downloader** - 文件下载器
+8. **forwardshell** - 正向Shell
+9. **keylogger** - 键盘记录
+10. **minidump** - 内存转储
+11. **reverseshell** - 反弹Shell
+12. **shellenv** - Shell环境设置
+13. **socks5proxy** - SOCKS5代理服务器
+
+### Linux持久化类
+14. **ldpreload** - LD_PRELOAD持久化
+15. **systemdservice** - Systemd服务持久化
+16. **crontask** - 计划任务持久化
+
+### Windows持久化类
+17. **winregistry** - Windows注册表持久化
+18. **winschtask** - Windows计划任务
+19. **winservice** - Windows服务持久化
+20. **winstartup** - Windows启动项持久化
+21. **winwmi** - Windows WMI持久化
+
+**注意**：
+- 本地插件通过 `-local` 参数指定单个插件使用
+- 例如：`./fscan -local cleaner` 或 `./fscan -local keylogger`
+- 不能与 `-m` 参数混用
+- 不能同时指定多个本地插件

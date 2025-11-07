@@ -286,48 +286,74 @@
       </div>
 
       <!-- 本地插件和发包控制 -->
-      <div class="mb-8 grid grid-cols-1 gap-6 md:grid-cols-3">
+      <div class="mb-8 grid grid-cols-1 gap-6">
         <!-- 本地插件名称 -->
         <div>
           <label class="mb-3 block text-lg font-medium">本地插件 (-local)</label>
           <input
             v-model="params.local"
             type="text"
-            placeholder="指定本地插件名称"
+            placeholder="指定本地插件名称（只能指定单个插件）"
             class="w-full rounded-lg border border-input bg-background px-4 py-3 text-base outline-none transition-colors focus:border-ring"
           />
           <div class="mt-2 text-sm text-muted-foreground">
-            例如: cleaner, avdetect, keylogger 等
+            本地插件用于本地主机的后渗透操作，通过 -local 参数指定单个插件
+          </div>
+
+          <!-- 本地插件快速选择 -->
+          <div class="mt-4">
+            <label class="mb-2 block text-sm font-medium text-muted-foreground">可用本地插件（点击选择）</label>
+            <div class="grid grid-cols-2 gap-2 md:grid-cols-4 lg:grid-cols-6">
+              <button
+                v-for="plugin in localPlugins"
+                :key="plugin.name"
+                type="button"
+                class="rounded-lg px-3 py-2 text-sm transition-all hover:scale-105"
+                :class="
+                  params.local === plugin.name
+                    ? 'bg-primary/10 text-primary font-medium'
+                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                "
+                :title="plugin.description"
+                @click="selectLocalPlugin(plugin.name)"
+              >
+                <Icon :icon="plugin.icon" class="mr-1 inline-block text-base" />
+                {{ plugin.name }}
+              </button>
+            </div>
           </div>
         </div>
 
-        <!-- 发包速率限制 -->
-        <div>
-          <label class="mb-3 block text-lg font-medium">发包速率 (-rate)</label>
-          <input
-            v-model.number="params.rate"
-            type="number"
-            min="0"
-            placeholder="每分钟最大发包数"
-            class="w-full rounded-lg border border-input bg-background px-4 py-3 text-base outline-none transition-colors focus:border-ring"
-          />
-          <div class="mt-2 text-sm text-muted-foreground">
-            0 表示无限制
+        <!-- 发包控制 -->
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <!-- 发包速率限制 -->
+          <div>
+            <label class="mb-3 block text-lg font-medium">发包速率 (-rate)</label>
+            <input
+              v-model.number="params.rate"
+              type="number"
+              min="0"
+              placeholder="每分钟最大发包数"
+              class="w-full rounded-lg border border-input bg-background px-4 py-3 text-base outline-none transition-colors focus:border-ring"
+            />
+            <div class="mt-2 text-sm text-muted-foreground">
+              0 表示无限制
+            </div>
           </div>
-        </div>
 
-        <!-- 最大发包总数 -->
-        <div>
-          <label class="mb-3 block text-lg font-medium">最大发包数 (-maxpkts)</label>
-          <input
-            v-model.number="params.maxpkts"
-            type="number"
-            min="0"
-            placeholder="整个程序最大发包总数"
-            class="w-full rounded-lg border border-input bg-background px-4 py-3 text-base outline-none transition-colors focus:border-ring"
-          />
-          <div class="mt-2 text-sm text-muted-foreground">
-            0 表示无限制
+          <!-- 最大发包总数 -->
+          <div>
+            <label class="mb-3 block text-lg font-medium">最大发包数 (-maxpkts)</label>
+            <input
+              v-model.number="params.maxpkts"
+              type="number"
+              min="0"
+              placeholder="整个程序最大发包总数"
+              class="w-full rounded-lg border border-input bg-background px-4 py-3 text-base outline-none transition-colors focus:border-ring"
+            />
+            <div class="mt-2 text-sm text-muted-foreground">
+              0 表示无限制
+            </div>
           </div>
         </div>
       </div>
@@ -465,6 +491,38 @@ const plugins = ref([
 
   // 漏洞扫描
   { name: 'ms17010', group: 'vulnerability', ports: [445], description: 'MS17-010永恒之蓝漏洞' },
+])
+
+// 本地插件列表 - 基于 fscan/Plugins/local/ 实际插件
+const localPlugins = ref([
+  // 信息收集类
+  { name: 'avdetect', icon: 'mdi:shield-search', description: 'AV/EDR 检测' },
+  { name: 'dcinfo', icon: 'mdi:domain', description: '域控信息收集' },
+  { name: 'envinfo', icon: 'mdi:information-outline', description: '环境信息收集' },
+  { name: 'fileinfo', icon: 'mdi:file-search', description: '文件信息收集' },
+  { name: 'systeminfo', icon: 'mdi:information', description: '系统信息收集' },
+
+  // 后渗透工具类
+  { name: 'cleaner', icon: 'mdi:broom', description: '清理痕迹' },
+  { name: 'downloader', icon: 'mdi:download', description: '文件下载器' },
+  { name: 'forwardshell', icon: 'mdi:console', description: '正向Shell' },
+  { name: 'keylogger', icon: 'mdi:keyboard', description: '键盘记录' },
+  { name: 'minidump', icon: 'mdi:memory', description: '内存转储' },
+  { name: 'reverseshell', icon: 'mdi:console-network', description: '反弹Shell' },
+  { name: 'shellenv', icon: 'mdi:application-cog', description: 'Shell环境设置' },
+  { name: 'socks5proxy', icon: 'mdi:proxy', description: 'SOCKS5代理服务器' },
+
+  // Linux持久化类
+  { name: 'ldpreload', icon: 'mdi:linux', description: 'LD_PRELOAD持久化' },
+  { name: 'systemdservice', icon: 'mdi:cog', description: 'Systemd服务持久化' },
+  { name: 'crontask', icon: 'mdi:clock-outline', description: '计划任务持久化' },
+
+  // Windows持久化类
+  { name: 'winregistry', icon: 'mdi:registry', description: 'Windows注册表持久化' },
+  { name: 'winschtask', icon: 'mdi:calendar-clock', description: 'Windows计划任务' },
+  { name: 'winservice', icon: 'mdi:cog-outline', description: 'Windows服务持久化' },
+  { name: 'winstartup', icon: 'mdi:startup', description: 'Windows启动项持久化' },
+  { name: 'winwmi', icon: 'mdi:database-cog', description: 'Windows WMI持久化' },
 ])
 
 // 插件预设
@@ -665,6 +723,16 @@ const incrementRetryNum = () => {
 const decrementRetryNum = () => {
   if (params.value.retry > 1) {
     params.value.retry--
+  }
+}
+
+// 选择本地插件
+const selectLocalPlugin = pluginName => {
+  // 如果点击已选中的插件，则清空选择
+  if (params.value.local === pluginName) {
+    params.value.local = ''
+  } else {
+    params.value.local = pluginName
   }
 }
 
