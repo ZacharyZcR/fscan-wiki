@@ -102,12 +102,6 @@ const docCategories = [
     description: '参数配置和使用技巧',
   },
   {
-    id: 'api',
-    title: 'API 文档',
-    icon: 'mdi:api',
-    description: 'RPC API 接口说明',
-  },
-  {
     id: 'faq',
     title: '常见问题',
     icon: 'mdi:help-circle',
@@ -365,73 +359,6 @@ fscan -h 192.168.1.1 -nopoc
 fscan -h 192.168.1.1 -m ssh,mysql,redis</code></pre>
     `,
   },
-  api: {
-    title: 'API 文档',
-    description: 'RPC API 接口说明',
-    icon: 'mdi:api',
-    content: `
-      <h2>RPC 服务</h2>
-      <p>fscan 支持通过 RPC 接口进行远程调用。</p>
-
-      <h2>启动 RPC 服务</h2>
-      <pre><code>fscan -api 0.0.0.0:8888 -api-key your-secret-key</code></pre>
-
-      <h2>API 端点</h2>
-      <h3>POST /v1/startscan</h3>
-      <p>启动扫描任务</p>
-      <pre><code>curl -X POST http://localhost:8888/v1/startscan \\
-  -H "Fscan-API-SECRET: your-secret-key" \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "arg": ["-h", "192.168.1.0/24", "-np"]
-  }'</code></pre>
-
-      <h4>响应</h4>
-      <pre><code>{
-  "taskId": "uuid-string",
-  "status": "running"
-}</code></pre>
-
-      <h3>POST /v1/getresults</h3>
-      <p>获取扫描结果</p>
-      <pre><code>curl -X POST http://localhost:8888/v1/getresults \\
-  -H "Fscan-API-SECRET: your-secret-key" \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "taskId": "uuid-string"
-  }'</code></pre>
-
-      <h4>响应</h4>
-      <pre><code>{
-  "taskId": "uuid-string",
-  "finished": false,
-  "total": 256,
-  "end": 128,
-  "results": [
-    {
-      "time": "2024-11-07 18:00:00",
-      "type": "PORT",
-      "target": "192.168.1.1:22",
-      "status": "open",
-      "details": {...}
-    }
-  ]
-}</code></pre>
-
-      <h2>认证</h2>
-      <p>所有 API 请求都需要在 Header 中包含 API 密钥：</p>
-      <pre><code>Fscan-API-SECRET: your-secret-key</code></pre>
-
-      <h2>错误处理</h2>
-      <p>API 使用标准 HTTP 状态码：</p>
-      <ul>
-        <li><strong>200</strong>: 成功</li>
-        <li><strong>400</strong>: 请求参数错误</li>
-        <li><strong>401</strong>: 认证失败</li>
-        <li><strong>500</strong>: 服务器错误</li>
-      </ul>
-    `,
-  },
   faq: {
     title: '常见问题',
     description: '常见问题解答',
@@ -465,20 +392,6 @@ fscan -h 192.168.1.1 -m ssh,mysql,redis</code></pre>
         <li>增加延迟: <code>-time 5</code></li>
         <li>使用代理: <code>-proxy socks5://127.0.0.1:1080</code></li>
       </ul>
-
-      <h2>API 相关</h2>
-      <h3>Q: RPC 服务如何保证安全？</h3>
-      <p>A: 建议：</p>
-      <ul>
-        <li>设置强 API 密钥</li>
-        <li>只监听内网地址</li>
-        <li>配合防火墙规则</li>
-        <li>使用反向代理加 HTTPS</li>
-      </ul>
-
-      <h3>Q: 如何查看 API 调用日志？</h3>
-      <p>A: 启动时设置日志级别：</p>
-      <pre><code>fscan -api 0.0.0.0:8888 -api-key key -log-level debug</code></pre>
 
       <h2>插件开发</h2>
       <h3>Q: 如何添加自定义插件？</h3>
