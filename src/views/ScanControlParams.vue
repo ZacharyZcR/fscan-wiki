@@ -285,34 +285,50 @@
         </div>
       </div>
 
-      <!-- 存活优先扫描数量 -->
-      <div class="mb-8">
-        <label class="mb-3 flex justify-between text-lg font-medium">
-          存活优先扫描数量 (-top)
-          <span class="text-sm text-muted-foreground">1-100</span>
-        </label>
-        <div class="mx-auto flex max-w-md items-center">
-          <button
-            type="button"
-            class="rounded-l-lg border border-r-0 border-input bg-muted px-4 py-3 transition-colors hover:bg-muted/80"
-            @click="decrementLiveTop"
-          >
-            <Icon icon="mdi:minus" class="text-lg" />
-          </button>
+      <!-- 本地插件和发包控制 -->
+      <div class="mb-8 grid grid-cols-1 gap-6 md:grid-cols-3">
+        <!-- 本地插件名称 -->
+        <div>
+          <label class="mb-3 block text-lg font-medium">本地插件 (-local)</label>
           <input
-            v-model.number="params.top"
-            type="number"
-            min="1"
-            max="100"
-            class="w-full border border-input bg-background px-4 py-3 text-center text-base outline-none transition-colors focus:border-ring"
+            v-model="params.local"
+            type="text"
+            placeholder="指定本地插件名称"
+            class="w-full rounded-lg border border-input bg-background px-4 py-3 text-base outline-none transition-colors focus:border-ring"
           />
-          <button
-            type="button"
-            class="rounded-r-lg border border-l-0 border-input bg-muted px-4 py-3 transition-colors hover:bg-muted/80"
-            @click="incrementLiveTop"
-          >
-            <Icon icon="mdi:plus" class="text-lg" />
-          </button>
+          <div class="mt-2 text-sm text-muted-foreground">
+            例如: cleaner, avdetect, keylogger 等
+          </div>
+        </div>
+
+        <!-- 发包速率限制 -->
+        <div>
+          <label class="mb-3 block text-lg font-medium">发包速率 (-rate)</label>
+          <input
+            v-model.number="params.rate"
+            type="number"
+            min="0"
+            placeholder="每分钟最大发包数"
+            class="w-full rounded-lg border border-input bg-background px-4 py-3 text-base outline-none transition-colors focus:border-ring"
+          />
+          <div class="mt-2 text-sm text-muted-foreground">
+            0 表示无限制
+          </div>
+        </div>
+
+        <!-- 最大发包总数 -->
+        <div>
+          <label class="mb-3 block text-lg font-medium">最大发包数 (-maxpkts)</label>
+          <input
+            v-model.number="params.maxpkts"
+            type="number"
+            min="0"
+            placeholder="整个程序最大发包总数"
+            class="w-full rounded-lg border border-input bg-background px-4 py-3 text-base outline-none transition-colors focus:border-ring"
+          />
+          <div class="mt-2 text-sm text-muted-foreground">
+            0 表示无限制
+          </div>
         </div>
       </div>
 
@@ -666,19 +682,6 @@ const incrementRetryNum = () => {
 const decrementRetryNum = () => {
   if (params.value.retry > 1) {
     params.value.retry--
-  }
-}
-
-// 存活优先扫描数量控制
-const incrementLiveTop = () => {
-  if (params.value.top < 100) {
-    params.value.top++
-  }
-}
-
-const decrementLiveTop = () => {
-  if (params.value.top > 1) {
-    params.value.top--
   }
 }
 

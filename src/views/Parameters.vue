@@ -121,19 +121,20 @@ const params = reactive({
   // 目标配置参数
   h: [], // 目标地址，可多个
   eh: '', // 要排除的主机
+  ehf: '', // 排除主机文件
   p: '21,22,80,443,3306,6379,8080,8443', // 端口
-  ep: '',
+  ep: '', // 排除端口
   hf: '', // 主机文件
   pf: '', // 端口文件
 
   // 扫描控制参数
   m: 'all', // 扫描模式
-  t: 10, // 扫描线程数
+  t: 600, // 扫描线程数 (fscan 默认值)
   time: 3, // 超时时间
-  mt: 10, // 模块线程数
+  mt: 20, // 模块线程数 (fscan 默认值)
   gt: 180, // 全局超时时间
-  top: 10, // 存活优先扫描数量
-  retry: 3,
+  local: '', // 本地插件名称
+  retry: 3, // 最大重试次数
 
   // 认证与凭据参数
   user: '', // 默认用户名
@@ -142,6 +143,9 @@ const params = reactive({
   pwda: '', // 附加密码
   userf: '', // 用户名文件
   pwdf: '', // 密码文件
+  upf: '', // 用户密码对文件
+  hashf: '', // hash文件
+  hash: '', // hash值
   domain: '', // 域名
   sshkey: '', // SSH密钥路径
 
@@ -158,6 +162,7 @@ const params = reactive({
   uf: '', // URLs文件
   cookie: '', // Cookie
   wt: 5, // Web超时
+  'max-redirect': 10, // 最大重定向次数
   proxy: '', // HTTP代理
   socks5: '', // Socks5代理
 
@@ -166,6 +171,10 @@ const params = reactive({
   pocname: '', // POC名称
   num: 20, // POC线程数
   nopoc: false,
+
+  // 发包频率控制参数
+  rate: 0, // 发包速率限制 (每分钟最大发包数，0表示无限制)
+  maxpkts: 0, // 整个程序最大发包总数 (0表示无限制)
 
   // 输出与显示控制参数
   o: 'result.txt', // 输出文件
@@ -183,29 +192,13 @@ const scanControlOptions = reactive({
     icon: 'mdi:access-point-network-off',
     detail: '禁用Ping存活探测，对所有目标执行扫描',
   },
-  ping: {
-    name: '使用Ping',
-    description: '使用系统Ping命令进行存活探测',
-    param: 'ping',
+  ao: {
+    name: '仅存活主机',
+    description: '仅输出存活主机，不进行端口扫描',
+    param: 'ao',
     enabled: false,
-    icon: 'mdi:access-point-network',
-    detail: '使用系统Ping命令进行主机存活探测',
-  },
-  fingerprint: {
-    name: '启用指纹识别',
-    description: '对开放端口进行指纹识别',
-    param: 'fingerprint',
-    enabled: false,
-    icon: 'mdi:fingerprint',
-    detail: '启用对开放端口的服务指纹识别',
-  },
-  local: {
-    name: '本地模式',
-    description: '本地模式，不使用互联网检测',
-    param: 'local',
-    enabled: false,
-    icon: 'mdi:desktop-classic',
-    detail: '以本地模式运行，不使用互联网进行辅助检测',
+    icon: 'mdi:check-network',
+    detail: '仅进行主机存活探测并输出存活主机，不执行端口扫描和其他检测',
   },
   nobr: {
     name: '禁用暴力破解',
@@ -257,11 +250,11 @@ const outputOptions = reactive({
   },
   silent: {
     name: '静默模式',
-    description: 'ICMP探测过程不输出信息',
+    description: '静默模式，完全不输出Banner和提示信息',
     param: 'silent',
     enabled: false,
     icon: 'mdi:volume-off',
-    detail: '在ICMP探测过程中不输出信息，减少控制台输出',
+    detail: '静默模式下完全跳过Banner显示和提示信息，只输出扫描结果',
   },
   nocolor: {
     name: '禁用彩色输出',
@@ -271,29 +264,13 @@ const outputOptions = reactive({
     icon: 'mdi:palette-outline',
     detail: '禁用控制台的彩色文本输出，适用于不支持ANSI颜色的终端',
   },
-  pg: {
-    name: '显示进度条',
-    description: '显示扫描进度条',
-    param: 'pg',
+  nopg: {
+    name: '禁用进度条',
+    description: '禁用扫描进度条显示',
+    param: 'nopg',
     enabled: false,
-    icon: 'mdi:progress-helper',
-    detail: '在控制台显示扫描过程的进度条',
-  },
-  sp: {
-    name: '显示扫描计划',
-    description: '扫描前显示详细的扫描计划',
-    param: 'sp',
-    enabled: false,
-    icon: 'mdi:clipboard-list',
-    detail: '在开始扫描前显示详细的扫描计划',
-  },
-  slow: {
-    name: '慢速日志输出',
-    description: '使用慢速日志输出模式',
-    param: 'slow',
-    enabled: false,
-    icon: 'mdi:timer-sand',
-    detail: '使用慢速日志输出模式，减轻屏幕刷新压力',
+    icon: 'mdi:progress-close',
+    detail: '禁用扫描过程中的进度条显示',
   },
 })
 
@@ -413,17 +390,20 @@ const resetCommand = () => {
 
   // 目标配置参数
   params.eh = ''
+  params.ehf = ''
   params.p = '21,22,80,443,3306,6379,8080,8443'
+  params.ep = ''
   params.hf = ''
   params.pf = ''
 
   // 扫描控制参数
   params.m = 'all'
-  params.t = 10
+  params.t = 600 // fscan 默认值
   params.time = 3
-  params.mt = 10
+  params.mt = 20 // fscan 默认值
   params.gt = 180
-  params.top = 10
+  params.local = ''
+  params.retry = 3
 
   // 认证与凭据参数
   params.user = ''
@@ -432,6 +412,9 @@ const resetCommand = () => {
   params.pwda = ''
   params.userf = ''
   params.pwdf = ''
+  params.upf = ''
+  params.hashf = ''
+  params.hash = ''
   params.domain = ''
   params.sshkey = ''
 
@@ -448,6 +431,7 @@ const resetCommand = () => {
   params.uf = ''
   params.cookie = ''
   params.wt = 5
+  params['max-redirect'] = 10
   params.proxy = ''
   params.socks5 = ''
 
@@ -456,10 +440,14 @@ const resetCommand = () => {
   params.pocname = ''
   params.num = 20
 
+  // 发包频率控制参数
+  params.rate = 0
+  params.maxpkts = 0
+
   // 输出与显示控制参数
   params.o = 'result.txt'
   params.f = 'txt'
-  params.log = 'success'
+  params.log = 'SUCCESS'
 
   // 重置所有选项
   for (const key in scanControlOptions) {

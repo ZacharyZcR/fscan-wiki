@@ -58,6 +58,17 @@
           />
         </div>
 
+        <!-- 排除主机文件 -->
+        <div>
+          <label class="mb-3 block text-lg font-medium">排除主机文件 (-ehf)</label>
+          <input
+            v-model="params.ehf"
+            type="text"
+            placeholder="从文件中读取要排除的主机列表"
+            class="w-full rounded-lg border border-input bg-background px-4 py-3 text-base outline-none transition-colors focus:border-ring"
+          />
+        </div>
+
         <!-- 端口参数 -->
         <div>
           <label class="mb-3 block text-lg font-medium">扫描端口 (-p)</label>
@@ -113,6 +124,17 @@
               {{ selectedPortPreset.value }}
             </div>
           </div>
+        </div>
+
+        <!-- 排除端口 -->
+        <div>
+          <label class="mb-3 block text-lg font-medium">排除端口 (-ep)</label>
+          <input
+            v-model="params.ep"
+            type="text"
+            placeholder="要排除的端口，逗号分隔 (例如: 22,3389)"
+            class="w-full rounded-lg border border-input bg-background px-4 py-3 text-base outline-none transition-colors focus:border-ring"
+          />
         </div>
       </div>
 
