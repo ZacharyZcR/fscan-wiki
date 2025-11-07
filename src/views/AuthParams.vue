@@ -517,22 +517,18 @@
 </template>
 
 <script setup>
-import { inject, ref } from 'vue'
+import { inject } from 'vue'
 import { Icon } from '@iconify/vue'
 
-const props = defineProps({
-  params: {
-    type: Object,
-    required: true,
-  },
+const params = defineModel('params', {
+  type: Object,
+  required: true,
 })
-
-const emit = defineEmits(['update:params'])
 
 const isDark = inject('isDark')
 
 // 切换Redis禁用状态
 const toggleRedisDisable = () => {
-  props.params.noredis = !props.params.noredis
+  params.value.noredis = !params.value.noredis
 }
 </script>

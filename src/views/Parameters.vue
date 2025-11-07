@@ -5,9 +5,7 @@
       <div class="inline-flex items-center justify-center p-4 rounded-full mb-6 bg-primary/10">
         <Icon icon="mdi:console-line" class="text-5xl text-primary" />
       </div>
-      <h1 class="text-5xl font-bold mb-4">
-        Fscan 参数构建器
-      </h1>
+      <h1 class="text-5xl font-bold mb-4">Fscan 参数构建器</h1>
       <p class="mt-4 text-xl max-w-3xl mx-auto text-muted-foreground">
         交互式选择扫描参数，构建自定义 Fscan 命令
       </p>
@@ -334,7 +332,7 @@ const getEnabledOptions = () => {
     ...outputOptions,
   }
 
-  for (const [key, option] of Object.entries(allOptions)) {
+  for (const option of Object.values(allOptions)) {
     if (option.enabled) {
       enabled.push(option)
     }

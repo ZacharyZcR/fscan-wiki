@@ -152,14 +152,10 @@
 import { inject } from 'vue'
 import { Icon } from '@iconify/vue'
 
-const props = defineProps({
-  params: {
-    type: Object,
-    required: true,
-  },
+const params = defineModel('params', {
+  type: Object,
+  required: true,
 })
-
-defineEmits(['update:params'])
 
 const isDark = inject('isDark')
 </script>

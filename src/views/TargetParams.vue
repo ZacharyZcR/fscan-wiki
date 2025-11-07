@@ -240,7 +240,7 @@
 </template>
 
 <script setup>
-import { ref, inject, computed } from 'vue'
+import { ref, inject } from 'vue'
 import { Icon } from '@iconify/vue'
 
 // 定义Fscan内置的端口预设
@@ -269,14 +269,12 @@ const countPorts = portsStr => {
   return count
 }
 
-const props = defineProps({
-  params: {
-    type: Object,
-    required: true,
-  },
+const params = defineModel('params', {
+  type: Object,
+  required: true,
 })
 
-const emit = defineEmits(['update:params', 'add-target', 'remove-target', 'apply-port-preset'])
+const emit = defineEmits(['add-target', 'remove-target', 'apply-port-preset'])
 
 const isDark = inject('isDark')
 const targetInput = inject('targetInput')

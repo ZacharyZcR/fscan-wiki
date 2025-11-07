@@ -542,18 +542,19 @@
 import { ref, inject, computed, watch } from 'vue'
 import { Icon } from '@iconify/vue'
 
+const params = defineModel('params', {
+  type: Object,
+  required: true,
+})
+
 const props = defineProps({
-  params: {
-    type: Object,
-    required: true,
-  },
   scanControlOptions: {
     type: Object,
     required: true,
   },
 })
 
-const emit = defineEmits(['update:params', 'toggle-option'])
+const emit = defineEmits(['toggle-option'])
 
 const isDark = inject('isDark')
 
@@ -689,20 +690,20 @@ const filteredPluginGroups = computed(() => {
 
 // 获取当前选中的插件
 const selectedPlugins = computed(() => {
-  if (!props.params.m) return []
+  if (!params.value.m) return []
 
   // 如果是预设值，转换成实际插件列表
-  if (props.params.m.toLowerCase() === 'all') {
+  if (params.value.m.toLowerCase() === 'all') {
     return plugins.value.map(p => p.name)
   }
-  if (props.params.m.toLowerCase() === 'ps') {
+  if (params.value.m.toLowerCase() === 'ps') {
     return ['ps']
   }
-  if (props.params.m.toLowerCase() === 'brute') {
+  if (params.value.m.toLowerCase() === 'brute') {
     return ['brute']
   }
 
-  return props.params.m
+  return params.value.m
     .split(',')
     .map(p => p.trim())
     .filter(p => p)
@@ -778,85 +779,85 @@ const togglePlugin = pluginName => {
   }
 
   // 更新参数
-  props.params.m = selected.join(',')
+  params.value.m = selected.join(',')
 
   // 更新自定义输入
-  customPluginInput.value = props.params.m
+  customPluginInput.value = params.value.m
 }
 
 // 全选插件
 const selectAllPlugins = () => {
-  props.params.m = plugins.value.map(p => p.name).join(',')
-  customPluginInput.value = props.params.m
+  params.value.m = plugins.value.map(p => p.name).join(',')
+  customPluginInput.value = params.value.m
 }
 
 // 清空插件选择
 const clearPluginSelection = () => {
-  props.params.m = ''
+  params.value.m = ''
   customPluginInput.value = ''
 }
 
 // 应用插件预设
 const applyPluginPreset = presetValue => {
-  props.params.m = presetValue
+  params.value.m = presetValue
   customPluginInput.value = presetValue
   showPresets.value = false
 }
 
 // 从自定义输入更新
 const updateFromCustomInput = () => {
-  props.params.m = customPluginInput.value
+  params.value.m = customPluginInput.value
 }
 
 // 线程数控制
 const incrementThreadNum = () => {
-  if (props.params.t < 2000) {
-    props.params.t++
+  if (params.value.t < 2000) {
+    params.value.t++
   }
 }
 
 const decrementThreadNum = () => {
-  if (props.params.t > 1) {
-    props.params.t--
+  if (params.value.t > 1) {
+    params.value.t--
   }
 }
 
 // 模块线程数控制
 const incrementModuleThreadNum = () => {
-  if (props.params.mt < 100) {
-    props.params.mt++
+  if (params.value.mt < 100) {
+    params.value.mt++
   }
 }
 
 const decrementModuleThreadNum = () => {
-  if (props.params.mt > 1) {
-    props.params.mt--
+  if (params.value.mt > 1) {
+    params.value.mt--
   }
 }
 
 // 重试次数控制
 const incrementRetryNum = () => {
-  if (props.params.retry < 10) {
-    props.params.retry++
+  if (params.value.retry < 10) {
+    params.value.retry++
   }
 }
 
 const decrementRetryNum = () => {
-  if (props.params.retry > 1) {
-    props.params.retry--
+  if (params.value.retry > 1) {
+    params.value.retry--
   }
 }
 
 // 存活优先扫描数量控制
 const incrementLiveTop = () => {
-  if (props.params.top < 100) {
-    props.params.top++
+  if (params.value.top < 100) {
+    params.value.top++
   }
 }
 
 const decrementLiveTop = () => {
-  if (props.params.top > 1) {
-    props.params.top--
+  if (params.value.top > 1) {
+    params.value.top--
   }
 }
 
@@ -867,7 +868,7 @@ const toggleOptionLocal = (key, option) => {
 
 // 初始化时同步自定义输入框
 watch(
-  () => props.params.m,
+  () => params.value.m,
   value => {
     if (value !== customPluginInput.value) {
       customPluginInput.value = value

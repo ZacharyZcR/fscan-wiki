@@ -47,7 +47,9 @@
               <Icon icon="mdi:eye-outline" class="text-xl text-primary" />
               <span>{{ repoInfo.watchers_count.toLocaleString() }} 关注</span>
             </div>
-            <div class="inline-flex items-center gap-2 rounded-lg bg-green-100 px-3 py-2 dark:bg-green-900/30">
+            <div
+              class="inline-flex items-center gap-2 rounded-lg bg-green-100 px-3 py-2 dark:bg-green-900/30"
+            >
               <Icon icon="mdi:calendar-clock" class="text-xl" />
               <span>更新于 {{ formatDate(repoInfo.updated_at) }}</span>
             </div>
@@ -55,13 +57,21 @@
 
           <div class="flex flex-wrap gap-3 pt-4">
             <Button as-child>
-              <a href="https://github.com/shadow1ng/fscan" target="_blank" rel="noopener noreferrer">
+              <a
+                href="https://github.com/shadow1ng/fscan"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <Icon icon="mdi:github" class="mr-2" />
                 访问 GitHub 仓库
               </a>
             </Button>
             <Button as-child variant="default">
-              <a href="https://github.com/shadow1ng/fscan/releases" target="_blank" rel="noopener noreferrer">
+              <a
+                href="https://github.com/shadow1ng/fscan/releases"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <Icon icon="mdi:download" class="mr-2" />
                 下载最新版本
               </a>
@@ -79,7 +89,10 @@
             <Icon icon="mdi:account-group" class="text-2xl text-primary" />
             <CardTitle>项目贡献者</CardTitle>
           </div>
-          <span v-if="contributors.length > 0" class="rounded-full bg-primary/10 px-3 py-1 text-sm text-primary">
+          <span
+            v-if="contributors.length > 0"
+            class="rounded-full bg-primary/10 px-3 py-1 text-sm text-primary"
+          >
             {{ contributors.length }} 位贡献者
           </span>
         </div>
@@ -87,7 +100,9 @@
       <CardContent>
         <!-- 加载状态 -->
         <div v-if="loadingContributors" class="flex flex-col items-center justify-center py-12">
-          <div class="mb-4 h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+          <div
+            class="mb-4 h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent"
+          ></div>
           <p class="text-muted-foreground">加载贡献者信息...</p>
         </div>
 
@@ -164,7 +179,9 @@
       <CardContent>
         <!-- 加载状态 -->
         <div v-if="loadingLicense" class="flex flex-col items-center justify-center py-12">
-          <div class="mb-4 h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+          <div
+            class="mb-4 h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent"
+          ></div>
           <p class="text-muted-foreground">加载许可证信息...</p>
         </div>
 
@@ -218,7 +235,9 @@
       <CardContent>
         <!-- 加载状态 -->
         <div v-if="loadingReleases" class="flex flex-col items-center justify-center py-12">
-          <div class="mb-4 h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+          <div
+            class="mb-4 h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent"
+          ></div>
           <p class="text-muted-foreground">加载版本信息...</p>
         </div>
 
@@ -238,7 +257,9 @@
             class="relative border-l-2 border-primary/20 pl-6"
           >
             <!-- 时间线圆点 -->
-            <div class="absolute -left-2 top-0 h-4 w-4 rounded-full border-2 border-primary bg-background"></div>
+            <div
+              class="absolute -left-2 top-0 h-4 w-4 rounded-full border-2 border-primary bg-background"
+            ></div>
 
             <!-- 版本信息 -->
             <div class="mb-2 flex flex-wrap items-center gap-2">

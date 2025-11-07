@@ -202,14 +202,15 @@
 </template>
 
 <script setup>
-import { inject, reactive } from 'vue'
+import { inject } from 'vue'
 import { Icon } from '@iconify/vue'
 
+const params = defineModel('params', {
+  type: Object,
+  required: true,
+})
+
 const props = defineProps({
-  params: {
-    type: Object,
-    required: true,
-  },
   outputOptions: {
     type: Object,
     default: () => ({
@@ -265,7 +266,7 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['update:params', 'toggle-option'])
+const emit = defineEmits(['toggle-option'])
 
 const isDark = inject('isDark')
 
@@ -280,7 +281,7 @@ const logLevels = [
 
 // 设置日志级别
 const setLogLevel = level => {
-  props.params.log = level
+  params.value.log = level
 }
 
 // 切换选项本地方法

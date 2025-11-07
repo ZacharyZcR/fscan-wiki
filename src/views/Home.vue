@@ -1,20 +1,20 @@
 <template>
   <div class="space-y-12">
     <!-- Hero Section -->
-    <section class="relative overflow-hidden rounded-xl bg-gradient-to-r from-primary to-blue-600 p-12 text-white">
+    <section
+      class="relative overflow-hidden rounded-xl bg-gradient-to-r from-primary to-blue-600 p-12 text-white"
+    >
       <div class="relative z-10 mx-auto max-w-3xl text-center">
-        <div class="mb-6 inline-flex items-center rounded-full bg-white/10 px-4 py-1.5 text-sm backdrop-blur">
+        <div
+          class="mb-6 inline-flex items-center rounded-full bg-white/10 px-4 py-1.5 text-sm backdrop-blur"
+        >
           <Icon icon="mdi:rocket-launch" class="mr-2" />
           新版本 2.0.0-build4 现已发布
         </div>
 
-        <h1 class="mb-4 text-4xl font-bold leading-tight md:text-5xl">
-          Fscan 安全扫描工具
-        </h1>
+        <h1 class="mb-4 text-4xl font-bold leading-tight md:text-5xl">Fscan 安全扫描工具</h1>
 
-        <p class="mb-8 text-lg text-blue-100">
-          快速、高效的内网综合扫描工具，助力您的安全测试工作
-        </p>
+        <p class="mb-8 text-lg text-blue-100">快速、高效的内网综合扫描工具，助力您的安全测试工作</p>
 
         <div class="flex flex-col gap-4 sm:flex-row sm:justify-center">
           <Button as-child size="lg">
@@ -24,7 +24,12 @@
             </router-link>
           </Button>
 
-          <Button as-child variant="outline" size="lg" class="border-white/30 text-white hover:bg-white/10">
+          <Button
+            as-child
+            variant="outline"
+            size="lg"
+            class="border-white/30 text-white hover:bg-white/10"
+          >
             <a href="https://github.com/shadow1ng/fscan/releases/tag/2.0.0-build4" target="_blank">
               <Icon icon="mdi:download" class="mr-2" />
               下载最新版
@@ -34,7 +39,11 @@
 
         <!-- Stats -->
         <div class="mt-8 flex flex-wrap justify-center gap-6 text-sm">
-          <a href="https://github.com/shadow1ng/fscan" target="_blank" class="flex items-center hover:text-blue-100">
+          <a
+            href="https://github.com/shadow1ng/fscan"
+            target="_blank"
+            class="flex items-center hover:text-blue-100"
+          >
             <Icon icon="mdi:github" class="mr-2" />
             GitHub 项目
           </a>
@@ -54,10 +63,19 @@
     <section>
       <h2 class="mb-6 text-3xl font-bold">核心功能</h2>
       <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <Card v-for="feature in coreFeatures" :key="feature.title" class="transition-shadow hover:shadow-lg">
+        <Card
+          v-for="feature in coreFeatures"
+          :key="feature.title"
+          class="transition-shadow hover:shadow-lg"
+        >
           <CardHeader>
             <div class="flex items-start gap-4">
-              <div :class="['flex h-12 w-12 shrink-0 items-center justify-center rounded-lg', feature.bgColor]">
+              <div
+                :class="[
+                  'flex h-12 w-12 shrink-0 items-center justify-center rounded-lg',
+                  feature.bgColor,
+                ]"
+              >
                 <Icon :icon="feature.icon" :class="['text-2xl', feature.iconColor]" />
               </div>
               <div>
@@ -86,7 +104,9 @@
 
       <Card>
         <div v-if="isIssuesLoading" class="flex items-center justify-center p-12">
-          <div class="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+          <div
+            class="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent"
+          ></div>
         </div>
 
         <div v-else-if="issuesError" class="p-12 text-center text-muted-foreground">
@@ -95,15 +115,21 @@
         </div>
 
         <div v-else class="divide-y">
-          <div v-for="issue in githubIssues" :key="issue.id" class="p-6 transition-colors hover:bg-muted/50">
+          <div
+            v-for="issue in githubIssues"
+            :key="issue.id"
+            class="p-6 transition-colors hover:bg-muted/50"
+          >
             <div class="mb-2 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
               <div class="flex items-center gap-2">
-                <span :class="[
-                  'rounded-full px-2 py-0.5 text-xs',
-                  issue.state === 'open'
-                    ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
-                    : 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300'
-                ]">
+                <span
+                  :class="[
+                    'rounded-full px-2 py-0.5 text-xs',
+                    issue.state === 'open'
+                      ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+                      : 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
+                  ]"
+                >
                   {{ issue.state === 'open' ? '开放' : '关闭' }}
                 </span>
                 <h3 class="font-semibold">{{ issue.title }}</h3>
@@ -111,7 +137,9 @@
               <span class="text-sm text-muted-foreground">{{ formatDate(issue.created_at) }}</span>
             </div>
 
-            <p v-if="issue.body" class="mb-3 line-clamp-2 text-muted-foreground">{{ issue.body }}</p>
+            <p v-if="issue.body" class="mb-3 line-clamp-2 text-muted-foreground">
+              {{ issue.body }}
+            </p>
 
             <div class="flex flex-wrap gap-2">
               <span
@@ -158,7 +186,12 @@
           class="h-auto justify-start p-4 transition-shadow hover:shadow-md"
         >
           <a :href="resource.link" target="_blank">
-            <div :class="['mr-4 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg', resource.bgColor]">
+            <div
+              :class="[
+                'mr-4 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg',
+                resource.bgColor,
+              ]"
+            >
               <Icon :icon="resource.icon" :class="['text-xl', resource.iconColor]" />
             </div>
             <div class="text-left">

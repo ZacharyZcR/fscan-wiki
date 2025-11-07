@@ -169,31 +169,32 @@
 import { inject } from 'vue'
 import { Icon } from '@iconify/vue'
 
+const params = defineModel('params', {
+  type: Object,
+  required: true,
+})
+
 const props = defineProps({
-  params: {
-    type: Object,
-    required: true,
-  },
   pocOptions: {
     type: Object,
     required: true,
   },
 })
 
-const emit = defineEmits(['update:params', 'toggle-option'])
+const emit = defineEmits(['toggle-option'])
 
 const isDark = inject('isDark')
 
 // POC线程数控制
 const incrementPocNum = () => {
-  if (props.params.num < 100) {
-    props.params.num++
+  if (params.value.num < 100) {
+    params.value.num++
   }
 }
 
 const decrementPocNum = () => {
-  if (props.params.num > 1) {
-    props.params.num--
+  if (params.value.num > 1) {
+    params.value.num--
   }
 }
 
